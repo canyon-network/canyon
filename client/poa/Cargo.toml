@@ -1,0 +1,21 @@
+[package]
+name = "poa"
+version = "0.1.0"
+authors = ["Liu-Cheng Xu <xuliuchengxlc@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+codec = { package = "parity-scale-codec", version = "2.0.0" }
+thiserror = "1.0"
+
+sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-io = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-trie = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
+sc-client-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
+cp-permastore = { path = "../../primitives/permastore" }

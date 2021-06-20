@@ -1,0 +1,39 @@
+[package]
+name = "canyon"
+description = "Implementation of https://canyon-network.io node in Rust based on the Substrate framework."
+license = "GPL-3.0"
+version = "0.1.0"
+authors = ["Canyon Labs <https://github.com/canyon-network>"]
+edition = "2018"
+readme = "README.md"
+
+[workspace]
+resolver = "2"
+
+members = [
+    "cli",
+    "client/poa",
+    "client/proposer",
+    "executor",
+    "inspect",
+    "pallets/permastore",
+    "pallets/poa",
+    "primitives",
+    "primitives/permastore",
+    "rpc",
+    "runtime",
+]
+
+[[bin]]
+name = "canyon"
+path = "src/main.rs"
+required-features = ["canyon-cli/cli"]
+
+[dependencies]
+sc-cli = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
+canyon-cli = { path = "cli" }
+
+[features]
+runtime-benchmarks = ["canyon-cli/runtime-benchmarks"]
+try-runtime = ["canyon-cli/try-runtime"]

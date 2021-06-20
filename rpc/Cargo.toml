@@ -1,0 +1,41 @@
+[package]
+name = "canyon-rpc"
+version = "2.0.0"
+authors = ["Parity Technologies <admin@parity.io>"]
+edition = "2018"
+license = "Apache-2.0"
+homepage = "https://substrate.dev"
+repository = "https://github.com/paritytech/substrate/"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+jsonrpc-core = "15.1.0"
+
+sc-client-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-consensus-babe-rpc = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-consensus-epochs = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-chain-spec = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-finality-grandpa = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-finality-grandpa-rpc = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-keystore = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-rpc = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-rpc-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-sync-state-rpc = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-block-builder = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-keystore = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-consensus = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-transaction-pool = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
+pallet-mmr-rpc = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+pallet-transaction-payment-rpc = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+substrate-frame-rpc-system = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
+canyon-primitives = { path = "../primitives" }
+canyon-runtime = { path = "../runtime" }

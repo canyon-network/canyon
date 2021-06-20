@@ -1,0 +1,57 @@
+[package]
+name = "canyon-executor"
+version = "2.0.0"
+authors = ["Parity Technologies <admin@parity.io>"]
+description = "Substrate node implementation in Rust."
+edition = "2018"
+license = "Apache-2.0"
+homepage = "https://substrate.dev"
+repository = "https://github.com/paritytech/substrate/"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+codec = { package = "parity-scale-codec", version = "2.0.0" }
+trie-root = "0.16.0"
+
+sc-executor = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-keystore = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-io = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-state-machine = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-trie = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+frame-benchmarking = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
+canyon-primitives = { path = "../primitives" }
+canyon-runtime = { path = "../runtime" }
+
+[dev-dependencies]
+criterion = "0.3.0"
+wat = "1.0"
+
+frame-support = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+frame-system = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+pallet-balances = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+pallet-contracts = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+pallet-grandpa = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+pallet-im-online = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+pallet-indices = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+pallet-session = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+pallet-timestamp = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+pallet-transaction-payment = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+pallet-treasury = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-application-crypto = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-externalities = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+substrate-test-client = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
+[features]
+wasmtime = [
+	"sc-executor/wasmtime",
+]
+wasmi-errno = [
+	"sc-executor/wasmi-errno",
+]
+stress-test = []

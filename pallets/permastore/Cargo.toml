@@ -1,0 +1,41 @@
+[package]
+name = "pallet-permastore"
+version = "2.0.0"
+authors = ["Canyon Contributors"]
+edition = "2018"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
+serde = { version = "1.0.101", optional = true }
+
+sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-std = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-io = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+
+frame-support = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+frame-system = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-balances = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+
+frame-benchmarking = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false, optional = true }
+
+[dev-dependencies]
+sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+
+[features]
+default = ["std"]
+std = [
+	"serde",
+	"codec/std",
+	"sp-runtime/std",
+	"frame-benchmarking/std",
+	"frame-support/std",
+	"frame-system/std",
+	"pallet-balances/std",
+	"sp-io/std",
+	"sp-std/std"
+]
+runtime-benchmarks = ["frame-benchmarking"]
+try-runtime = ["frame-support/try-runtime"]

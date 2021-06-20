@@ -1,0 +1,232 @@
+[package]
+name = "canyon-runtime"
+version = "2.0.1"
+authors = ["Parity Technologies <admin@parity.io>"]
+edition = "2018"
+build = "build.rs"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["derive"] }
+hex-literal = { version = "0.3.1", optional = true }
+log = { version = "0.4.14", default-features = false }
+serde = { version = "1.0.102", optional = true }
+static_assertions = "1.1.0"
+
+# primitives
+sp-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-authority-discovery = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-block-builder = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-inherents = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-keyring = { git = "https://github.com/canyon-network/substrate", branch = "canyon", optional = true }
+sp-offchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-npos-elections = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-session = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-staking = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-std = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-transaction-pool = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-version = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+
+# frame dependencies
+frame-benchmarking = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false, optional = true }
+frame-election-provider-support = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+frame-executive = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+frame-support = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+frame-system = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+frame-system-benchmarking = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false, optional = true }
+frame-system-rpc-runtime-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+frame-try-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false, optional = true }
+pallet-assets = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-authority-discovery = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-authorship = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-babe = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-balances = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-bounties = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-collective = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-democracy = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-election-provider-multi-phase = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-elections-phragmen = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-gilt = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-grandpa = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-im-online = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-indices = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-identity = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-lottery = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-membership = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-mmr = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-multisig = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-offences = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-offences-benchmarking = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false, optional = true }
+pallet-proxy = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-randomness-collective-flip = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-session = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false, features = ["historical"] }
+pallet-session-benchmarking = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false, optional = true }
+pallet-staking = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-staking-reward-curve = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-scheduler = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-sudo = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-timestamp = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-tips = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-treasury = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-utility = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-transaction-payment = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+pallet-vesting = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+
+canyon-primitives = { path = "../primitives", default-features = false }
+
+pallet-permastore = { path = "../pallets/permastore", default-features = false }
+pallet-poa = { path = "../pallets/poa", default-features = false }
+
+[build-dependencies]
+substrate-wasm-builder = { version = "4.0.0" }
+
+[dev-dependencies]
+sp-io = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
+[features]
+default = ["std"]
+with-tracing = [ "frame-executive/with-tracing" ]
+std = [
+	"codec/std",
+	"log/std",
+	"serde",
+	"sp-api/std",
+	"sp-authority-discovery/std",
+	"sp-block-builder/std",
+	"sp-consensus-babe/std",
+	"sp-core/std",
+	"sp-inherents/std",
+	"sp-keyring",
+	"sp-offchain/std",
+	"sp-runtime/std",
+	"sp-session/std",
+	"sp-staking/std",
+	"sp-std/std",
+	"sp-transaction-pool/std",
+	"sp-version/std",
+	"pallet-assets/std",
+	"pallet-authority-discovery/std",
+	"pallet-authorship/std",
+	"pallet-babe/std",
+	"pallet-balances/std",
+	"pallet-bounties/std",
+	"pallet-collective/std",
+	"pallet-democracy/std",
+	"pallet-elections-phragmen/std",
+	"pallet-gilt/std",
+	"pallet-grandpa/std",
+	"pallet-im-online/std",
+	"pallet-indices/std",
+	"pallet-lottery/std",
+	"pallet-membership/std",
+	"pallet-mmr/std",
+	"pallet-multisig/std",
+	"pallet-identity/std",
+	"pallet-scheduler/std",
+	"pallet-offences/std",
+	"pallet-proxy/std",
+	"pallet-staking/std",
+	"pallet-randomness-collective-flip/std",
+	"pallet-session/std",
+	"pallet-sudo/std",
+	"pallet-election-provider-multi-phase/std",
+	"pallet-timestamp/std",
+	"pallet-tips/std",
+	"pallet-transaction-payment-rpc-runtime-api/std",
+	"pallet-transaction-payment/std",
+	"pallet-treasury/std",
+	"pallet-utility/std",
+	"pallet-vesting/std",
+	"frame-benchmarking/std",
+	"frame-election-provider-support/std",
+	"frame-executive/std",
+	"frame-support/std",
+	"frame-system-rpc-runtime-api/std",
+	"frame-system/std",
+	"frame-try-runtime/std",
+	"canyon-primitives/std",
+	"pallet-permastore/std",
+	"pallet-poa/std",
+]
+runtime-benchmarks = [
+	"hex-literal",
+	"frame-benchmarking",
+	"frame-support/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+	"frame-election-provider-support/runtime-benchmarks",
+	"pallet-election-provider-multi-phase/runtime-benchmarks",
+	"sp-runtime/runtime-benchmarks",
+	"pallet-assets/runtime-benchmarks",
+	"pallet-babe/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"pallet-bounties/runtime-benchmarks",
+	"pallet-collective/runtime-benchmarks",
+	"pallet-democracy/runtime-benchmarks",
+	"pallet-elections-phragmen/runtime-benchmarks",
+	"pallet-gilt/runtime-benchmarks",
+	"pallet-grandpa/runtime-benchmarks",
+	"pallet-identity/runtime-benchmarks",
+	"pallet-im-online/runtime-benchmarks",
+	"pallet-indices/runtime-benchmarks",
+	"pallet-lottery/runtime-benchmarks",
+	"pallet-mmr/runtime-benchmarks",
+	"pallet-multisig/runtime-benchmarks",
+	"pallet-proxy/runtime-benchmarks",
+	"pallet-scheduler/runtime-benchmarks",
+	"pallet-staking/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"pallet-tips/runtime-benchmarks",
+	"pallet-treasury/runtime-benchmarks",
+	"pallet-utility/runtime-benchmarks",
+	"pallet-vesting/runtime-benchmarks",
+	"pallet-offences-benchmarking",
+	"pallet-session-benchmarking",
+	"frame-system-benchmarking",
+	"pallet-permastore/runtime-benchmarks",
+	"pallet-poa/runtime-benchmarks",
+]
+try-runtime = [
+	"frame-executive/try-runtime",
+	"frame-try-runtime",
+	"frame-system/try-runtime",
+	"pallet-assets/try-runtime",
+	"pallet-authority-discovery/try-runtime",
+	"pallet-authorship/try-runtime",
+	"pallet-babe/try-runtime",
+	"pallet-balances/try-runtime",
+	"pallet-bounties/try-runtime",
+	"pallet-collective/try-runtime",
+	"pallet-democracy/try-runtime",
+	"pallet-elections-phragmen/try-runtime",
+	"pallet-grandpa/try-runtime",
+	"pallet-im-online/try-runtime",
+	"pallet-indices/try-runtime",
+	"pallet-lottery/try-runtime",
+	"pallet-membership/try-runtime",
+	"pallet-mmr/try-runtime",
+	"pallet-multisig/try-runtime",
+	"pallet-identity/try-runtime",
+	"pallet-scheduler/try-runtime",
+	"pallet-offences/try-runtime",
+	"pallet-proxy/try-runtime",
+	"pallet-randomness-collective-flip/try-runtime",
+	"pallet-session/try-runtime",
+	"pallet-staking/try-runtime",
+	"pallet-sudo/try-runtime",
+	"pallet-election-provider-multi-phase/try-runtime",
+	"pallet-timestamp/try-runtime",
+	"pallet-tips/try-runtime",
+	"pallet-transaction-payment/try-runtime",
+	"pallet-treasury/try-runtime",
+	"pallet-utility/try-runtime",
+	"pallet-vesting/try-runtime",
+	"pallet-gilt/try-runtime",
+	"pallet-permastore/try-runtime",
+	"pallet-poa/try-runtime",
+]

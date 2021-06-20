@@ -1,0 +1,10 @@
+**/target/
+**/*.rs.bk
+*.swp
+.wasm-binaries
+**/._*
+.vscode
+.DS_Store
+.idea/
+nohup.out
+rls*.log
