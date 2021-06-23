@@ -27,7 +27,7 @@ use crate::{chain_spec, service, Cli, Subcommand};
 
 impl SubstrateCli for Cli {
     fn impl_name() -> String {
-        "Substrate Node".into()
+        "Canyon Node".into()
     }
 
     fn impl_version() -> String {
@@ -43,11 +43,11 @@ impl SubstrateCli for Cli {
     }
 
     fn support_url() -> String {
-        "https://github.com/paritytech/substrate/issues/new".into()
+        "https://github.com/canyon-network/canyon/issues/new".into()
     }
 
     fn copyright_start_year() -> i32 {
-        2017
+        2021
     }
 
     fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
@@ -100,7 +100,7 @@ pub fn run() -> Result<()> {
                 runner.sync_run(|config| cmd.run::<Block, Executor>(config))
             } else {
                 Err("Benchmarking wasn't enabled when building the node. \
-				You can enable it with `--features runtime-benchmarks`."
+                    You can enable it with `--features runtime-benchmarks`."
                     .into())
             }
         }
