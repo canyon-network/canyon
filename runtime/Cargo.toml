@@ -1,7 +1,7 @@
 [package]
 name = "canyon-runtime"
-version = "2.0.1"
-authors = ["Parity Technologies <admin@parity.io>"]
+version = "0.1.0"
+authors = ["Canyon Labs <https://github.com/canyon-network>"]
 edition = "2018"
 build = "build.rs"
 
@@ -9,7 +9,7 @@ build = "build.rs"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["derive"] }
+codec = { package = "parity-scale-codec", version = "2.1", default-features = false, features = ["derive"] }
 hex-literal = { version = "0.3.1", optional = true }
 log = { version = "0.4.14", default-features = false }
 serde = { version = "1.0.102", optional = true }

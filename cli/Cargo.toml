@@ -1,7 +1,7 @@
 [package]
 name = "canyon-cli"
-version = "2.0.0"
-authors = ["Parity Technologies <admin@parity.io>"]
+version = "0.1.0"
+authors = ["Canyon Labs <https://github.com/canyon-network>"]
 build = "build.rs"
 edition = "2018"
 
@@ -17,7 +17,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "2.0.0" }
+codec = { package = "parity-scale-codec", version = "2.1" }
 futures = { version = "0.3.9", features = ["compat"] }
 hex-literal = "0.3.1"
 log = "0.4.8"
@@ -74,7 +74,7 @@ pallet-transaction-payment = { git = "https://github.com/canyon-network/substrat
 frame-support = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 frame-system = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 
-# node-specific dependencies
+# canyon-specific dependencies
 canyon-executor = { path = "../executor" }
 canyon-inspect = { path = "../inspect", optional = true }
 canyon-primitives = { path = "../primitives" }
@@ -97,20 +97,21 @@ sp-trie = { git = "https://github.com/canyon-network/substrate", branch = "canyo
 canyon-executor = { path = "../executor", features = ["wasmtime"] }
 
 [dev-dependencies]
-sc-keystore = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+assert_cmd = "1.0"
+async-std = { version = "1.6.5", features = ["attributes"] }
+futures = "0.3.9"
+nix = "0.19"
+platforms = "1.1"
+regex = "1"
+serde_json = "1.0"
+soketto = "0.4.2"
+tempfile = "3.1.0"
+
 sc-consensus = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sc-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sc-consensus-epochs = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-keystore = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sc-service-test = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-futures = "0.3.9"
-tempfile = "3.1.0"
-assert_cmd = "1.0"
-nix = "0.19"
-serde_json = "1.0"
-regex = "1"
-platforms = "1.1"
-async-std = { version = "1.6.5", features = ["attributes"] }
-soketto = "0.4.2"
 
 [build-dependencies]
 structopt = { version = "0.3.8", optional = true }

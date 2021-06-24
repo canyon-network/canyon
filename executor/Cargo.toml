@@ -1,18 +1,18 @@
 [package]
 name = "canyon-executor"
-version = "2.0.0"
-authors = ["Parity Technologies <admin@parity.io>"]
-description = "Substrate node implementation in Rust."
+version = "0.1.0"
+authors = ["Canyon Labs <https://github.com/canyon-network>"]
+description = "Canyon node implementation in Rust."
 edition = "2018"
-license = "Apache-2.0"
-homepage = "https://substrate.dev"
-repository = "https://github.com/paritytech/substrate/"
+license = "GPL-3.0"
+homepage = "https://canyon-network.io"
+repository = "https://github.com/canyon-network/canyon/"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "2.0.0" }
+codec = { package = "parity-scale-codec", version = "2.1" }
 trie-root = "0.16.0"
 
 sc-executor = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
@@ -30,6 +30,10 @@ canyon-runtime = { path = "../runtime" }
 criterion = "0.3.0"
 wat = "1.0"
 
+sp-application-crypto = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-externalities = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 frame-support = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 frame-system = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 pallet-balances = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
@@ -41,10 +45,6 @@ pallet-session = { git = "https://github.com/canyon-network/substrate", branch =
 pallet-timestamp = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 pallet-transaction-payment = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 pallet-treasury = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-application-crypto = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-externalities = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 substrate-test-client = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 
 [features]
