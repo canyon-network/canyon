@@ -5,7 +5,7 @@ authors = ["Canyon Labs <https://github.com/canyon-network>"]
 edition = "2018"
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "2.0.0" }
+codec = { package = "parity-scale-codec", version = "2.1" }
 thiserror = "1.0"
 
 sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
