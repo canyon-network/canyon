@@ -2,8 +2,8 @@
 name = "canyon-cli"
 version = "0.1.0"
 authors = ["Canyon Labs <https://github.com/canyon-network>"]
-build = "build.rs"
 edition = "2018"
+build = "build.rs"
 
 [package.metadata.wasm-pack.profile.release]
 # `wasm-opt` has some problems on linux, see
