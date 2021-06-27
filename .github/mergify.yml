@@ -3,7 +3,7 @@ pull_request_rules:
     conditions:
       - check-success=all-ci
       - check-success=all-deploy
-      - label=🤖ready-to-merge
+      - label=ready-to-merge
       - base=master
       - "#changes-requested-reviews-by=0"
     actions:
