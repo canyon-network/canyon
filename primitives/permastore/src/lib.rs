@@ -18,6 +18,8 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use sp_core::offchain::OffchainStorage;
+
 pub const POA_ENGINE_ID: [u8; 4] = *b"poa_";
 
 /// 256KiB per chunk.
@@ -28,3 +30,23 @@ pub type Hasher = sp_core::Blake2Hasher;
 
 ///
 pub type TrieLayout = sp_trie::Layout<Hasher>;
+
+/// Persistent transaction data storage.
+pub trait PermaStorage: Send + Sync + Clone {
+    /// Persist a value in storage under given key.
+    fn submit(&mut self, key: &[u8], value: &[u8]);
+
+    /// Retrieve a value from storage under given key.
+    fn retrieve(&self, key: &[u8]) -> Option<Vec<u8>>;
+}
+
+// PermaStorage backed by offchain storage.
+impl<T: OffchainStorage> PermaStorage for T {
+    fn submit(&mut self, key: &[u8], value: &[u8]) {
+        self.set(sp_offchain::STORAGE_PREFIX, key, value)
+    }
+
+    fn retrieve(&self, key: &[u8]) -> Option<Vec<u8>> {
+        self.get(sp_offchain::STORAGE_PREFIX, key)
+    }
+}

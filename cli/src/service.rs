@@ -24,7 +24,7 @@ use std::sync::Arc;
 
 use futures::prelude::*;
 
-use sc_client_api::{ExecutorProvider, RemoteBackend};
+use sc_client_api::{Backend, ExecutorProvider, RemoteBackend};
 use sc_consensus_babe::SlotProportion;
 use sc_network::{Event, NetworkService};
 use sc_service::{config::Configuration, error::Error as ServiceError, RpcHandlers, TaskManager};
@@ -162,6 +162,10 @@ pub fn new_partial(
         let keystore = keystore_container.sync_keystore();
         let chain_spec = config.chain_spec.cloned_box();
 
+        let offchain_storage = backend
+            .offchain_storage()
+            .unwrap_or_else(|| panic!("Canyon node relys on the offchain storage; qed "));
+
         let rpc_extensions_builder = move |deny_unsafe, subscription_executor| {
             let deps = canyon_rpc::FullDeps {
                 client: client.clone(),
@@ -181,6 +185,7 @@ pub fn new_partial(
                     subscription_executor,
                     finality_provider: finality_proof_provider.clone(),
                 },
+                offchain_storage: offchain_storage.clone(),
             };
 
             canyon_rpc::create_full(deps)
