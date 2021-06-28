@@ -14,5 +14,6 @@ targets = ["x86_64-unknown-linux-gnu"]
 jsonrpc-core = "15.1.0"
 jsonrpc-core-client = "15.1.0"
 jsonrpc-derive = "15.1.0"
+thiserror = "1.0"
 
 sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }

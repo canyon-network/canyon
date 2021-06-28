@@ -20,15 +20,29 @@ use jsonrpc_core as rpc;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Debug)]
-pub enum Error {}
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("transaction data already exists")]
+    DataExists,
+    #[error("chunk data already exists")]
+    ChunkExists,
+}
+
+const BASE_ERROR: i64 = 6000;
 
 impl From<Error> for rpc::Error {
     fn from(e: Error) -> Self {
-        rpc::Error {
-            code: rpc::ErrorCode::ServerError(1000),
-            message: "datastore error".into(),
-            data: None,
+        match e {
+            Error::DataExists => rpc::Error {
+                code: rpc::ErrorCode::ServerError(BASE_ERROR),
+                message: "transaction data already exists".into(),
+                data: None,
+            },
+            Error::ChunkExists => rpc::Error {
+                code: rpc::ErrorCode::ServerError(BASE_ERROR + 1),
+                message: "chunk data already exists".into(),
+                data: None,
+            },
         }
     }
 }
