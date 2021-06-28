@@ -21,7 +21,7 @@
 pub const POA_ENGINE_ID: [u8; 4] = *b"poa_";
 
 /// 256KiB per chunk.
-pub const DEFAULT_CHUNK_SIZE: u64 = 256 * 1024 * 1024;
+pub const CHUNK_SIZE: u64 = 256 * 1024 * 1024;
 
 /// Hasher type for permastore.
 pub type Hasher = sp_core::Blake2Hasher;

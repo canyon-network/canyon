@@ -22,7 +22,7 @@ use sp_core::H256;
 use sp_runtime::traits::Hash as HashT;
 use sp_trie::TrieMut;
 
-use cp_permastore::{Hasher, TrieLayout, VerifyError, DEFAULT_CHUNK_SIZE};
+use cp_permastore::{Hasher, TrieLayout, VerifyError, CHUNK_SIZE};
 
 pub fn build_transaction_proof<Hash: HashT>(
     extrinsic_index: usize,

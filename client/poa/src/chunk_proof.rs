@@ -22,7 +22,7 @@ use sp_core::H256;
 use sp_runtime::traits::Hash as HashT;
 use sp_trie::TrieMut;
 
-use cp_permastore::{Hasher, TrieLayout, VerifyError, DEFAULT_CHUNK_SIZE};
+use cp_permastore::{Hasher, TrieLayout, VerifyError, CHUNK_SIZE};
 
 fn encode_index(input: u32) -> Vec<u8> {
     codec::Encode::encode(&codec::Compact(input))
@@ -38,7 +38,7 @@ impl From<[u8; 32]> for ChunkId {
 
 pub fn as_chunk_ids(tx_data: Vec<u8>) -> Vec<ChunkId> {
     tx_data
-        .chunks(DEFAULT_CHUNK_SIZE as usize)
+        .chunks(CHUNK_SIZE as usize)
         .map(|c| sp_io::hashing::blake2_256(c).into())
         .collect()
 }

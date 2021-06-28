@@ -32,7 +32,7 @@ use sp_runtime::{
 
 use sc_client_api::BlockBackend;
 
-use cp_permastore::{DEFAULT_CHUNK_SIZE, POA_ENGINE_ID};
+use cp_permastore::{CHUNK_SIZE, POA_ENGINE_ID};
 
 mod chunk_proof;
 mod tx_proof;
@@ -157,7 +157,7 @@ where
                 let chunk_ids = chunk_proof::as_chunk_ids(tx_data);
 
                 let chunk_offset = recall_byte - recall_tx_data_base;
-                let recall_chunk_index = chunk_offset / DEFAULT_CHUNK_SIZE;
+                let recall_chunk_index = chunk_offset / CHUNK_SIZE;
 
                 let recall_chunk_id = chunk_ids[recall_chunk_index as usize];
 
