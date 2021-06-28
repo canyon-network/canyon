@@ -164,7 +164,7 @@ pub fn new_partial(
 
         let offchain_storage = backend
             .offchain_storage()
-            .unwrap_or_else(|| panic!("Canyon node relys on the offchain storage; qed "));
+            .unwrap_or_else(|| panic!("offchain storage is some; qed"));
 
         let rpc_extensions_builder = move |deny_unsafe, subscription_executor| {
             let deps = canyon_rpc::FullDeps {
