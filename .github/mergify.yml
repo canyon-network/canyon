@@ -1,0 +1,12 @@
+pull_request_rules:
+  - name: merge automatically when CI passes on master
+    conditions:
+      - check-success=all-ci
+      - check-success=all-deploy
+      - label=ready-to-merge
+      - base=master
+      - "#changes-requested-reviews-by=0"
+    actions:
+      merge:
+        strict: true
+        method: squash
