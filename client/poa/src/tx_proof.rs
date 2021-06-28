@@ -16,18 +16,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+use codec::{Decode, Encode};
 
-pub const POA_ENGINE_ID: [u8; 4] = *b"poa_";
+use sp_core::H256;
+use sp_runtime::traits::Hash as HashT;
+use sp_trie::TrieMut;
 
-/// 256KiB per chunk.
-pub const DEFAULT_CHUNK_SIZE: u64 = 256 * 1024 * 1024;
+use cp_permastore::{Hasher, TrieLayout, VerifyError, DEFAULT_CHUNK_SIZE};
 
-/// Hasher type for permastore.
-pub type Hasher = sp_core::Blake2Hasher;
-
-/// Trie layout used for permastore.
-pub type TrieLayout = sp_trie::Layout<Hasher>;
-
-/// Error type of chunk proof verification.
-pub type VerifyError = sp_trie::VerifyError<sp_core::H256, sp_trie::Error>;
+pub fn build_transaction_proof<Hash: HashT>(
+    extrinsic_index: usize,
+    extrinsics_root: Hash::Output,
+) -> Result<Vec<Vec<u8>>, ()> {
+    todo!()
+}
