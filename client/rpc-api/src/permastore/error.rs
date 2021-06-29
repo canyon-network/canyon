@@ -26,6 +26,8 @@ pub enum Error {
     DataExists,
     #[error("chunk data already exists")]
     ChunkExists,
+    #[error("transaction data is too large and has to be fetched chunk by chunk")]
+    DataTooLarge,
     #[error("chunk is too large")]
     ChunkTooLarge,
     #[error("data path is too large")]
@@ -51,23 +53,28 @@ impl From<Error> for rpc::Error {
                 message: "chunk data already exists".into(),
                 data: None,
             },
-            Error::ChunkTooLarge => rpc::Error {
+            Error::DataTooLarge => rpc::Error {
                 code: rpc::ErrorCode::ServerError(BASE_ERROR + 2),
+                message: "transaction data is too large to be fetched directly".into(),
+                data: None,
+            },
+            Error::ChunkTooLarge => rpc::Error {
+                code: rpc::ErrorCode::ServerError(BASE_ERROR + 3),
                 message: "chunk data is too large".into(),
                 data: None,
             },
             Error::DataPathTooLarge => rpc::Error {
-                code: rpc::ErrorCode::ServerError(BASE_ERROR + 3),
+                code: rpc::ErrorCode::ServerError(BASE_ERROR + 4),
                 message: "data path is too large".into(),
                 data: None,
             },
             Error::DataSizeTooLarge => rpc::Error {
-                code: rpc::ErrorCode::ServerError(BASE_ERROR + 4),
+                code: rpc::ErrorCode::ServerError(BASE_ERROR + 5),
                 message: "data size is too large".into(),
                 data: None,
             },
             Error::InvalidProof => rpc::Error {
-                code: rpc::ErrorCode::ServerError(BASE_ERROR + 5),
+                code: rpc::ErrorCode::ServerError(BASE_ERROR + 6),
                 message: "chunk proof is invalid".into(),
                 data: None,
             },
