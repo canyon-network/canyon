@@ -19,7 +19,6 @@
 use codec::{Decode, Encode};
 
 use sp_core::H256;
-use sp_runtime::traits::Hash as HashT;
 use sp_trie::TrieMut;
 
 use cp_permastore::{Hasher, TrieLayout, VerifyError, CHUNK_SIZE};
@@ -28,6 +27,7 @@ fn encode_index(input: u32) -> Vec<u8> {
     codec::Encode::encode(&codec::Compact(input))
 }
 
+/// Unit type wrapper of the blake2_256 hash of a data chunk.
 pub struct ChunkId([u8; 32]);
 
 impl From<[u8; 32]> for ChunkId {
@@ -48,13 +48,6 @@ pub enum Error {
     /// Trie error.
     #[error(transparent)]
     Trie(#[from] Box<dyn std::error::Error + Send + Sync>),
-}
-
-pub fn build_extrinsic_proof<Hash: HashT>(
-    extrinsic_index: usize,
-    extrinsics_root: Hash::Output,
-) -> Result<Vec<Vec<u8>>, Error> {
-    todo!()
 }
 
 /// This type represents the raw bytes of chunk as well as the chunk proof.
