@@ -26,6 +26,14 @@ pub enum Error {
     DataExists,
     #[error("chunk data already exists")]
     ChunkExists,
+    #[error("chunk is too large")]
+    ChunkTooLarge,
+    #[error("data path is too large")]
+    DataPathTooLarge,
+    #[error("data size is too large")]
+    DataSizeTooLarge,
+    #[error("invalid proof: ")]
+    InvalidProof,
 }
 
 const BASE_ERROR: i64 = 6000;
@@ -41,6 +49,26 @@ impl From<Error> for rpc::Error {
             Error::ChunkExists => rpc::Error {
                 code: rpc::ErrorCode::ServerError(BASE_ERROR + 1),
                 message: "chunk data already exists".into(),
+                data: None,
+            },
+            Error::ChunkTooLarge => rpc::Error {
+                code: rpc::ErrorCode::ServerError(BASE_ERROR + 2),
+                message: "chunk data is too large".into(),
+                data: None,
+            },
+            Error::DataPathTooLarge => rpc::Error {
+                code: rpc::ErrorCode::ServerError(BASE_ERROR + 3),
+                message: "data path is too large".into(),
+                data: None,
+            },
+            Error::DataSizeTooLarge => rpc::Error {
+                code: rpc::ErrorCode::ServerError(BASE_ERROR + 4),
+                message: "data size is too large".into(),
+                data: None,
+            },
+            Error::InvalidProof => rpc::Error {
+                code: rpc::ErrorCode::ServerError(BASE_ERROR + 5),
+                message: "chunk proof is invalid".into(),
                 data: None,
             },
         }
