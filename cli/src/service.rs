@@ -513,7 +513,7 @@ pub fn new_light_base(
         babe_block_import,
         Some(Box::new(justification_import)),
         client.clone(),
-        select_chain.clone(),
+        select_chain,
         move |_, ()| async move {
             let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
