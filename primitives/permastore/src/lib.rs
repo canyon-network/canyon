@@ -23,13 +23,16 @@ use sp_core::offchain::OffchainStorage;
 pub const POA_ENGINE_ID: [u8; 4] = *b"poa_";
 
 /// 256KiB per chunk.
-pub const DEFAULT_CHUNK_SIZE: u64 = 256 * 1024 * 1024;
+pub const CHUNK_SIZE: u64 = 256 * 1024 * 1024;
 
 /// Hasher type for permastore.
 pub type Hasher = sp_core::Blake2Hasher;
 
-///
+/// Trie layout used for permastore.
 pub type TrieLayout = sp_trie::Layout<Hasher>;
+
+/// Error type of chunk proof verification.
+pub type VerifyError = sp_trie::VerifyError<sp_core::H256, sp_trie::Error>;
 
 /// Persistent transaction data storage.
 pub trait PermaStorage: Send + Sync + Clone {
