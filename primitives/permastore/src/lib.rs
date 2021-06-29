@@ -38,6 +38,11 @@ pub trait PermaStorage: Send + Sync + Clone {
 
     /// Retrieve a value from storage under given key.
     fn retrieve(&self, key: &[u8]) -> Option<Vec<u8>>;
+
+    /// Checks if the storage exists under given key.
+    fn exists(&self, key: &[u8]) -> bool {
+        self.retrieve(key).is_some()
+    }
 }
 
 // PermaStorage backed by offchain storage.
