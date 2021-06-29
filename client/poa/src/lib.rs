@@ -18,12 +18,9 @@
 
 //! This crate implements the Proof of Access consensus.
 
-mod chunk;
-
 use std::marker::PhantomData;
 use std::sync::Arc;
 
-use chunk::ChunkProof;
 use codec::{Decode, Encode};
 use thiserror::Error;
 
@@ -35,7 +32,12 @@ use sp_runtime::{
 
 use sc_client_api::BlockBackend;
 
-use cp_permastore::{DEFAULT_CHUNK_SIZE, POA_ENGINE_ID};
+use cp_permastore::{CHUNK_SIZE, POA_ENGINE_ID};
+
+mod chunk_proof;
+mod tx_proof;
+
+use self::chunk_proof::ChunkProof;
 
 type TxProof = Vec<Vec<u8>>;
 
@@ -152,10 +154,10 @@ where
                 todo!("Fetch recall_tx data from DB given the block and extrinsic index");
 
             if let Some(tx_data) = tx_data {
-                let chunk_ids = chunk::as_chunk_ids(tx_data);
+                let chunk_ids = chunk_proof::chunk_ids(tx_data);
 
                 let chunk_offset = recall_byte - recall_tx_data_base;
-                let recall_chunk_index = chunk_offset / DEFAULT_CHUNK_SIZE;
+                let recall_chunk_index = chunk_offset / CHUNK_SIZE;
 
                 let recall_chunk_id = chunk_ids[recall_chunk_index as usize];
 
