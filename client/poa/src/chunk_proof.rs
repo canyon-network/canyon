@@ -36,7 +36,8 @@ impl From<[u8; 32]> for ChunkId {
     }
 }
 
-pub fn as_chunk_ids(tx_data: Vec<u8>) -> Vec<ChunkId> {
+/// Converts the raw transaction data into a Vec of chunk id.
+pub fn chunk_ids(tx_data: Vec<u8>) -> Vec<ChunkId> {
     tx_data
         .chunks(CHUNK_SIZE as usize)
         .map(|c| sp_io::hashing::blake2_256(c).into())

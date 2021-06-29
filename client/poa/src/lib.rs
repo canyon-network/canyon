@@ -154,7 +154,7 @@ where
                 todo!("Fetch recall_tx data from DB given the block and extrinsic index");
 
             if let Some(tx_data) = tx_data {
-                let chunk_ids = chunk_proof::as_chunk_ids(tx_data);
+                let chunk_ids = chunk_proof::chunk_ids(tx_data);
 
                 let chunk_offset = recall_byte - recall_tx_data_base;
                 let recall_chunk_index = chunk_offset / CHUNK_SIZE;
