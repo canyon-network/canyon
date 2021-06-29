@@ -24,7 +24,7 @@ use parking_lot::RwLock;
 use sp_core::Bytes;
 
 use cc_rpc_api::permastore::{
-    error::{Error, Result},
+    error::{Error, InvalidCount, Result},
     PermastoreApi,
 };
 use cp_permastore::PermaStorage;
@@ -53,10 +53,10 @@ impl<T: PermaStorage + 'static> PermastoreApi for Permastore<T> {
     fn submit(&self, key: Bytes, value: Bytes) -> Result<()> {
         let data_size = value.deref().len() as u32;
         if data_size > MAX_UPLOAD_DATA_SIZE {
-            return Err(Error::DataTooLarge {
-                provided: data_size,
-                max: MAX_UPLOAD_DATA_SIZE,
-            });
+            return Err(Error::DataTooLarge(InvalidCount::new(
+                data_size,
+                MAX_UPLOAD_DATA_SIZE,
+            )));
         }
         self.storage.write().submit(&*key, &*value);
         Ok(())
@@ -67,10 +67,10 @@ impl<T: PermaStorage + 'static> PermastoreApi for Permastore<T> {
         if let Some(value) = self.storage.read().retrieve(&*key) {
             let data_size = value.len() as u32;
             if data_size > MAX_DOWNLOAD_DATA_SIZE {
-                return Err(Error::DataTooLarge {
-                    provided: data_size,
-                    max: MAX_UPLOAD_DATA_SIZE,
-                });
+                return Err(Error::DataTooLarge(InvalidCount::new(
+                    data_size,
+                    MAX_DOWNLOAD_DATA_SIZE,
+                )));
             }
             Ok(Some(value.into()))
         } else {

@@ -102,7 +102,7 @@ pub mod pallet {
                 data_size > 0 && data_size < T::MaxDataSize::get(),
                 Error::<T>::InvalidDataSize
             );
-            ensure!(Self::is_stored_locally(&chunk_root), Error::<T>::NotStored);
+            ensure!(Self::stored_locally(&chunk_root), Error::<T>::NotStored);
 
             Self::charge_storage_fee(&sender, data_size)?;
 
@@ -226,7 +226,7 @@ pub mod pallet {
 
 impl<T: Config> Pallet<T> {
     // TODO: ensure the transaction data has been indeed stored in the local DB.
-    fn is_stored_locally(_chunk_root: &T::Hash) -> bool {
+    fn stored_locally(_chunk_root: &T::Hash) -> bool {
         true
     }
 
@@ -296,7 +296,7 @@ where
 
             const DATA_NOT_STORED: u8 = 100;
             ensure!(
-                Pallet::<T>::is_stored_locally(chunk_root),
+                Pallet::<T>::stored_locally(chunk_root),
                 InvalidTransaction::Custom(DATA_NOT_STORED)
             );
         }

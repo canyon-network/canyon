@@ -20,19 +20,35 @@ use jsonrpc_core as rpc;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// This type describes the count that excceds the max allowed number.
+#[derive(Debug)]
+pub struct InvalidCount {
+    /// Provided value
+    pub provided: u32,
+    /// Maximum allowed value
+    pub max: u32,
+}
+
+impl std::fmt::Display for InvalidCount {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "provided: {}, max: {}", self.provided, self.max)
+    }
+}
+
+impl InvalidCount {
+    pub fn new(provided: u32, max: u32) -> Self {
+        Self { provided, max }
+    }
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("transaction data already exists")]
     DataExists,
     #[error("chunk data already exists")]
     ChunkExists,
-    #[error("transaction data is too large. provided: {}, max: {}", provided, max)]
-    DataTooLarge {
-        /// Provided value
-        provided: u32,
-        /// Maximum allowed value
-        max: u32,
-    },
+    #[error("transaction data is too large. {}", _0)]
+    DataTooLarge(InvalidCount),
     #[error("chunk is too large")]
     ChunkTooLarge,
     #[error("data path is too large")]
@@ -58,9 +74,9 @@ impl From<Error> for rpc::Error {
                 message: "chunk data already exists".into(),
                 data: None,
             },
-            Error::DataTooLarge { provided, max } => rpc::Error {
+            Error::DataTooLarge( invalid_count) => rpc::Error {
                 code: rpc::ErrorCode::ServerError(BASE_ERROR + 2),
-                message: format!("transaction data is too large. provided: {}, max: {}", provided, max),
+                message: format!("transaction data is too large. {}", invalid_count),
                 data: Some("the transaction data has to be uploaded or downloaded chunk by chunk for being too large.".into()),
             },
             Error::ChunkTooLarge => rpc::Error {
