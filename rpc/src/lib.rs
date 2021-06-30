@@ -90,7 +90,7 @@ pub struct GrandpaDeps<B> {
 }
 
 /// Full client dependencies.
-pub struct FullDeps<C, P, SC, B> {
+pub struct FullDeps<C, P, SC, B, O> {
     /// The client instance to use.
     pub client: Arc<C>,
     /// Transaction pool instance.
@@ -105,14 +105,16 @@ pub struct FullDeps<C, P, SC, B> {
     pub babe: BabeDeps,
     /// GRANDPA specific dependencies.
     pub grandpa: GrandpaDeps<B>,
+    /// offchain storage
+    pub offchain_storage: O,
 }
 
 /// A IO handler that uses all Full RPC extensions.
 pub type IoHandler = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
 
 /// Instantiate all Full RPC extensions.
-pub fn create_full<C, P, SC, B>(
-    deps: FullDeps<C, P, SC, B>,
+pub fn create_full<C, P, SC, B, O>(
+    deps: FullDeps<C, P, SC, B, O>,
 ) -> jsonrpc_core::IoHandler<sc_rpc_api::Metadata>
 where
     C: ProvideRuntimeApi<Block>
@@ -131,6 +133,7 @@ where
     SC: SelectChain<Block> + 'static,
     B: sc_client_api::Backend<Block> + Send + Sync + 'static,
     B::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashFor<Block>>,
+    O: sp_core::offchain::OffchainStorage + 'static,
 {
     use pallet_mmr_rpc::{Mmr, MmrApi};
     use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
@@ -145,6 +148,7 @@ where
         deny_unsafe,
         babe,
         grandpa,
+        offchain_storage,
     } = deps;
 
     let BabeDeps {
@@ -197,6 +201,10 @@ where
             shared_epoch_changes,
             deny_unsafe,
         ),
+    ));
+
+    io.extend_with(cc_rpc_api::permastore::PermastoreApi::to_delegate(
+        cc_rpc::permastore::Permastore::new(offchain_storage),
     ));
 
     io

@@ -6,11 +6,13 @@ edition = "2018"
 
 [dependencies]
 sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-offchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 sp-trie = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 
 [features]
 default = ["std"]
 std = [
 	"sp-core/std",
+	"sp-offchain/std",
 	"sp-trie/std",
 ]

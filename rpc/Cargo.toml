@@ -27,6 +27,7 @@ sc-sync-state-rpc = { git = "https://github.com/canyon-network/substrate", branc
 sp-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-block-builder = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-keystore = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-consensus = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
@@ -39,3 +40,6 @@ substrate-frame-rpc-system = { git = "https://github.com/canyon-network/substrat
 
 canyon-primitives = { path = "../primitives" }
 canyon-runtime = { path = "../runtime" }
+
+cc-rpc = { path = "../client/rpc" }
+cc-rpc-api = { path = "../client/rpc-api" }
