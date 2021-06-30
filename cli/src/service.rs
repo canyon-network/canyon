@@ -279,7 +279,7 @@ pub fn new_full_base(
 
     let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
         config,
-        backend: backend.clone(),
+        backend,
         client: client.clone(),
         keystore: keystore_container.sync_keystore(),
         network: network.clone(),
