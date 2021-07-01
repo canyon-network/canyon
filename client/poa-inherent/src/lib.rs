@@ -67,7 +67,7 @@ pub enum Error<Block: BlockT> {
     #[error("the chunk in recall tx not found")]
     InvalidChunk,
     #[error("failed to decode opaque weave size from digest, error: {0}")]
-    DecodeWeaveSizeFailed(codec::Error),
+    WeaveSizeDecodeFailed(codec::Error),
     #[error("weave size not found in the header digests")]
     EmptyWeaveSize,
     #[error("the maximum allowed depth {0} reached")]
@@ -125,13 +125,37 @@ fn find_recall_tx(
     binary_search(recall_byte, sized_extrinsics)
 }
 
+fn extract_weave_size<Block: BlockT>(header: &Block::Header) -> Result<DataIndex, Error<Block>> {
+    let opaque_weave_size = header.digest().logs.iter().find_map(|log| {
+        if let DigestItemFor::<Block>::Consensus(POA_ENGINE_ID, opaque_data) = log {
+            Some(opaque_data)
+        } else {
+            None
+        }
+    });
+
+    match opaque_weave_size {
+        Some(weave_size) => {
+            Decode::decode(&mut weave_size.as_slice()).map_err(Error::WeaveSizeDecodeFailed)
+        }
+        None => Err(Error::EmptyWeaveSize),
+    }
+}
+
 fn construct_poa<
     Block: BlockT + 'static,
     Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
 >(
     client: &Client,
-    chain_head: Block::Header,
+    parent: Block::Hash,
 ) -> Result<Poa, Error<Block>> {
+    let parent_id = BlockId::Hash(parent);
+    let (chain_head, _extrinsics) = client
+        .block(&parent_id)?
+        .ok_or_else(|| Error::BlockNotFound(parent_id))?
+        .block
+        .deconstruct();
+
     let weave_size = extract_weave_size::<Block>(&chain_head)?;
 
     for depth in 1..=MAX_DEPTH {
@@ -202,21 +226,21 @@ fn construct_poa<
     Err(Error::MaxDepthReached(MAX_DEPTH))
 }
 
-pub struct PoaInherentDataProvider {
+pub struct InherentDataProvider {
     /// Depth
     pub inherent_data: u32,
 }
 
-impl PoaInherentDataProvider {
-    /// Creates a new instance of `PoaInherentDataProvider`.
+impl InherentDataProvider {
+    /// Creates a new instance of `InherentDataProvider`.
     pub fn create<
         Block: BlockT + 'static,
         Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
     >(
         client: &Client,
-        chain_head: Block::Header,
+        parent: Block::Hash,
     ) -> Result<Self, Error<Block>> {
-        let Poa { depth, .. } = construct_poa(client, chain_head)?;
+        let Poa { depth, .. } = construct_poa(client, parent)?;
         Ok(Self {
             inherent_data: depth as u32,
         })
@@ -224,7 +248,7 @@ impl PoaInherentDataProvider {
 }
 
 #[async_trait::async_trait]
-impl sp_inherents::InherentDataProvider for PoaInherentDataProvider {
+impl sp_inherents::InherentDataProvider for InherentDataProvider {
     fn provide_inherent_data(
         &self,
         inherent_data: &mut sp_inherents::InherentData,
@@ -245,26 +269,17 @@ impl sp_inherents::InherentDataProvider for PoaInherentDataProvider {
     }
 }
 
-fn extract_weave_size<Block: BlockT>(header: &Block::Header) -> Result<DataIndex, Error<Block>> {
-    let opaque_weave_size = header.digest().logs.iter().find_map(|log| {
-        if let DigestItemFor::<Block>::Consensus(POA_ENGINE_ID, opaque_data) = log {
-            Some(opaque_data)
-        } else {
-            None
-        }
-    });
-
-    match opaque_weave_size {
-        Some(weave_size) => {
-            Decode::decode(&mut weave_size.as_slice()).map_err(Error::DecodeWeaveSizeFailed)
-        }
-        None => Err(Error::EmptyWeaveSize),
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    struct GlobalBlockIndex(Vec<(BlockNumber, DataIndex)>);
+
+    impl GlobalBlockIndex {
+        pub fn find_challenge_block(&self, recall_byte: DataIndex) -> BlockNumber {
+            binary_search(recall_byte, &self.0).0
+        }
+    }
 
     #[test]
     fn test_find_challenge_block() {

@@ -729,6 +729,7 @@ dependencies = [
  "canyon-primitives",
  "canyon-rpc",
  "canyon-runtime",
+ "cc-poa-inherent",
  "frame-benchmarking-cli",
  "frame-support",
  "frame-system",

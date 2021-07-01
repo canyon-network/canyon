@@ -320,6 +320,7 @@ pub fn new_full_base(
             justification_sync_link: network.clone(),
             create_inherent_data_providers: move |parent, ()| {
                 let client_clone = client_clone.clone();
+                let client_clone_poa = client_clone.clone();
                 async move {
                     let uncles = sc_consensus_uncles::create_uncles_inherent_data_provider(
                         &*client_clone,
@@ -332,6 +333,9 @@ pub fn new_full_base(
                                                     *timestamp,
                                                     slot_duration,
                                             );
+
+                    let poa =
+                        cc_poa_inherent::InherentDataProvider::create(&*client_clone_poa, parent)?;
 
                     Ok((timestamp, slot, uncles))
                 }
