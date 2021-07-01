@@ -138,13 +138,11 @@ pub mod pallet {
     }
 }
 
-const POA_INHERENT_IDENTIFIER: InherentIdentifier = *b"poainher";
-
 impl<T: Config> ProvideInherent for Pallet<T> {
     type Call = Call<T>;
     type Error = MakeFatalError<()>;
 
-    const INHERENT_IDENTIFIER: InherentIdentifier = POA_INHERENT_IDENTIFIER;
+    const INHERENT_IDENTIFIER: InherentIdentifier = canyon_primitives::POA_INHERENT_IDENTIFIER;
 
     fn create_inherent(data: &InherentData) -> Option<Self::Call> {
         let depth: u32 = match data.get_data(&Self::INHERENT_IDENTIFIER) {

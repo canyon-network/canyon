@@ -87,148 +87,6 @@ pub struct Poa {
     pub chunk: ChunkProof,
 }
 
-pub struct PoaBuilder<Block: BlockT, Client> {
-    /// Substrate client.
-    client: Arc<Client>,
-    _phantom: PhantomData<Block>,
-}
-
-impl<Block, Client> PoaBuilder<Block, Client>
-where
-    Block: BlockT + 'static,
-    Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
-{
-    /// Constructs a valid `Poa`.
-    pub fn build(self, chain_head: Block::Header) -> Result<Poa, Error<Block>> {
-        let weave_size = extract_weave_size::<Block>(&chain_head)?;
-
-        for depth in 1..=MAX_DEPTH {
-            let recall_byte = calculate_challenge_byte(chain_head.encode(), weave_size, depth);
-
-            // TODO: Find the recall block.
-            let recall_block_number = BlockNumber::default();
-
-            let recall_block_id = BlockId::Number(recall_block_number.saturated_into());
-
-            let (header, extrinsics) = self
-                .client
-                .block(&recall_block_id)?
-                .ok_or_else(|| Error::BlockNotFound(recall_block_id))?
-                .block
-                .deconstruct();
-
-            let recall_parent_block_id = BlockId::Hash(*header.parent_hash());
-            let recall_parent_header = self
-                .client
-                .header(recall_parent_block_id)?
-                .ok_or_else(|| Error::HeaderNotFound(recall_parent_block_id))?;
-
-            let weave_base = extract_weave_size::<Block>(&recall_parent_header)?;
-
-            let mut sized_extrinsics = Vec::with_capacity(extrinsics.len());
-
-            let mut acc = 0u64;
-            for (index, extrinsic) in extrinsics.iter().enumerate() {
-                let tx_size = extrinsic.data_size();
-                if tx_size > 0 {
-                    sized_extrinsics.push((index, weave_base + acc + tx_size));
-                    acc += tx_size;
-                }
-            }
-
-            // No data store transactions in this block.
-            if sized_extrinsics.is_empty() {
-                continue;
-            }
-
-            let (recall_extrinsic_index, recall_tx_data_base) =
-                find_recall_tx(recall_byte, &sized_extrinsics);
-
-            // Continue if the recall tx has been forgotten as the forgot
-            // txs can not participate in the consensus.
-            if todo!("recall_tx has been forgotten via runtime api") {
-                continue;
-            }
-
-            let tx_data: Option<Vec<u8>> =
-                todo!("Fetch recall_tx data from DB given the block and extrinsic index");
-
-            if let Some(tx_data) = tx_data {
-                let chunk_ids = chunk_proof::chunk_ids(tx_data);
-
-                let chunk_offset = recall_byte - recall_tx_data_base;
-                let recall_chunk_index = chunk_offset / CHUNK_SIZE;
-
-                let recall_chunk_id = chunk_ids[recall_chunk_index as usize];
-
-                // Find the chunk
-
-                // Construct PoA proof.
-
-                // If find one solution, return directly.
-            }
-        }
-
-        Err(Error::MaxDepthReached(MAX_DEPTH))
-    }
-}
-
-fn extract_weave_size<Block: BlockT>(header: &Block::Header) -> Result<DataIndex, Error<Block>> {
-    let opaque_weave_size = header.digest().logs.iter().find_map(|log| {
-        if let DigestItemFor::<Block>::Consensus(POA_ENGINE_ID, opaque_data) = log {
-            Some(opaque_data)
-        } else {
-            None
-        }
-    });
-
-    match opaque_weave_size {
-        Some(weave_size) => {
-            Decode::decode(&mut weave_size.as_slice()).map_err(Error::DecodeWeaveSizeFailed)
-        }
-        None => Err(Error::EmptyWeaveSize),
-    }
-}
-
-pub struct OpaquePoA(Vec<u8>);
-
-/// Type for representing the block number and
-/// the associated weave size of that block.
-pub struct BlockWeave {
-    /// Block number
-    pub number: BlockNumber,
-    /// Size of entire weave including the tx data of block `number`.
-    pub weave_size: DataIndex,
-}
-
-/// The full list of BlockWeave in the block history.
-///
-/// NOTE: If a block has no data stored, it will be excluded from this list.
-pub struct GlobalBlockIndex(Vec<(BlockNumber, DataIndex)>);
-
-impl GlobalBlockIndex {
-    pub fn find_callenge_block(&self, recall_byte: DataIndex) -> BlockNumber {
-        binary_search(recall_byte, &self.0).0
-    }
-}
-
-fn binary_search<T: Copy>(
-    recall_byte: DataIndex,
-    ordered_list: &[(T, DataIndex)],
-) -> (T, DataIndex) {
-    match ordered_list.binary_search_by_key(&recall_byte, |&(_, weave_size)| weave_size) {
-        Ok(i) => ordered_list[i],
-        Err(i) => ordered_list[i],
-    }
-}
-
-fn find_recall_tx(
-    recall_byte: DataIndex,
-    sized_extrinsics: &[(ExtrinsicIndex, DataIndex)],
-) -> (ExtrinsicIndex, DataIndex) {
-    binary_search(recall_byte, sized_extrinsics)
-}
-
 /// Applies the hashing on `seed` for `n` times
 fn multihash(seed: Randomness, n: Depth) -> [u8; 32] {
     assert!(n > 0);
@@ -250,51 +108,157 @@ fn calculate_challenge_byte(seed: Randomness, weave_size: DataIndex, depth: Dept
     DataIndex::from_le_bytes(make_bytes(multihash(seed, depth))) % weave_size
 }
 
-/// Returns the block number of recall block.
-fn find_callenge_block(
+fn binary_search<T: Copy>(
     recall_byte: DataIndex,
-    global_block_index: GlobalBlockIndex,
-) -> BlockNumber {
-    global_block_index.find_callenge_block(recall_byte)
+    ordered_list: &[(T, DataIndex)],
+) -> (T, DataIndex) {
+    match ordered_list.binary_search_by_key(&recall_byte, |&(_, weave_size)| weave_size) {
+        Ok(i) => ordered_list[i],
+        Err(i) => ordered_list[i],
+    }
 }
 
-fn generate_poa<Block, Client>(recall_byte: DataIndex, depth: Depth) -> Option<OpaquePoA>
-where
-    Block: BlockT + 'static,
-    Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
-{
-    // TODO: load the global index from DB
-    // use aux store?
-    let global_index = GlobalBlockIndex(vec![(0, 10), (3, 15), (5, 20), (6, 30), (7, 32)]);
-
-    let challenge_block_number = global_index.find_callenge_block(recall_byte);
-
-    // let challenge_block_header = client.
-
-    // let challenge_header =
-
-    todo!()
+fn find_recall_tx(
+    recall_byte: DataIndex,
+    sized_extrinsics: &[(ExtrinsicIndex, DataIndex)],
+) -> (ExtrinsicIndex, DataIndex) {
+    binary_search(recall_byte, sized_extrinsics)
 }
 
-/// Finds locally avaiable data to generate a PoA.
-pub fn generate<Block, Client>(
-    seed: Randomness,
-    weave_size: DataIndex,
-    depth: Depth,
-) -> Option<OpaquePoA>
-where
+fn construct_poa<
     Block: BlockT + 'static,
     Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
-{
-    if depth > MAX_DEPTH {
-        return None;
+>(
+    client: &Client,
+    chain_head: Block::Header,
+) -> Result<Poa, Error<Block>> {
+    let weave_size = extract_weave_size::<Block>(&chain_head)?;
+
+    for depth in 1..=MAX_DEPTH {
+        let recall_byte = calculate_challenge_byte(chain_head.encode(), weave_size, depth);
+
+        // TODO: Find the recall block.
+        let recall_block_number = BlockNumber::default();
+
+        let recall_block_id = BlockId::Number(recall_block_number.saturated_into());
+
+        let (header, extrinsics) = client
+            .block(&recall_block_id)?
+            .ok_or_else(|| Error::BlockNotFound(recall_block_id))?
+            .block
+            .deconstruct();
+
+        let recall_parent_block_id = BlockId::Hash(*header.parent_hash());
+        let recall_parent_header = client
+            .header(recall_parent_block_id)?
+            .ok_or_else(|| Error::HeaderNotFound(recall_parent_block_id))?;
+
+        let weave_base = extract_weave_size::<Block>(&recall_parent_header)?;
+
+        let mut sized_extrinsics = Vec::with_capacity(extrinsics.len());
+
+        let mut acc = 0u64;
+        for (index, extrinsic) in extrinsics.iter().enumerate() {
+            let tx_size = extrinsic.data_size();
+            if tx_size > 0 {
+                sized_extrinsics.push((index, weave_base + acc + tx_size));
+                acc += tx_size;
+            }
+        }
+
+        // No data store transactions in this block.
+        if sized_extrinsics.is_empty() {
+            continue;
+        }
+
+        let (recall_extrinsic_index, recall_tx_data_base) =
+            find_recall_tx(recall_byte, &sized_extrinsics);
+
+        // Continue if the recall tx has been forgotten as the forgot
+        // txs can not participate in the consensus.
+        if todo!("recall_tx has been forgotten via runtime api") {
+            continue;
+        }
+
+        let tx_data: Option<Vec<u8>> =
+            todo!("Fetch recall_tx data from DB given the block and extrinsic index");
+
+        if let Some(tx_data) = tx_data {
+            let chunk_ids = chunk_proof::chunk_ids(tx_data);
+
+            let chunk_offset = recall_byte - recall_tx_data_base;
+            let recall_chunk_index = chunk_offset / CHUNK_SIZE;
+
+            let recall_chunk_id = chunk_ids[recall_chunk_index as usize];
+
+            // Find the chunk
+
+            // Construct PoA proof.
+
+            // If find one solution, return directly.
+        }
     }
 
-    let recall_byte = calculate_challenge_byte(seed.clone(), weave_size, depth);
+    Err(Error::MaxDepthReached(MAX_DEPTH))
+}
 
-    match generate_poa::<Block, Client>(recall_byte, depth) {
-        Some(poa) => Some(poa),
-        None => generate::<Block, Client>(seed, weave_size, depth + 1),
+pub struct PoaInherentDataProvider {
+    /// Depth
+    pub inherent_data: u32,
+}
+
+impl PoaInherentDataProvider {
+    /// Creates a new instance of `PoaInherentDataProvider`.
+    pub fn create<
+        Block: BlockT + 'static,
+        Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
+    >(
+        client: &Client,
+        chain_head: Block::Header,
+    ) -> Result<Self, Error<Block>> {
+        let Poa { depth, .. } = construct_poa(client, chain_head)?;
+        Ok(Self {
+            inherent_data: depth as u32,
+        })
+    }
+}
+
+#[async_trait::async_trait]
+impl sp_inherents::InherentDataProvider for PoaInherentDataProvider {
+    fn provide_inherent_data(
+        &self,
+        inherent_data: &mut sp_inherents::InherentData,
+    ) -> Result<(), sp_inherents::Error> {
+        inherent_data.put_data(
+            canyon_primitives::POA_INHERENT_IDENTIFIER,
+            &self.inherent_data,
+        )
+    }
+
+    async fn try_handle_error(
+        &self,
+        _: &sp_inherents::InherentIdentifier,
+        _: &[u8],
+    ) -> Option<Result<(), sp_inherents::Error>> {
+        // Inherent isn't checked and can not return any error
+        None
+    }
+}
+
+fn extract_weave_size<Block: BlockT>(header: &Block::Header) -> Result<DataIndex, Error<Block>> {
+    let opaque_weave_size = header.digest().logs.iter().find_map(|log| {
+        if let DigestItemFor::<Block>::Consensus(POA_ENGINE_ID, opaque_data) = log {
+            Some(opaque_data)
+        } else {
+            None
+        }
+    });
+
+    match opaque_weave_size {
+        Some(weave_size) => {
+            Decode::decode(&mut weave_size.as_slice()).map_err(Error::DecodeWeaveSizeFailed)
+        }
+        None => Err(Error::EmptyWeaveSize),
     }
 }
 
