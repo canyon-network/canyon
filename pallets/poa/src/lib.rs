@@ -145,7 +145,7 @@ impl<T: Config> ProvideInherent for Pallet<T> {
     const INHERENT_IDENTIFIER: InherentIdentifier = canyon_primitives::POA_INHERENT_IDENTIFIER;
 
     fn create_inherent(data: &InherentData) -> Option<Self::Call> {
-        let depth: u32 = match data.get_data(&Self::INHERENT_IDENTIFIER) {
+        let depth: Option<u32> = match data.get_data(&Self::INHERENT_IDENTIFIER) {
             Ok(Some(d)) => d,
             Ok(None) => return None,
             Err(_) => {
@@ -154,14 +154,19 @@ impl<T: Config> ProvideInherent for Pallet<T> {
             }
         };
 
-        Some(Call::update_storage_capacity(depth))
+        if let Some(depth) = depth {
+            Some(Call::update_storage_capacity(depth))
+        } else {
+            None
+        }
     }
 
     fn is_inherent(call: &Self::Call) -> bool {
         matches!(call, Call::update_storage_capacity(..))
     }
 
-    fn is_inherent_required(_data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
-        Ok(Some(().into()))
-    }
+    // Re-enable this once the case of zero weave is resolved.
+    // fn is_inherent_required(_data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
+        // Ok(Some(().into()))
+    // }
 }

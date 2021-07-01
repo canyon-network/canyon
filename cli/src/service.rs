@@ -337,7 +337,7 @@ pub fn new_full_base(
                     let poa =
                         cc_poa_inherent::InherentDataProvider::create(&*client_clone_poa, parent)?;
 
-                    Ok((timestamp, slot, uncles))
+                    Ok((timestamp, slot, uncles, poa))
                 }
             },
             force_authoring,

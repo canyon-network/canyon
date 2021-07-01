@@ -105,6 +105,7 @@ fn make_bytes(h: [u8; 32]) -> [u8; 8] {
 
 /// Returns the position of recall byte in the entire weave.
 fn calculate_challenge_byte(seed: Randomness, weave_size: DataIndex, depth: Depth) -> DataIndex {
+    assert!(weave_size > 0, "weave size can not be 0");
     DataIndex::from_le_bytes(make_bytes(multihash(seed, depth))) % weave_size
 }
 
@@ -138,7 +139,12 @@ fn extract_weave_size<Block: BlockT>(header: &Block::Header) -> Result<DataIndex
         Some(weave_size) => {
             Decode::decode(&mut weave_size.as_slice()).map_err(Error::WeaveSizeDecodeFailed)
         }
-        None => Err(Error::EmptyWeaveSize),
+        None => {
+            Ok(Default::default())
+
+            // FIXME: weave size should only be zero for genesis?
+            // Err(Error::EmptyWeaveSize),
+        }
     }
 }
 
@@ -148,7 +154,7 @@ fn construct_poa<
 >(
     client: &Client,
     parent: Block::Hash,
-) -> Result<Poa, Error<Block>> {
+) -> Result<Option<Poa>, Error<Block>> {
     let parent_id = BlockId::Hash(parent);
     let (chain_head, _extrinsics) = client
         .block(&parent_id)?
@@ -159,6 +165,11 @@ fn construct_poa<
     let weave_size = extract_weave_size::<Block>(&chain_head)?;
 
     for depth in 1..=MAX_DEPTH {
+        // Genesis block?
+        if weave_size == 0 {
+            return Ok(None);
+        }
+
         let recall_byte = calculate_challenge_byte(chain_head.encode(), weave_size, depth);
 
         // TODO: Find the recall block.
@@ -228,7 +239,7 @@ fn construct_poa<
 
 pub struct InherentDataProvider {
     /// Depth
-    pub inherent_data: u32,
+    pub inherent_data: Option<u32>,
 }
 
 impl InherentDataProvider {
@@ -240,10 +251,8 @@ impl InherentDataProvider {
         client: &Client,
         parent: Block::Hash,
     ) -> Result<Self, Error<Block>> {
-        let Poa { depth, .. } = construct_poa(client, parent)?;
-        Ok(Self {
-            inherent_data: depth as u32,
-        })
+        let inherent_data = construct_poa(client, parent)?.map(|poa| poa.depth as u32);
+        Ok(Self { inherent_data })
     }
 }
 
