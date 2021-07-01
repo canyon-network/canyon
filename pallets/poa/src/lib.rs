@@ -167,6 +167,6 @@ impl<T: Config> ProvideInherent for Pallet<T> {
 
     // Re-enable this once the case of zero weave is resolved.
     // fn is_inherent_required(_data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
-        // Ok(Some(().into()))
+    // Ok(Some(().into()))
     // }
 }
