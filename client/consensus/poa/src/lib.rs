@@ -17,6 +17,8 @@
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
 //! This crate creates the inherent data based on the Proof of Access consensus.
+//!
+//! TODO: verify PoA on block import.
 
 use codec::{Decode, Encode};
 use thiserror::Error;
@@ -52,6 +54,8 @@ type ExtrinsicIndex = usize;
 
 #[derive(Error, Debug)]
 pub enum Error<Block: BlockT> {
+    #[error("codec error")]
+    Codec(#[from] codec::Error),
     #[error("blockchain error")]
     BlockchainError(#[from] sp_blockchain::Error),
     #[error("block {0} not found")]
@@ -60,8 +64,6 @@ pub enum Error<Block: BlockT> {
     HeaderNotFound(BlockId<Block>),
     #[error("the chunk in recall tx not found")]
     InvalidChunk,
-    #[error("failed to decode opaque weave size from digest, error: {0}")]
-    WeaveSizeDecodeFailed(codec::Error),
     #[error("weave size not found in the header digests")]
     EmptyWeaveSize,
     #[error("the maximum allowed depth {0} reached")]
@@ -127,9 +129,7 @@ fn extract_weave_size<Block: BlockT>(header: &Block::Header) -> Result<DataIndex
     });
 
     match opaque_weave_size {
-        Some(weave_size) => {
-            Decode::decode(&mut weave_size.as_slice()).map_err(Error::WeaveSizeDecodeFailed)
-        }
+        Some(weave_size) => Decode::decode(&mut weave_size.as_slice()).map_err(Error::Codec),
         None => {
             Ok(Default::default())
 

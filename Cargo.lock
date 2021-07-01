@@ -1050,16 +1050,10 @@ dependencies = [
  "async-trait",
  "canyon-primitives",
  "cc-consensus-poa",
- "cp-permastore",
- "parity-scale-codec",
  "sc-client-api",
  "sp-blockchain",
- "sp-core",
  "sp-inherents",
- "sp-io",
  "sp-runtime",
- "sp-trie",
- "thiserror",
 ]
 
 [[package]]
