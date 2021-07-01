@@ -100,7 +100,7 @@ pub mod pallet {
     #[pallet::error]
     pub enum Error<T> {
         /// poa inherent is required on each valid block.
-        PoaInherentMissing,
+        MandatoryInherentMissing,
     }
 
     /// The estimate of the proportion of validator's local storage to
