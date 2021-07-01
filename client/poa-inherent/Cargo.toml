@@ -1,7 +1,19 @@
 [package]
-name = "poa-inherent"
+name = "cc-poa-inherent"
 version = "0.1.0"
 authors = ["Canyon Labs <https://github.com/canyon-network>"]
 edition = "2018"
 
 [dependencies]
+codec = { package = "parity-scale-codec", version = "2.1" }
+thiserror = "1.0"
+
+sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-io = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-trie = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
+sc-client-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
+cp-permastore = { path = "../../primitives/permastore" }

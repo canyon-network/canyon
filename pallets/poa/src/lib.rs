@@ -147,7 +147,16 @@ impl<T: Config> ProvideInherent for Pallet<T> {
     const INHERENT_IDENTIFIER: InherentIdentifier = POA_INHERENT_IDENTIFIER;
 
     fn create_inherent(data: &InherentData) -> Option<Self::Call> {
-        todo!()
+        let depth: u32 = match data.get_data(&Self::INHERENT_IDENTIFIER) {
+            Ok(Some(d)) => d,
+            Ok(None) => return None,
+            Err(_) => {
+                frame_support::log::error!("Depth failed to decode");
+                return None;
+            }
+        };
+
+        Some(Call::update_storage_capacity(depth))
     }
 
     fn is_inherent(call: &Self::Call) -> bool {

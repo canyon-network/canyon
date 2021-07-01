@@ -1024,6 +1024,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "cc-poa-inherent"
+version = "0.1.0"
+dependencies = [
+ "cp-permastore",
+ "parity-scale-codec",
+ "sc-client-api",
+ "sp-blockchain",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-trie",
+ "thiserror",
+]
+
+[[package]]
 name = "cc-rpc"
 version = "0.1.0"
 dependencies = [
@@ -5581,25 +5596,6 @@ checksum = "b38a02e23bd9604b842a812063aec4ef702b57989c37b655254bb61c471ad211"
 dependencies = [
  "plotters-backend",
 ]
-
-[[package]]
-name = "poa"
-version = "0.1.0"
-dependencies = [
- "cp-permastore",
- "parity-scale-codec",
- "sc-client-api",
- "sp-blockchain",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-trie",
- "thiserror",
-]
-
-[[package]]
-name = "poa-inherent"
-version = "0.1.0"
 
 [[package]]
 name = "polling"
