@@ -518,6 +518,12 @@ parameter_types! {
     pub const SignedPhase: u32 = EPOCH_DURATION_IN_BLOCKS / 4;
     pub const UnsignedPhase: u32 = EPOCH_DURATION_IN_BLOCKS / 4;
 
+    // signed config
+    pub const SignedMaxSubmissions: u32 = 10;
+    pub const SignedRewardBase: Balance = 1 * DOLLARS;
+    pub const SignedDepositBase: Balance = 1 * DOLLARS;
+    pub const SignedDepositByte: Balance = 1 * CENTS;
+
     // fallback: no need to do on-chain phragmen initially.
     pub const Fallback: pallet_election_provider_multi_phase::FallbackStrategy =
         pallet_election_provider_multi_phase::FallbackStrategy::OnChain;
@@ -562,6 +568,14 @@ impl pallet_election_provider_multi_phase::Config for Runtime {
     type MinerMaxWeight = MinerMaxWeight;
     type MinerMaxLength = MinerMaxLength;
     type MinerTxPriority = MultiPhaseUnsignedPriority;
+    type SignedMaxSubmissions = SignedMaxSubmissions;
+    type SignedRewardBase = SignedRewardBase;
+    type SignedDepositBase = SignedDepositBase;
+    type SignedDepositByte = SignedDepositByte;
+    type SignedDepositWeight = ();
+    type SignedMaxWeight = MinerMaxWeight;
+    type SlashHandler = (); // burn slashes
+    type RewardHandler = (); // nothing to do upon rewards
     type DataProvider = Staking;
     type OnChainAccuracy = Perbill;
     type CompactSolution = NposCompactSolution16;
