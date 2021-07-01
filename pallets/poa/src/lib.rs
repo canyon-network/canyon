@@ -31,6 +31,7 @@ use sp_runtime::{
 use sp_std::{marker::PhantomData, prelude::*};
 
 use frame_support::{
+    inherent::{InherentData, InherentIdentifier, MakeFatalError, ProvideInherent},
     traits::IsSubType,
     weights::{ClassifyDispatch, DispatchClass, Pays, PaysFee, WeighData, Weight},
 };
@@ -79,10 +80,10 @@ pub mod pallet {
         pub fn update_storage_capacity(
             origin: OriginFor<T>,
             #[pallet::compact] depth: Depth,
-        ) -> DispatchResultWithPostInfo {
+        ) -> DispatchResult {
             ensure_root(origin)?;
 
-            Ok(().into())
+            Ok(())
         }
     }
 
@@ -92,7 +93,14 @@ pub mod pallet {
     #[pallet::generate_deposit(pub(super) fn deposit_event)]
     pub enum Event<T: Config> {
         /// Dummy event, just here so there's a generic type that's used.
-        NewPoaDepth(T::AccountId, Depth),
+        NewDepth(T::AccountId, Depth),
+    }
+
+    /// Error for the poa pallet.
+    #[pallet::error]
+    pub enum Error<T> {
+        /// poa inherent is required on each valid block.
+        PoaInherentMissing,
     }
 
     /// The estimate of the proportion of validator's local storage to
@@ -102,19 +110,20 @@ pub mod pallet {
     /// The smaller the depth, the greater the capacity. The smallest depth
     /// is 1, which means the validator stores the entire weave locally.
     #[pallet::storage]
-    #[pallet::getter(fn storage_capacity)]
-    pub(super) type PoaAttempts<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, Depth>;
+    #[pallet::getter(fn capacity_estimation)]
+    pub(super) type CapacityEstimation<T: Config> =
+        StorageMap<_, Blake2_128Concat, T::AccountId, Depth>;
 
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config> {
-        pub validator_poa_depth_mean: Vec<(T::AccountId, Depth)>,
+        pub validator_initial_capacity: Vec<(T::AccountId, Depth)>,
     }
 
     #[cfg(feature = "std")]
     impl<T: Config> Default for GenesisConfig<T> {
         fn default() -> Self {
             Self {
-                validator_poa_depth_mean: Default::default(),
+                validator_initial_capacity: Default::default(),
             }
         }
     }
@@ -122,11 +131,30 @@ pub mod pallet {
     #[pallet::genesis_build]
     impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
         fn build(&self) {
-            for (validator, depth) in &self.validator_poa_depth_mean {
-                <PoaAttempts<T>>::insert(validator, depth);
+            for (validator, depth) in &self.validator_initial_capacity {
+                <CapacityEstimation<T>>::insert(validator, depth);
             }
         }
     }
 }
 
-// TODO: inherent
+const POA_INHERENT_IDENTIFIER: InherentIdentifier = *b"poainher";
+
+impl<T: Config> ProvideInherent for Pallet<T> {
+    type Call = Call<T>;
+    type Error = MakeFatalError<()>;
+
+    const INHERENT_IDENTIFIER: InherentIdentifier = POA_INHERENT_IDENTIFIER;
+
+    fn create_inherent(data: &InherentData) -> Option<Self::Call> {
+        todo!()
+    }
+
+    fn is_inherent(call: &Self::Call) -> bool {
+        matches!(call, Call::update_storage_capacity(..))
+    }
+
+    fn is_inherent_required(_data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
+        Ok(Some(().into()))
+    }
+}
