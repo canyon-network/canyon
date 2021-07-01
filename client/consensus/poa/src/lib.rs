@@ -80,7 +80,7 @@ pub struct Poa {
     ///
     pub tx_path: TxProof,
     ///
-    pub chunk: ChunkProof,
+    pub chunk_proof: ChunkProof,
 }
 
 /// Applies the hashing on `seed` for `n` times
@@ -112,6 +112,7 @@ fn binary_search<T: Copy>(target: DataIndex, ordered_list: &[(T, DataIndex)]) ->
     }
 }
 
+/// Returns a tuple of (index, absolute_data_index) of extrinsic in which the recall byte is located.
 fn find_recall_tx(
     recall_byte: DataIndex,
     sized_extrinsics: &[(ExtrinsicIndex, DataIndex)],
@@ -139,6 +140,18 @@ fn extract_weave_size<Block: BlockT>(header: &Block::Header) -> Result<DataIndex
     }
 }
 
+fn fetch_block<Block: BlockT, Client: BlockBackend<Block>>(
+    id: BlockId<Block>,
+    client: &Client,
+) -> Result<(Block::Header, Vec<Block::Extrinsic>), Error<Block>> {
+    Ok(client
+        .block(&id)?
+        .ok_or_else(|| Error::BlockNotFound(id))?
+        .block
+        .deconstruct())
+}
+
+/// Constructs a valid PoA.
 pub fn construct_poa<
     Block: BlockT + 'static,
     Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
@@ -147,11 +160,8 @@ pub fn construct_poa<
     parent: Block::Hash,
 ) -> Result<Option<Poa>, Error<Block>> {
     let parent_id = BlockId::Hash(parent);
-    let (chain_head, _extrinsics) = client
-        .block(&parent_id)?
-        .ok_or_else(|| Error::BlockNotFound(parent_id))?
-        .block
-        .deconstruct();
+
+    let (chain_head, _extrinsics) = fetch_block(parent_id, client)?;
 
     let weave_size = extract_weave_size::<Block>(&chain_head)?;
 
@@ -168,11 +178,7 @@ pub fn construct_poa<
 
         let recall_block_id = BlockId::Number(recall_block_number.saturated_into());
 
-        let (header, extrinsics) = client
-            .block(&recall_block_id)?
-            .ok_or_else(|| Error::BlockNotFound(recall_block_id))?
-            .block
-            .deconstruct();
+        let (header, extrinsics) = fetch_block(recall_block_id, client)?;
 
         let recall_parent_block_id = BlockId::Hash(*header.parent_hash());
         let recall_parent_header = client
