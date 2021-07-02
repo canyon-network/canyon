@@ -24,15 +24,14 @@ use codec::{Decode, Encode};
 use thiserror::Error;
 
 use sp_blockchain::HeaderBackend;
-use sp_core::offchain::OffchainStorage;
 use sp_runtime::{
     generic::BlockId,
-    traits::{Block as BlockT, DigestItemFor, Extrinsic, Header as HeaderT, SaturatedConversion},
+    traits::{Block as BlockT, DigestItemFor, Extrinsic, Header as HeaderT, },
 };
 
 use sc_client_api::BlockBackend;
 
-use canyon_primitives::{BlockNumber, DataIndex};
+use canyon_primitives::DataIndex;
 use cp_permastore::{TransactionDataBackend as TransactionDataBackendT, CHUNK_SIZE, POA_ENGINE_ID};
 
 mod chunk_proof;
@@ -152,6 +151,13 @@ fn fetch_block<Block: BlockT, Client: BlockBackend<Block>>(
         .deconstruct())
 }
 
+fn fetch_header<Block: BlockT, Client: HeaderBackend<Block>>(
+    id: BlockId<Block>,
+    client: &Client,
+) -> Result<Block::Header, Error<Block>> {
+    client.header(id)?.ok_or_else(|| Error::HeaderNotFound(id))
+}
+
 /// Returns the block number of recall block.
 fn find_recall_block<Block: BlockT>(recall_byte: DataIndex) -> BlockId<Block> {
     todo!("find recall block number")
@@ -167,9 +173,7 @@ pub fn construct_poa<
     parent: Block::Hash,
     transaction_data_backend: TransactionDataBackend,
 ) -> Result<Option<Poa>, Error<Block>> {
-    let parent_id = BlockId::Hash(parent);
-
-    let (chain_head, _extrinsics) = fetch_block(parent_id, client)?;
+    let chain_head = fetch_header(BlockId::Hash(parent), client)?;
 
     let weave_size = extract_weave_size::<Block>(&chain_head)?;
 
@@ -185,9 +189,7 @@ pub fn construct_poa<
         let (header, extrinsics) = fetch_block(recall_block_id, client)?;
 
         let recall_parent_block_id = BlockId::Hash(*header.parent_hash());
-        let recall_parent_header = client
-            .header(recall_parent_block_id)?
-            .ok_or_else(|| Error::HeaderNotFound(recall_parent_block_id))?;
+        let recall_parent_header = fetch_header(recall_parent_block_id, client)?;
 
         let weave_base = extract_weave_size::<Block>(&recall_parent_header)?;
 
