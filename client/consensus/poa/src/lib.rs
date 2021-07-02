@@ -236,7 +236,7 @@ pub fn construct_poa<
 
             // If find one solution, return directly.
         } else {
-            log::info!(
+            log::error!(
                 "transaction data not found given block {} and extrinsic index {}",
                 recall_block_id,
                 recall_extrinsic_index
