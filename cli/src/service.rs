@@ -277,6 +277,10 @@ pub fn new_full_base(
     let enable_grandpa = !config.disable_grandpa;
     let prometheus_registry = config.prometheus_registry().cloned();
 
+    let offchain_storage = backend
+        .offchain_storage()
+        .unwrap_or_else(|| panic!("offchain storage is some; qed"));
+
     let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
         config,
         backend,
@@ -320,6 +324,8 @@ pub fn new_full_base(
             justification_sync_link: network.clone(),
             create_inherent_data_providers: move |parent, ()| {
                 let client_clone = client_clone.clone();
+                let client_clone2 = client_clone.clone();
+                let offchain_storage_clone = offchain_storage.clone();
                 async move {
                     let uncles = sc_consensus_uncles::create_uncles_inherent_data_provider(
                         &*client_clone,
@@ -333,7 +339,13 @@ pub fn new_full_base(
                                                     slot_duration,
                                             );
 
-                    Ok((timestamp, slot, uncles))
+                    let poa = cc_poa_inherent::InherentDataProvider::create(
+                        &*client_clone2,
+                        parent,
+                        offchain_storage_clone,
+                    )?;
+
+                    Ok((timestamp, slot, uncles, poa))
                 }
             },
             force_authoring,

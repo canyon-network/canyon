@@ -46,6 +46,9 @@ pub type Depth = u32;
 /// The type for indexing the perma storage. The upper limit is around 16 EiB.
 pub type DataIndex = u64;
 
+/// Type used for extrinsic.
+pub type ExtrinsicIndex = u32;
+
 /// Balance of an account.
 pub type Balance = u128;
 
@@ -74,6 +77,9 @@ pub type Block = generic::Block<Header, OpaqueExtrinsic>;
 
 /// Block ID.
 pub type BlockId = generic::BlockId<Block>;
+
+/// Unique identifier for the poa Inherent
+pub const POA_INHERENT_IDENTIFIER: sp_inherents::InherentIdentifier = *b"poainher";
 
 /// App-specific crypto used for reporting equivocation/misbehavior in BABE and
 /// GRANDPA. Any rewards for misbehavior reporting will be paid out to this

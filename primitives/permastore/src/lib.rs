@@ -19,11 +19,12 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use sp_core::offchain::OffchainStorage;
+use sp_runtime::{generic::BlockId, traits::Block as BlockT};
 
 pub const POA_ENGINE_ID: [u8; 4] = *b"poa_";
 
-/// 256KiB per chunk.
-pub const CHUNK_SIZE: u64 = 256 * 1024 * 1024;
+/// 256B per chunk.
+pub const CHUNK_SIZE: u32 = 256 * 1024;
 
 /// Hasher type for permastore.
 pub type Hasher = sp_core::Blake2Hasher;
@@ -35,6 +36,8 @@ pub type TrieLayout = sp_trie::Layout<Hasher>;
 pub type VerifyError = sp_trie::VerifyError<sp_core::H256, sp_trie::Error>;
 
 /// Persistent transaction data storage.
+///
+/// Low level API for the underlying database.
 pub trait PermaStorage: Send + Sync + Clone {
     /// Persist a value in storage under given key.
     fn submit(&mut self, key: &[u8], value: &[u8]);
@@ -48,7 +51,7 @@ pub trait PermaStorage: Send + Sync + Clone {
     }
 }
 
-// PermaStorage backed by offchain storage.
+/// Implements the persistent transaction storage based on the offchain storage.
 impl<T: OffchainStorage> PermaStorage for T {
     fn submit(&mut self, key: &[u8], value: &[u8]) {
         self.set(sp_offchain::STORAGE_PREFIX, key, value)
@@ -56,5 +59,29 @@ impl<T: OffchainStorage> PermaStorage for T {
 
     fn retrieve(&self, key: &[u8]) -> Option<Vec<u8>> {
         self.get(sp_offchain::STORAGE_PREFIX, key)
+    }
+}
+
+/// Permanent transaction data backend.
+///
+/// High level API for accessing the transaction data.
+pub trait TransactionDataBackend<Block: BlockT>: Send + Sync {
+    /// Get transaction data. Returns `None` if data is not found.
+    fn transaction_data(
+        &self,
+        id: BlockId<Block>,
+        extrinsic_index: u32,
+    ) -> sp_blockchain::Result<Option<Vec<u8>>>;
+}
+
+// (block_id, extrinsic_index) => chunk_root
+// chunk_root => transaction_data
+impl<T: PermaStorage, Block: BlockT> TransactionDataBackend<Block> for T {
+    fn transaction_data(
+        &self,
+        _id: BlockId<Block>,
+        _extrinsic_index: u32,
+    ) -> sp_blockchain::Result<Option<Vec<u8>>> {
+        todo!("Impl it using the underlying offchain storage")
     }
 }
