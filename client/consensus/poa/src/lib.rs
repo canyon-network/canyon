@@ -246,23 +246,24 @@ pub fn construct_poa<
 #[cfg(test)]
 mod tests {
     use super::*;
+    use canyon_primitives::BlockNumber;
 
-    struct GlobalBlockIndex(Vec<(BlockNumber, DataIndex)>);
+    // struct GlobalBlockIndex(Vec<(BlockNumber, DataIndex)>);
 
-    impl GlobalBlockIndex {
-        pub fn find_challenge_block(&self, recall_byte: DataIndex) -> BlockNumber {
-            binary_search(recall_byte, &self.0).0
-        }
-    }
+    // impl GlobalBlockIndex {
+    // pub fn find_challenge_block(&self, recall_byte: DataIndex) -> BlockNumber {
+    // binary_search(recall_byte, &self.0).0
+    // }
+    // }
 
-    #[test]
-    fn test_find_challenge_block() {
-        let global_index = GlobalBlockIndex(vec![(0, 10), (3, 15), (5, 20), (6, 30), (7, 32)]);
+    // #[test]
+    // fn test_find_challenge_block() {
+    // let global_index = GlobalBlockIndex(vec![(0, 10), (3, 15), (5, 20), (6, 30), (7, 32)]);
 
-        assert_eq!(0, global_index.find_callenge_block(5));
-        assert_eq!(3, global_index.find_callenge_block(15));
-        assert_eq!(5, global_index.find_callenge_block(16));
-        assert_eq!(6, global_index.find_callenge_block(29));
-        assert_eq!(7, global_index.find_callenge_block(31));
-    }
+    // assert_eq!(0, global_index.find_callenge_block(5));
+    // assert_eq!(3, global_index.find_callenge_block(15));
+    // assert_eq!(5, global_index.find_callenge_block(16));
+    // assert_eq!(6, global_index.find_callenge_block(29));
+    // assert_eq!(7, global_index.find_callenge_block(31));
+    // }
 }

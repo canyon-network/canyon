@@ -1034,13 +1034,18 @@ dependencies = [
  "cp-permastore",
  "log",
  "parity-scale-codec",
+ "sc-block-builder",
  "sc-client-api",
  "sp-blockchain",
  "sp-core",
  "sp-inherents",
  "sp-io",
+ "sp-keyring",
  "sp-runtime",
+ "sp-state-machine",
  "sp-trie",
+ "substrate-test-runtime",
+ "substrate-test-runtime-client",
  "thiserror",
 ]
 

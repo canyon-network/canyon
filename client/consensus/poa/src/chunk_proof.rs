@@ -130,7 +130,10 @@ impl ChunkProofBuilder {
             for (index, chunk) in chunks.enumerate() {
                 trie.insert(&encode_index(index as u32), &chunk)
                     .unwrap_or_else(|e| {
-                        panic!("Failed to insert the trie node: {:?}, chunk index: {}", e, index)
+                        panic!(
+                            "Failed to insert the trie node: {:?}, chunk index: {}",
+                            e, index
+                        )
                     });
 
                 if index == self.target_chunk_index as usize {
