@@ -31,7 +31,7 @@ use sp_runtime::{
 
 use sc_client_api::BlockBackend;
 
-use canyon_primitives::DataIndex;
+use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
 use cp_permastore::{TransactionDataBackend as TransactionDataBackendT, CHUNK_SIZE, POA_ENGINE_ID};
 
 mod chunk_proof;
@@ -44,13 +44,9 @@ type TxProof = Vec<Vec<u8>>;
 /// The maximum depth of attempting to generate a valid PoA.
 ///
 /// TODO: make it configurable in Runtime?
-pub const MAX_DEPTH: u16 = 100;
-
-type Depth = u16;
+pub const MAX_DEPTH: u32 = 100;
 
 type Randomness = Vec<u8>;
-
-type ExtrinsicIndex = usize;
 
 #[derive(Error, Debug)]
 pub enum Error<Block: BlockT> {
@@ -118,6 +114,8 @@ fn find_recall_tx(
     sized_extrinsics: &[(ExtrinsicIndex, DataIndex)],
 ) -> (ExtrinsicIndex, DataIndex) {
     binary_search(recall_byte, sized_extrinsics)
+    // let (extrinsic_index, data_index) = binary_search(recall_byte, sized_extrinsics);
+    // (extrinsic_index as ExtrinsicIndex, data_index)
 }
 
 fn extract_weave_size<Block: BlockT>(header: &Block::Header) -> Result<DataIndex, Error<Block>> {
@@ -199,7 +197,7 @@ pub fn construct_poa<
         for (index, extrinsic) in extrinsics.iter().enumerate() {
             let tx_size = extrinsic.data_size();
             if tx_size > 0 {
-                sized_extrinsics.push((index, weave_base + acc + tx_size));
+                sized_extrinsics.push((index as ExtrinsicIndex, weave_base + acc + tx_size));
                 acc += tx_size;
             }
         }

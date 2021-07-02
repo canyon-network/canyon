@@ -46,6 +46,9 @@ pub type Depth = u32;
 /// The type for indexing the perma storage. The upper limit is around 16 EiB.
 pub type DataIndex = u64;
 
+/// Type used for extrinsic.
+pub type ExtrinsicIndex = u32;
+
 /// Balance of an account.
 pub type Balance = u128;
 
