@@ -26,7 +26,7 @@ use thiserror::Error;
 use sp_blockchain::HeaderBackend;
 use sp_runtime::{
     generic::BlockId,
-    traits::{Block as BlockT, DigestItemFor, Extrinsic, Header as HeaderT, },
+    traits::{Block as BlockT, DigestItemFor, Extrinsic, Header as HeaderT},
 };
 
 use sc_client_api::BlockBackend;
@@ -235,6 +235,12 @@ pub fn construct_poa<
             // Construct PoA proof.
 
             // If find one solution, return directly.
+        } else {
+            log::info!(
+                "transaction data not found given block {} and extrinsic index {}",
+                recall_block_id,
+                recall_extrinsic_index
+            );
         }
     }
 

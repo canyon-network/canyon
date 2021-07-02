@@ -1032,6 +1032,7 @@ dependencies = [
  "async-trait",
  "canyon-primitives",
  "cp-permastore",
+ "log",
  "parity-scale-codec",
  "sc-client-api",
  "sp-blockchain",

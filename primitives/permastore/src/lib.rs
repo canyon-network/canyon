@@ -36,6 +36,8 @@ pub type TrieLayout = sp_trie::Layout<Hasher>;
 pub type VerifyError = sp_trie::VerifyError<sp_core::H256, sp_trie::Error>;
 
 /// Persistent transaction data storage.
+///
+/// Low level API for the underlying database.
 pub trait PermaStorage: Send + Sync + Clone {
     /// Persist a value in storage under given key.
     fn submit(&mut self, key: &[u8], value: &[u8]);
@@ -49,7 +51,7 @@ pub trait PermaStorage: Send + Sync + Clone {
     }
 }
 
-// PermaStorage backed by offchain storage.
+/// Implements the persistent transaction storage based on the offchain storage.
 impl<T: OffchainStorage> PermaStorage for T {
     fn submit(&mut self, key: &[u8], value: &[u8]) {
         self.set(sp_offchain::STORAGE_PREFIX, key, value)
@@ -61,6 +63,8 @@ impl<T: OffchainStorage> PermaStorage for T {
 }
 
 /// Permanent transaction data backend.
+///
+/// High level API for accessing the transaction data.
 pub trait TransactionDataBackend<Block: BlockT>: Send + Sync {
     /// Get transaction data. Returns `None` if data is not found.
     fn transaction_data(
@@ -70,6 +74,8 @@ pub trait TransactionDataBackend<Block: BlockT>: Send + Sync {
     ) -> sp_blockchain::Result<Option<Vec<u8>>>;
 }
 
+// (block_id, extrinsic_index) => chunk_root
+// chunk_root => transaction_data
 impl<T: PermaStorage, Block: BlockT> TransactionDataBackend<Block> for T {
     fn transaction_data(
         &self,
