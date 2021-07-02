@@ -16,17 +16,48 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
-use codec::{Decode, Encode};
+use codec::Encode;
 
 use sp_core::H256;
-use sp_runtime::traits::Hash as HashT;
+use sp_runtime::traits::{Block as BlockT, Hash as HashT};
 use sp_trie::TrieMut;
 
-use cp_permastore::{Hasher, TrieLayout, VerifyError, CHUNK_SIZE};
+use cp_permastore::{Hasher, TrieLayout};
 
-pub fn build_transaction_proof<Hash: HashT>(
+use crate::chunk_proof::{encode_index, Error};
+
+pub fn build_transaction_proof<Block: BlockT<Hash = H256>>(
     extrinsic_index: usize,
-    extrinsics_root: Hash::Output,
-) -> Result<Vec<Vec<u8>>, ()> {
-    todo!()
+    extrinsics_root: Block::Hash,
+    extrinsics: Vec<Block::Extrinsic>,
+) -> Result<Vec<Vec<u8>>, Error> {
+    let mut db = sp_trie::MemoryDB::<Hasher>::default();
+    let mut calc_extrinsics_root = sp_trie::empty_trie_root::<TrieLayout>();
+
+    {
+        let mut trie = sp_trie::TrieDBMut::<TrieLayout>::new(&mut db, &mut calc_extrinsics_root);
+
+        for (index, extrinsic) in extrinsics.iter().enumerate() {
+            trie.insert(&encode_index(index as u32), &extrinsic.encode())
+                .unwrap_or_else(|e| {
+                    panic!(
+                        "Failed to insert the trie node: {:?}, extrinsic index: {}",
+                        e, index
+                    )
+                });
+        }
+
+        trie.commit();
+    }
+
+    assert_eq!(extrinsics_root, calc_extrinsics_root);
+
+    let proof = sp_trie::generate_trie_proof::<TrieLayout, _, _, _>(
+        &db,
+        extrinsics_root,
+        &[encode_index(extrinsic_index as u32)],
+    )
+    .map_err(|e| Error::Trie(Box::new(e)))?;
+
+    Ok(proof)
 }

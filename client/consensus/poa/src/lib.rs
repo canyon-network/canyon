@@ -114,8 +114,6 @@ fn find_recall_tx(
     sized_extrinsics: &[(ExtrinsicIndex, DataIndex)],
 ) -> (ExtrinsicIndex, DataIndex) {
     binary_search(recall_byte, sized_extrinsics)
-    // let (extrinsic_index, data_index) = binary_search(recall_byte, sized_extrinsics);
-    // (extrinsic_index as ExtrinsicIndex, data_index)
 }
 
 fn extract_weave_size<Block: BlockT>(header: &Block::Header) -> Result<DataIndex, Error<Block>> {
