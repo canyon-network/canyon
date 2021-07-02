@@ -19,6 +19,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use sp_core::offchain::OffchainStorage;
+use sp_runtime::{generic::BlockId, traits::Block as BlockT};
 
 pub const POA_ENGINE_ID: [u8; 4] = *b"poa_";
 
@@ -56,5 +57,25 @@ impl<T: OffchainStorage> PermaStorage for T {
 
     fn retrieve(&self, key: &[u8]) -> Option<Vec<u8>> {
         self.get(sp_offchain::STORAGE_PREFIX, key)
+    }
+}
+
+/// Permanent transaction data backend.
+pub trait TransactionDataBackend<Block: BlockT>: Send + Sync {
+    /// Get transaction data. Returns `None` if data is not found.
+    fn transaction_data(
+        &self,
+        id: BlockId<Block>,
+        extrinsic_index: u32,
+    ) -> sp_blockchain::Result<Option<Vec<u8>>>;
+}
+
+impl<T: PermaStorage, Block: BlockT> TransactionDataBackend<Block> for T {
+    fn transaction_data(
+        &self,
+        id: BlockId<Block>,
+        extrinsic_index: u32,
+    ) -> sp_blockchain::Result<Option<Vec<u8>>> {
+        todo!()
     }
 }

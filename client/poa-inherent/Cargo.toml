@@ -15,3 +15,4 @@ sc-client-api = { git = "https://github.com/canyon-network/substrate", branch = 
 
 canyon-primitives = { path = "../../primitives" }
 cc-consensus-poa = { path = "../consensus/poa" }
+cp-permastore = { path = "../../primitives/permastore" }

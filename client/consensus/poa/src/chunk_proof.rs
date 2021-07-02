@@ -28,6 +28,7 @@ fn encode_index(input: u32) -> Vec<u8> {
 }
 
 /// Unit type wrapper of the blake2_256 hash of a data chunk.
+#[derive(Clone, Debug)]
 pub struct ChunkId([u8; 32]);
 
 impl From<[u8; 32]> for ChunkId {
@@ -129,10 +130,7 @@ impl ChunkProofBuilder {
             for (index, chunk) in chunks.enumerate() {
                 trie.insert(&encode_index(index as u32), &chunk)
                     .unwrap_or_else(|e| {
-                        panic!(
-                            "Failed to insert the node to the trie: {:?}, index: {}",
-                            e, index
-                        )
+                        panic!("Failed to insert the trie node: {:?}, index: {}", e, index)
                     });
 
                 if index == self.target_chunk_index as usize {

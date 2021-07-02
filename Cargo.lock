@@ -1050,6 +1050,7 @@ dependencies = [
  "async-trait",
  "canyon-primitives",
  "cc-consensus-poa",
+ "cp-permastore",
  "sc-client-api",
  "sp-blockchain",
  "sp-inherents",
@@ -1258,8 +1259,11 @@ checksum = "ea221b5284a47e40033bf9b66f35f984ec0ea2931eb03505246cd27a963f981b"
 name = "cp-permastore"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "sp-blockchain",
  "sp-core",
  "sp-offchain",
+ "sp-runtime",
  "sp-trie",
 ]
 

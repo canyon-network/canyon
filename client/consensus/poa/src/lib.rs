@@ -24,6 +24,7 @@ use codec::{Decode, Encode};
 use thiserror::Error;
 
 use sp_blockchain::HeaderBackend;
+use sp_core::offchain::OffchainStorage;
 use sp_runtime::{
     generic::BlockId,
     traits::{Block as BlockT, DigestItemFor, Extrinsic, Header as HeaderT, SaturatedConversion},
@@ -32,7 +33,7 @@ use sp_runtime::{
 use sc_client_api::BlockBackend;
 
 use canyon_primitives::{BlockNumber, DataIndex};
-use cp_permastore::{CHUNK_SIZE, POA_ENGINE_ID};
+use cp_permastore::{TransactionDataBackend as TransactionDataBackendT, CHUNK_SIZE, POA_ENGINE_ID};
 
 mod chunk_proof;
 mod tx_proof;
@@ -112,7 +113,7 @@ fn binary_search<T: Copy>(target: DataIndex, ordered_list: &[(T, DataIndex)]) ->
     }
 }
 
-/// Returns a tuple of (index, absolute_data_index) of extrinsic in which the recall byte is located.
+/// Returns a tuple of (extrinsic_index, absolute_data_index) of extrinsic in which the recall byte is located.
 fn find_recall_tx(
     recall_byte: DataIndex,
     sized_extrinsics: &[(ExtrinsicIndex, DataIndex)],
@@ -151,13 +152,20 @@ fn fetch_block<Block: BlockT, Client: BlockBackend<Block>>(
         .deconstruct())
 }
 
+/// Returns the block number of recall block.
+fn find_recall_block<Block: BlockT>(recall_byte: DataIndex) -> BlockId<Block> {
+    todo!("find recall block number")
+}
+
 /// Constructs a valid PoA.
 pub fn construct_poa<
     Block: BlockT + 'static,
     Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
+    TransactionDataBackend: TransactionDataBackendT<Block>,
 >(
     client: &Client,
     parent: Block::Hash,
+    transaction_data_backend: TransactionDataBackend,
 ) -> Result<Option<Poa>, Error<Block>> {
     let parent_id = BlockId::Hash(parent);
 
@@ -172,11 +180,7 @@ pub fn construct_poa<
         }
 
         let recall_byte = calculate_challenge_byte(chain_head.encode(), weave_size, depth);
-
-        // TODO: Find the recall block.
-        let recall_block_number = BlockNumber::default();
-
-        let recall_block_id = BlockId::Number(recall_block_number.saturated_into());
+        let recall_block_id = find_recall_block(recall_byte);
 
         let (header, extrinsics) = fetch_block(recall_block_id, client)?;
 
@@ -208,20 +212,21 @@ pub fn construct_poa<
 
         // Continue if the recall tx has been forgotten as the forgot
         // txs can not participate in the consensus.
-        if todo!("recall_tx has been forgotten via runtime api") {
-            continue;
-        }
+        //
+        // FIXME: handle the data oblivion
+        // if todo!("recall_tx has been forgotten via runtime api") {
+        // continue;
+        // }
 
-        let tx_data: Option<Vec<u8>> =
-            todo!("Fetch recall_tx data from DB given the block and extrinsic index");
-
-        if let Some(tx_data) = tx_data {
+        if let Ok(Some(tx_data)) = transaction_data_backend
+            .transaction_data(recall_block_id, recall_extrinsic_index as u32)
+        {
             let chunk_ids = chunk_proof::chunk_ids(tx_data);
 
             let chunk_offset = recall_byte - recall_tx_data_base;
             let recall_chunk_index = chunk_offset / CHUNK_SIZE;
 
-            let recall_chunk_id = chunk_ids[recall_chunk_index as usize];
+            let recall_chunk_id = chunk_ids[recall_chunk_index as usize].clone();
 
             // Find the chunk
 

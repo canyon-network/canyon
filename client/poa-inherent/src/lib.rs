@@ -24,6 +24,7 @@ use sp_runtime::traits::Block as BlockT;
 use sc_client_api::BlockBackend;
 
 use cc_consensus_poa::{construct_poa, Error};
+use cp_permastore::TransactionDataBackend as TransactionDataBackendT;
 
 pub struct InherentDataProvider {
     /// Depth
@@ -35,11 +36,14 @@ impl InherentDataProvider {
     pub fn create<
         Block: BlockT + 'static,
         Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
+        TransactionDataBackend: TransactionDataBackendT<Block>,
     >(
         client: &Client,
         parent: Block::Hash,
+        transaction_data_backend: TransactionDataBackend,
     ) -> Result<Self, Error<Block>> {
-        let inherent_data = construct_poa(client, parent)?.map(|poa| poa.depth as u32);
+        let inherent_data =
+            construct_poa(client, parent, transaction_data_backend)?.map(|poa| poa.depth as u32);
         Ok(Self { inherent_data })
     }
 }
