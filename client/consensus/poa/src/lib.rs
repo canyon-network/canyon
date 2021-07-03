@@ -18,7 +18,7 @@
 
 //! This crate creates the inherent data based on the Proof of Access consensus.
 //!
-//! TODO: verify PoA on block import.
+//! TODO: verify PoA stored in the block header.
 
 use codec::{Decode, Encode};
 use thiserror::Error;
@@ -38,8 +38,6 @@ mod chunk_proof;
 mod tx_proof;
 
 use self::chunk_proof::ChunkProof;
-
-type TxProof = Vec<Vec<u8>>;
 
 /// The maximum depth of attempting to generate a valid PoA.
 ///
@@ -74,7 +72,7 @@ pub struct Poa {
     ///
     pub depth: Depth,
     ///
-    pub tx_path: TxProof,
+    pub tx_path: Vec<Vec<u8>>,
     ///
     pub chunk_proof: ChunkProof,
 }
