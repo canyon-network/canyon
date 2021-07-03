@@ -19,14 +19,14 @@
 use codec::Encode;
 
 use sp_core::H256;
-use sp_runtime::traits::{Block as BlockT, Hash as HashT};
+use sp_runtime::traits::Block as BlockT;
 use sp_trie::TrieMut;
 
-use cp_permastore::{Hasher, TrieLayout};
+use cp_permastore::{Hasher, TrieLayout, VerifyError};
 
 use crate::chunk_proof::{encode_index, Error};
 
-pub fn build_transaction_proof<Block: BlockT<Hash = H256>>(
+pub fn build_extrinsic_proof<Block: BlockT<Hash = H256>>(
     extrinsic_index: usize,
     extrinsics_root: Block::Hash,
     extrinsics: Vec<Block::Extrinsic>,
@@ -41,7 +41,7 @@ pub fn build_transaction_proof<Block: BlockT<Hash = H256>>(
             trie.insert(&encode_index(index as u32), &extrinsic.encode())
                 .unwrap_or_else(|e| {
                     panic!(
-                        "Failed to insert the trie node: {:?}, extrinsic index: {}",
+                        "failed to insert the trie node: {:?}, extrinsic index: {}",
                         e, index
                     )
                 });
@@ -50,7 +50,10 @@ pub fn build_transaction_proof<Block: BlockT<Hash = H256>>(
         trie.commit();
     }
 
-    assert_eq!(extrinsics_root, calc_extrinsics_root);
+    assert_eq!(
+        extrinsics_root, calc_extrinsics_root,
+        "calculated extrinsics root mismatches"
+    );
 
     let proof = sp_trie::generate_trie_proof::<TrieLayout, _, _, _>(
         &db,
@@ -62,6 +65,19 @@ pub fn build_transaction_proof<Block: BlockT<Hash = H256>>(
     Ok(proof)
 }
 
+pub fn verify_extrinsic_proof(
+    extrinsics_root: &H256,
+    extrinsic_index: u32,
+    encoded_extrinsic: Vec<u8>,
+    proof: &[Vec<u8>],
+) -> Result<(), VerifyError> {
+    sp_trie::verify_trie_proof::<TrieLayout, _, _, _>(
+        extrinsics_root,
+        proof,
+        &[(encode_index(extrinsic_index), Some(encoded_extrinsic))],
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -70,7 +86,7 @@ mod tests {
     use sp_core::Blake2Hasher;
     use sp_keyring::AccountKeyring::{Alice, Bob};
     use sp_state_machine::Backend;
-    use substrate_test_runtime::Transfer;
+    use substrate_test_runtime::{Block, Transfer};
     use substrate_test_runtime_client::{
         BlockBuilderExt, DefaultTestClientBuilderExt, TestClientBuilderExt,
     };
@@ -91,26 +107,56 @@ mod tests {
         )
         .unwrap();
 
-        block_builder.push_transfer(Transfer {
-            from: Alice.into(),
-            to: Bob.into(),
-            amount: 123,
-            nonce: 1,
-        });
+        block_builder
+            .push_transfer(Transfer {
+                from: Alice.into(),
+                to: Bob.into(),
+                amount: 123,
+                nonce: 0,
+            })
+            .unwrap();
 
-        let block = block_builder.build().unwrap();
+        block_builder
+            .push_transfer(Transfer {
+                from: Bob.into(),
+                to: Alice.into(),
+                amount: 1,
+                nonce: 0,
+            })
+            .unwrap();
 
-        let proof = block.proof.expect("Proof is build on request");
+        let built_block = block_builder.build().unwrap();
 
-        let backend = sp_state_machine::create_proof_check_backend::<Blake2Hasher>(
-            block.storage_changes.transaction_storage_root,
-            proof,
+        let (block, extrinsics) = built_block.block.deconstruct();
+
+        let proof0 =
+            build_extrinsic_proof::<Block>(0, block.extrinsics_root, extrinsics.clone()).unwrap();
+
+        let proof1 =
+            build_extrinsic_proof::<Block>(0, block.extrinsics_root, extrinsics.clone()).unwrap();
+
+        assert!(verify_extrinsic_proof(
+            &block.extrinsics_root,
+            0,
+            extrinsics[0].clone().encode(),
+            &proof0
         )
-        .unwrap();
+        .is_ok());
 
-        assert!(backend
-            .storage(&sp_core::storage::well_known_keys::CODE)
-            .unwrap_err()
-            .contains("Database missing expected key"));
+        assert!(verify_extrinsic_proof(
+            &block.extrinsics_root,
+            0,
+            extrinsics[1].clone().encode(),
+            &proof0
+        )
+        .is_err());
+
+        assert!(verify_extrinsic_proof(
+            &block.extrinsics_root,
+            1,
+            extrinsics[1].clone().encode(),
+            &proof1
+        )
+        .is_err());
     }
 }
