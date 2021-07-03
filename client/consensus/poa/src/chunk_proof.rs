@@ -128,7 +128,7 @@ impl ChunkProofBuilder {
                 )
                 .unwrap_or_else(|e| {
                     panic!(
-                        "Failed to insert the trie node: {:?}, chunk index: {}",
+                        "failed to insert the trie node: {:?}, chunk index: {}",
                         e, index
                     )
                 });
