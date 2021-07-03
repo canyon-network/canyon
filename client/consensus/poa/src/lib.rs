@@ -37,8 +37,8 @@ use cp_permastore::{TransactionDataBackend as TransactionDataBackendT, CHUNK_SIZ
 mod chunk_proof;
 mod tx_proof;
 
-use self::chunk_proof::{ChunkProof, ChunkProofBuilder};
-use self::tx_proof::build_extrinsic_proof;
+pub use self::chunk_proof::{verify_chunk_proof, ChunkProof, ChunkProofBuilder};
+pub use self::tx_proof::{build_extrinsic_proof, verify_extrinsic_proof};
 
 /// The maximum depth of attempting to generate a valid PoA.
 ///
@@ -210,7 +210,7 @@ pub fn construct_poa<
             continue;
         }
 
-        let (recall_extrinsic_index, recall_tx_data_base) =
+        let (recall_extrinsic_index, recall_block_data_base) =
             find_recall_tx(recall_byte, &sized_extrinsics);
 
         // Continue if the recall tx has been forgotten as the forgot
@@ -224,7 +224,7 @@ pub fn construct_poa<
         if let Ok(Some(tx_data)) = transaction_data_backend
             .transaction_data(recall_block_id, recall_extrinsic_index as u32)
         {
-            let transaction_data_offset = recall_byte - recall_tx_data_base;
+            let transaction_data_offset = recall_byte - recall_block_data_base;
 
             if let Ok(chunk_proof) =
                 ChunkProofBuilder::new(tx_data, CHUNK_SIZE, transaction_data_offset as u32).build()
