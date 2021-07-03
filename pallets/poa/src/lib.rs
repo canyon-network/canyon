@@ -17,6 +17,8 @@
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
 //! Proof of Access consensus.
+//!
+//! Records the storage capacity of each validator on chain.
 
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -165,8 +167,13 @@ impl<T: Config> ProvideInherent for Pallet<T> {
         matches!(call, Call::update_storage_capacity(..))
     }
 
-    // Re-enable this once the case of zero weave is resolved.
-    // fn is_inherent_required(_data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
-    // Ok(Some(().into()))
-    // }
+    /// Required when inherent data is Some(_).
+    ///
+    /// NOTE: inherent data can only be None when the weave is empty.
+    fn is_inherent_required(data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
+        match data.get_data::<Option<u32>>(&Self::INHERENT_IDENTIFIER) {
+            Ok(Some(_d)) => Ok(Some(().into())),
+            _ => Ok(None),
+        }
+    }
 }

@@ -28,7 +28,7 @@ use cp_permastore::TransactionDataBackend as TransactionDataBackendT;
 
 pub struct InherentDataProvider {
     /// Depth
-    pub inherent_data: Option<u32>,
+    pub maybe_depth: Option<u32>,
 }
 
 impl InherentDataProvider {
@@ -42,9 +42,9 @@ impl InherentDataProvider {
         parent: Block::Hash,
         transaction_data_backend: TransactionDataBackend,
     ) -> Result<Self, Error<Block>> {
-        let inherent_data =
+        let maybe_depth =
             construct_poa(client, parent, transaction_data_backend)?.map(|poa| poa.depth as u32);
-        Ok(Self { inherent_data })
+        Ok(Self { maybe_depth })
     }
 }
 
@@ -56,7 +56,7 @@ impl sp_inherents::InherentDataProvider for InherentDataProvider {
     ) -> Result<(), sp_inherents::Error> {
         inherent_data.put_data(
             canyon_primitives::POA_INHERENT_IDENTIFIER,
-            &self.inherent_data,
+            &self.maybe_depth,
         )
     }
 

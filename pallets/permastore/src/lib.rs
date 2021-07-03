@@ -17,6 +17,8 @@
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
 //! Market for storing data permanently.
+//!
+//! Provides the interfaces for storing data onto the network.
 
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
