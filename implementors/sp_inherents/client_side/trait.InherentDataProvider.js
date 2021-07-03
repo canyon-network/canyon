@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["cc_poa_inherent"] = [{"text":"impl InherentDataProvider for <a class=\"struct\" href=\"cc_poa_inherent/struct.InherentDataProvider.html\" title=\"struct cc_poa_inherent::InherentDataProvider\">InherentDataProvider</a>","synthetic":false,"types":["cc_poa_inherent::InherentDataProvider"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

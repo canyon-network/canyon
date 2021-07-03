@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["canyon_inspect"] = [{"text":"impl CliConfiguration&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.unit.html\">()</a>&gt; for <a class=\"struct\" href=\"canyon_inspect/cli/struct.InspectCmd.html\" title=\"struct canyon_inspect::cli::InspectCmd\">InspectCmd</a>","synthetic":false,"types":["canyon_inspect::cli::InspectCmd"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

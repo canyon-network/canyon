@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Error",""]],"struct":[["InvalidCount","This type describes the count that excceds the max allowed number."]],"type":[["Result",""]]});

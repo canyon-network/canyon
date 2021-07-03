@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["canyon_cli"] = [{"text":"impl Extension for <a class=\"struct\" href=\"canyon_cli/chain_spec/struct.Extensions.html\" title=\"struct canyon_cli::chain_spec::Extensions\">Extensions</a>","synthetic":false,"types":["canyon_cli::chain_spec::Extensions"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

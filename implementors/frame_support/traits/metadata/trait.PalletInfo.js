@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["canyon_runtime"] = [{"text":"impl PalletInfo for <a class=\"struct\" href=\"canyon_runtime/struct.PalletInfo.html\" title=\"struct canyon_runtime::PalletInfo\">PalletInfo</a>","synthetic":false,"types":["canyon_runtime::PalletInfo"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

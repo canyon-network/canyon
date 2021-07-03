@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["CHUNK_SIZE","256B per chunk."],["POA_ENGINE_ID",""]],"trait":[["PermaStorage","Persistent transaction data storage."],["TransactionDataBackend","Permanent transaction data backend."]],"type":[["Hasher","Hasher type for permastore."],["TrieLayout","Trie layout used for permastore."],["VerifyError","Error type of chunk proof verification."]]});

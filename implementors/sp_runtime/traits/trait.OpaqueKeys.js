@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["canyon_runtime"] = [{"text":"impl OpaqueKeys for <a class=\"struct\" href=\"canyon_runtime/struct.SessionKeys.html\" title=\"struct canyon_runtime::SessionKeys\">SessionKeys</a>","synthetic":false,"types":["canyon_runtime::SessionKeys"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

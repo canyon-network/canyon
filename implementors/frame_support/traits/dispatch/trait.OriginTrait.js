@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["canyon_runtime"] = [{"text":"impl OriginTrait for <a class=\"struct\" href=\"canyon_runtime/struct.Origin.html\" title=\"struct canyon_runtime::Origin\">Origin</a>","synthetic":false,"types":["canyon_runtime::Origin"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

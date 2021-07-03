@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["canyon_runtime"] = [{"text":"impl InstanceFilter&lt;<a class=\"enum\" href=\"canyon_runtime/enum.Call.html\" title=\"enum canyon_runtime::Call\">Call</a>&gt; for <a class=\"enum\" href=\"canyon_runtime/enum.ProxyType.html\" title=\"enum canyon_runtime::ProxyType\">ProxyType</a>","synthetic":false,"types":["canyon_runtime::ProxyType"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

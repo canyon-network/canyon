@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["MAX_CHUNK_PATH","Maximum byte size of chunk merkle path."],["MAX_DEPTH","The maximum depth of attempting to generate a valid PoA."],["MAX_TX_PATH","Maximum byte size of transaction merkle path."]],"enum":[["Error",""]],"fn":[["construct_poa","Constructs a valid PoA."]],"struct":[["Poa","Type for proving the data access."]]});

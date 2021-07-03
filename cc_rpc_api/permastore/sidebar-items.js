@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["error",""],["gen_client","The generated client module."]],"struct":[["OffchainClient","The Client."]],"trait":[["PermastoreApi","Canyon perma storage RPC API."]]});

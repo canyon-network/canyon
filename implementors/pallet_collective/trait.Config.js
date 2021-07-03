@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["canyon_runtime"] = [{"text":"impl Config&lt;Instance1&gt; for <a class=\"struct\" href=\"canyon_runtime/struct.Runtime.html\" title=\"struct canyon_runtime::Runtime\">Runtime</a>","synthetic":false,"types":["canyon_runtime::Runtime"]},{"text":"impl Config&lt;Instance2&gt; for <a class=\"struct\" href=\"canyon_runtime/struct.Runtime.html\" title=\"struct canyon_runtime::Runtime\">Runtime</a>","synthetic":false,"types":["canyon_runtime::Runtime"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
