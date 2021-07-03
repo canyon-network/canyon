@@ -34,7 +34,7 @@ pub struct InherentDataProvider {
 impl InherentDataProvider {
     /// Creates a new instance of `InherentDataProvider`.
     pub fn create<
-        Block: BlockT + 'static,
+        Block: BlockT<Hash = sp_core::H256> + 'static,
         Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
         TransactionDataBackend: TransactionDataBackendT<Block>,
     >(

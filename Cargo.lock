@@ -1059,6 +1059,7 @@ dependencies = [
  "cp-permastore",
  "sc-client-api",
  "sp-blockchain",
+ "sp-core",
  "sp-inherents",
  "sp-runtime",
 ]

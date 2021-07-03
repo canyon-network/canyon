@@ -23,8 +23,8 @@ use sp_runtime::{generic::BlockId, traits::Block as BlockT};
 
 pub const POA_ENGINE_ID: [u8; 4] = *b"poa_";
 
-/// 256KiB per chunk.
-pub const CHUNK_SIZE: u64 = 256 * 1024 * 1024;
+/// 256B per chunk.
+pub const CHUNK_SIZE: u32 = 256 * 1024;
 
 /// Hasher type for permastore.
 pub type Hasher = sp_core::Blake2Hasher;
@@ -79,9 +79,9 @@ pub trait TransactionDataBackend<Block: BlockT>: Send + Sync {
 impl<T: PermaStorage, Block: BlockT> TransactionDataBackend<Block> for T {
     fn transaction_data(
         &self,
-        id: BlockId<Block>,
-        extrinsic_index: u32,
+        _id: BlockId<Block>,
+        _extrinsic_index: u32,
     ) -> sp_blockchain::Result<Option<Vec<u8>>> {
-        todo!()
+        todo!("Impl it using the underlying offchain storage")
     }
 }

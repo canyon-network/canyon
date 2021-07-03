@@ -27,7 +27,7 @@ use cp_permastore::{Hasher, TrieLayout, VerifyError};
 use crate::chunk_proof::{encode_index, Error};
 
 pub fn build_extrinsic_proof<Block: BlockT<Hash = H256>>(
-    extrinsic_index: usize,
+    extrinsic_index: u32,
     extrinsics_root: Block::Hash,
     extrinsics: Vec<Block::Extrinsic>,
 ) -> Result<Vec<Vec<u8>>, Error> {

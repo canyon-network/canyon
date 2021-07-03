@@ -21,28 +21,10 @@ use codec::{Decode, Encode};
 use sp_core::H256;
 use sp_trie::TrieMut;
 
-use cp_permastore::{Hasher, TrieLayout, VerifyError, CHUNK_SIZE};
+use cp_permastore::{Hasher, TrieLayout, VerifyError};
 
 pub fn encode_index(input: u32) -> Vec<u8> {
     codec::Encode::encode(&codec::Compact(input))
-}
-
-/// Unit type wrapper of the blake2_256 hash of a data chunk.
-#[derive(Clone, Debug)]
-pub struct ChunkId([u8; 32]);
-
-impl From<[u8; 32]> for ChunkId {
-    fn from(inner: [u8; 32]) -> Self {
-        Self(inner)
-    }
-}
-
-/// Converts the raw transaction data into a Vec of chunk id.
-pub fn chunk_ids(tx_data: Vec<u8>) -> Vec<ChunkId> {
-    tx_data
-        .chunks(CHUNK_SIZE as usize)
-        .map(|c| sp_io::hashing::blake2_256(c).into())
-        .collect()
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -75,6 +57,11 @@ impl ChunkProof {
             &self.proof,
         )
     }
+
+    /// Returns the proof size in bytes.
+    pub fn size(&self) -> usize {
+        self.proof.iter().map(|p| p.len()).sum()
+    }
 }
 
 /// Verifies the chunk given the `chunk_root` and `proof`.
@@ -87,26 +74,29 @@ pub fn verify_chunk_proof(
     sp_trie::verify_trie_proof::<TrieLayout, _, _, _>(
         chunk_root,
         proof,
-        &[(encode_index(chunk_index), Some(chunk))],
+        &[(
+            encode_index(chunk_index),
+            Some(sp_io::hashing::blake2_256(&chunk)),
+        )],
     )
 }
 
 #[derive(Debug, Clone)]
 pub struct ChunkProofBuilder {
-    /// Raw bytes of transaction data.
+    /// Raw bytes of entire transaction data.
     data: Vec<u8>,
     /// Size of per data chunk in bytes.
-    chunk_size: usize,
+    chunk_size: u32,
     /// Index of the recall chunk.
     target_chunk_index: u32,
 }
 
 impl ChunkProofBuilder {
     /// Constructs a `ChunkProofBuilder`.
-    pub fn new(data: Vec<u8>, chunk_size: usize, transaction_data_offset: usize) -> Self {
+    pub fn new(data: Vec<u8>, chunk_size: u32, transaction_data_offset: u32) -> Self {
         debug_assert!(chunk_size > 0);
 
-        let target_chunk_index = (transaction_data_offset / chunk_size) as u32;
+        let target_chunk_index = transaction_data_offset / chunk_size;
 
         Self {
             data,
@@ -117,7 +107,7 @@ impl ChunkProofBuilder {
 
     /// Builds the chunk proof.
     pub fn build(&self) -> Result<ChunkProof, Error> {
-        let mut target_chunk = Vec::with_capacity(self.chunk_size);
+        let mut target_chunk = Vec::with_capacity(self.chunk_size as usize);
 
         let mut db = sp_trie::MemoryDB::<Hasher>::default();
         let mut chunk_root = sp_trie::empty_trie_root::<TrieLayout>();
@@ -125,16 +115,23 @@ impl ChunkProofBuilder {
         {
             let mut trie = sp_trie::TrieDBMut::<TrieLayout>::new(&mut db, &mut chunk_root);
 
-            let chunks = self.data.chunks(self.chunk_size).map(|c| c.to_vec());
+            let chunks = self
+                .data
+                .chunks(self.chunk_size as usize)
+                .map(|c| c.to_vec());
 
             for (index, chunk) in chunks.enumerate() {
-                trie.insert(&encode_index(index as u32), &chunk)
-                    .unwrap_or_else(|e| {
-                        panic!(
-                            "Failed to insert the trie node: {:?}, chunk index: {}",
-                            e, index
-                        )
-                    });
+                // Build the trie using chunk id.
+                trie.insert(
+                    &encode_index(index as u32),
+                    &sp_io::hashing::blake2_256(&chunk),
+                )
+                .unwrap_or_else(|e| {
+                    panic!(
+                        "Failed to insert the trie node: {:?}, chunk index: {}",
+                        e, index
+                    )
+                });
 
                 if index == self.target_chunk_index as usize {
                     target_chunk = chunk;
@@ -171,7 +168,7 @@ mod tests {
         let chunk_proof_builder = ChunkProofBuilder::new(data, 1, 3);
         let chunk_proof = chunk_proof_builder.build().unwrap();
         let chunk_root = sp_core::H256::from_str(
-            "0xf7c71b4df38c600bd0fd35ea9b3b5b23ff322ba638b0912d9270320f995f70eb",
+            "0x26976dd39b2ea67e0b51f3511c394882523e91d7249a784c589da9654fbc51dc",
         )
         .unwrap();
 

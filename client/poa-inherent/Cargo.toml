@@ -8,6 +8,7 @@ edition = "2018"
 async-trait = "0.1.47"
 
 sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-inherents = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 

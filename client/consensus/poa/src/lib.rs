@@ -37,12 +37,19 @@ use cp_permastore::{TransactionDataBackend as TransactionDataBackendT, CHUNK_SIZ
 mod chunk_proof;
 mod tx_proof;
 
-use self::chunk_proof::ChunkProof;
+use self::chunk_proof::{ChunkProof, ChunkProofBuilder};
+use self::tx_proof::build_extrinsic_proof;
 
 /// The maximum depth of attempting to generate a valid PoA.
 ///
 /// TODO: make it configurable in Runtime?
 pub const MAX_DEPTH: u32 = 100;
+
+/// Maximum byte size of transaction merkle path.
+pub const MAX_TX_PATH: u32 = 256 * 1024;
+
+/// Maximum byte size of chunk merkle path.
+pub const MAX_CHUNK_PATH: u32 = 256 * 1024;
 
 type Randomness = Vec<u8>;
 
@@ -153,13 +160,13 @@ fn fetch_header<Block: BlockT, Client: HeaderBackend<Block>>(
 }
 
 /// Returns the block number of recall block.
-fn find_recall_block<Block: BlockT>(recall_byte: DataIndex) -> BlockId<Block> {
+fn find_recall_block<Block: BlockT>(_recall_byte: DataIndex) -> BlockId<Block> {
     todo!("find recall block number")
 }
 
 /// Constructs a valid PoA.
 pub fn construct_poa<
-    Block: BlockT + 'static,
+    Block: BlockT<Hash = sp_core::H256> + 'static,
     Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
     TransactionDataBackend: TransactionDataBackendT<Block>,
 >(
@@ -217,18 +224,33 @@ pub fn construct_poa<
         if let Ok(Some(tx_data)) = transaction_data_backend
             .transaction_data(recall_block_id, recall_extrinsic_index as u32)
         {
-            let chunk_ids = chunk_proof::chunk_ids(tx_data);
+            let transaction_data_offset = recall_byte - recall_tx_data_base;
 
-            let chunk_offset = recall_byte - recall_tx_data_base;
-            let recall_chunk_index = chunk_offset / CHUNK_SIZE;
+            if let Ok(chunk_proof) =
+                ChunkProofBuilder::new(tx_data, CHUNK_SIZE, transaction_data_offset as u32).build()
+            {
+                if chunk_proof.size() > MAX_CHUNK_PATH as usize {
+                    continue;
+                }
 
-            let recall_chunk_id = chunk_ids[recall_chunk_index as usize].clone();
+                if let Ok(tx_proof) = build_extrinsic_proof::<Block>(
+                    recall_extrinsic_index,
+                    header.extrinsics_root().clone(),
+                    extrinsics,
+                ) {
+                    let tx_path_size: usize = tx_proof.iter().map(|t| t.len()).sum();
+                    if tx_path_size > MAX_TX_PATH as usize {
+                        continue;
+                    }
 
-            // Find the chunk
-
-            // Construct PoA proof.
-
-            // If find one solution, return directly.
+                    // find one proof!
+                    return Ok(Some(Poa {
+                        depth,
+                        tx_path: tx_proof,
+                        chunk_proof,
+                    }));
+                }
+            }
         } else {
             log::error!(
                 "transaction data not found given block {} and extrinsic index {}",
