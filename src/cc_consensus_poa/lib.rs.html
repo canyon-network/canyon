@@ -330,8 +330,8 @@
 <span class="kw">mod</span> <span class="ident">chunk_proof</span>;
 <span class="kw">mod</span> <span class="ident">tx_proof</span>;
 
-<span class="kw">use</span> <span class="self">self</span>::<span class="ident">chunk_proof</span>::{<span class="ident">ChunkProof</span>, <span class="ident">ChunkProofBuilder</span>};
-<span class="kw">use</span> <span class="self">self</span>::<span class="ident">tx_proof</span>::<span class="ident">build_extrinsic_proof</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">chunk_proof</span>::{<span class="ident">verify_chunk_proof</span>, <span class="ident">ChunkProof</span>, <span class="ident">ChunkProofBuilder</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">tx_proof</span>::{<span class="ident">build_extrinsic_proof</span>, <span class="ident">verify_extrinsic_proof</span>};
 
 <span class="doccomment">/// The maximum depth of attempting to generate a valid PoA.</span>
 <span class="doccomment">///</span>
@@ -503,7 +503,7 @@
             <span class="kw">continue</span>;
         }
 
-        <span class="kw">let</span> (<span class="ident">recall_extrinsic_index</span>, <span class="ident">recall_tx_data_base</span>) <span class="op">=</span>
+        <span class="kw">let</span> (<span class="ident">recall_extrinsic_index</span>, <span class="ident">recall_block_data_base</span>) <span class="op">=</span>
             <span class="ident">find_recall_tx</span>(<span class="ident">recall_byte</span>, <span class="kw-2">&amp;</span><span class="ident">sized_extrinsics</span>);
 
         <span class="comment">// Continue if the recall tx has been forgotten as the forgot</span>
@@ -517,7 +517,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">tx_data</span>)) <span class="op">=</span> <span class="ident">transaction_data_backend</span>
             .<span class="ident">transaction_data</span>(<span class="ident">recall_block_id</span>, <span class="ident">recall_extrinsic_index</span> <span class="kw">as</span> <span class="ident">u32</span>)
         {
-            <span class="kw">let</span> <span class="ident">transaction_data_offset</span> <span class="op">=</span> <span class="ident">recall_byte</span> <span class="op">-</span> <span class="ident">recall_tx_data_base</span>;
+            <span class="kw">let</span> <span class="ident">transaction_data_offset</span> <span class="op">=</span> <span class="ident">recall_byte</span> <span class="op">-</span> <span class="ident">recall_block_data_base</span>;
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">chunk_proof</span>) <span class="op">=</span>
                 <span class="ident">ChunkProofBuilder</span>::<span class="ident">new</span>(<span class="ident">tx_data</span>, <span class="ident">CHUNK_SIZE</span>, <span class="ident">transaction_data_offset</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">build</span>()
