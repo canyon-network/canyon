@@ -23,8 +23,15 @@ canyon-primitives = { path = "../../../primitives" }
 cp-permastore = { path = "../../../primitives/permastore" }
 
 [dev-dependencies]
+criterion = "0.3"
+rand = "0.8"
+
 sc-block-builder = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-keyring = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-state-machine = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 substrate-test-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 substrate-test-runtime-client = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
+[[bench]]
+name = "benchmark"
+harness = false

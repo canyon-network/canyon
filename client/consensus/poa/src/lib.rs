@@ -37,8 +37,8 @@ use cp_permastore::{TransactionDataBackend as TransactionDataBackendT, CHUNK_SIZ
 mod chunk_proof;
 mod tx_proof;
 
-use self::chunk_proof::{ChunkProof, ChunkProofBuilder};
-use self::tx_proof::build_extrinsic_proof;
+pub use self::chunk_proof::{ChunkProof, ChunkProofBuilder};
+pub use self::tx_proof::build_extrinsic_proof;
 
 /// The maximum depth of attempting to generate a valid PoA.
 ///
