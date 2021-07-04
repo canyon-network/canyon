@@ -17,6 +17,8 @@
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
 //! Proof of Access consensus.
+//!
+//! Records the storage capacity of each validator on chain.
 
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
