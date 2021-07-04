@@ -83,7 +83,6 @@ mod tests {
     use super::*;
     use sc_block_builder::{BlockBuilder, RecordProof};
     use sp_blockchain::HeaderBackend;
-    use sp_core::Blake2Hasher;
     use sp_keyring::AccountKeyring::{Alice, Bob};
     use sp_state_machine::Backend;
     use substrate_test_runtime::{Block, Transfer};

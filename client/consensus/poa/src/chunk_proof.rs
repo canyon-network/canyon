@@ -45,6 +45,8 @@ pub struct ChunkProof {
     ///
     /// Merkle path of chunks from `chunk` to the chunk root.
     pub proof: Vec<Vec<u8>>,
+    /// Merkle root of chunks trie.
+    pub chunk_root: H256,
 }
 
 impl ChunkProof {
@@ -152,6 +154,7 @@ impl ChunkProofBuilder {
             chunk: target_chunk,
             chunk_index: self.target_chunk_index,
             proof,
+            chunk_root,
         })
     }
 }
