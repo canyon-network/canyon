@@ -26,7 +26,7 @@
 use codec::{Decode, Encode};
 
 use sp_runtime::{
-    generic::DataInfo,
+    generic::{DataInfo, DigestItem},
     traits::{AccountIdConversion, DispatchInfoOf, SaturatedConversion, SignedExtension},
     transaction_validity::{InvalidTransaction, TransactionValidity, TransactionValidityError},
 };
@@ -63,7 +63,7 @@ pub mod pallet {
         traits::{Currency, Get},
         PalletId,
     };
-    use frame_system::pallet_prelude::OriginFor;
+    use frame_system::pallet_prelude::{BlockNumberFor, OriginFor};
 
     #[pallet::config]
     pub trait Config: frame_system::Config {
@@ -83,6 +83,28 @@ pub mod pallet {
     #[pallet::pallet]
     #[pallet::generate_store(pub(super) trait Store)]
     pub struct Pallet<T>(_);
+
+    #[pallet::hooks]
+    impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+        fn on_initialize(n: BlockNumberFor<T>) -> frame_support::weights::Weight {
+            0
+        }
+
+        fn on_finalize(n: BlockNumberFor<T>) {
+            use sp_runtime::ConsensusEngineId;
+            const POA_ENGINE_ID: ConsensusEngineId = [b'p', b'o', b'a', b'_'];
+
+            let current_block_data_size = <BlockDataSize<T>>::take().unwrap_or_default();
+            let last_weave_size = 0u64;
+            let weave_size = last_weave_size + current_block_data_size;
+            <frame_system::Pallet<T>>::deposit_log(DigestItem::Consensus(
+                POA_ENGINE_ID,
+                weave_size.encode(),
+            ));
+
+            // TODO: deposit_log(Seal)
+        }
+    }
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
@@ -120,6 +142,9 @@ pub mod pallet {
 
             // FIXME: Move to off-chain solution
             PermaData::<T>::insert((block_number, extrinsic_index), data);
+
+            let current_data_size = <BlockDataSize<T>>::get().unwrap_or_default();
+            <BlockDataSize<T>>::put(current_data_size + data_size as u64);
 
             Self::deposit_event(Event::Stored(sender, chunk_root));
 
@@ -201,6 +226,10 @@ pub mod pallet {
     #[pallet::getter(fn perma_data)]
     pub(super) type PermaData<T: Config> =
         StorageMap<_, Blake2_128Concat, (T::BlockNumber, ExtrinsicIndex), Vec<u8>>;
+
+    #[pallet::storage]
+    #[pallet::getter(fn block_data_size)]
+    pub(super) type BlockDataSize<T: Config> = StorageValue<_, u64>;
 
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config> {
