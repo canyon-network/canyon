@@ -167,8 +167,13 @@ impl<T: Config> ProvideInherent for Pallet<T> {
         matches!(call, Call::update_storage_capacity(..))
     }
 
-    // Re-enable this once the case of zero weave is resolved.
-    // fn is_inherent_required(_data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
-    // Ok(Some(().into()))
-    // }
+    /// Required when inherent data is Some(_).
+    ///
+    /// NOTE: inherent data can only be None when the weave is empty.
+    fn is_inherent_required(data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
+        match data.get_data::<Option<u32>>(&Self::INHERENT_IDENTIFIER) {
+            Ok(Some(_d)) => Ok(Some(().into())),
+            _ => Ok(None),
+        }
+    }
 }
