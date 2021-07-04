@@ -4,18 +4,6 @@ use rand::Rng;
 use cc_consensus_poa::{ChunkProof, ChunkProofBuilder};
 use cp_permastore::CHUNK_SIZE;
 
-fn fibonacci(n: u64) -> u64 {
-    match n {
-        0 => 1,
-        1 => 1,
-        n => fibonacci(n - 1) + fibonacci(n - 2),
-    }
-}
-
-fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("fib 20", |b| b.iter(|| fibonacci(black_box(20))));
-}
-
 fn generate_chunk_proof(data: Vec<u8>, offset: u32) -> ChunkProof {
     ChunkProofBuilder::new(data, CHUNK_SIZE, offset)
         .build()
