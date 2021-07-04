@@ -147,6 +147,10 @@ impl<T: Config> ProvideInherent for Pallet<T> {
     const INHERENT_IDENTIFIER: InherentIdentifier = canyon_primitives::POA_INHERENT_IDENTIFIER;
 
     fn create_inherent(data: &InherentData) -> Option<Self::Call> {
+        frame_support::log::info!(
+            "poa inherent: {:?}",
+            data.get_data::<Option<u32>>(&Self::INHERENT_IDENTIFIER)
+        );
         let depth: Option<u32> = match data.get_data(&Self::INHERENT_IDENTIFIER) {
             Ok(Some(d)) => d,
             Ok(None) => return None,

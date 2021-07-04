@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 async-trait = "0.1.47"
+log = "0.4"
 
 sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }

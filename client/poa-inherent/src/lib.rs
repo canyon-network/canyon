@@ -54,6 +54,7 @@ impl sp_inherents::InherentDataProvider for InherentDataProvider {
         &self,
         inherent_data: &mut sp_inherents::InherentData,
     ) -> Result<(), sp_inherents::Error> {
+        log::info!("----------- put data: {:?}", self.maybe_depth);
         inherent_data.put_data(
             canyon_primitives::POA_INHERENT_IDENTIFIER,
             &self.maybe_depth,

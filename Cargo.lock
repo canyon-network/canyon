@@ -1059,6 +1059,7 @@ dependencies = [
  "canyon-primitives",
  "cc-consensus-poa",
  "cp-permastore",
+ "log",
  "sc-client-api",
  "sp-blockchain",
  "sp-core",

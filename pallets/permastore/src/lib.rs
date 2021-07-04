@@ -353,6 +353,10 @@ impl<T: Config> ProvideInherent for Pallet<T> {
         canyon_primitives::PERMASTORE_INHERENT_IDENTIFIER;
 
     fn create_inherent(data: &InherentData) -> Option<Self::Call> {
+        frame_support::log::info!(
+            "permastore inherent data: {:?}",
+            data.get_data::<Option<Poa>>(&Self::INHERENT_IDENTIFIER)
+        );
         let maybe_poa: Option<Poa> = match data.get_data(&Self::INHERENT_IDENTIFIER) {
             Ok(Some(d)) => d,
             Ok(None) => return None,
@@ -362,12 +366,14 @@ impl<T: Config> ProvideInherent for Pallet<T> {
             }
         };
 
+        frame_support::log::info!("deposit log, maybe_poa: {:?}", maybe_poa);
         <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(POA_ENGINE_ID, maybe_poa.encode()));
 
         None
     }
 
     fn is_inherent(_call: &Self::Call) -> bool {
+        frame_support::log::info!("is permastore inherent");
         false
     }
 
@@ -375,6 +381,9 @@ impl<T: Config> ProvideInherent for Pallet<T> {
     ///
     /// NOTE: inherent data can only be None when the weave is empty.
     fn is_inherent_required(data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
+        frame_support::log::info!("is permastore inherent required");
+        #[cfg(feature = "std")]
+        println!("------------- ");
         match data.get_data::<Option<u32>>(&Self::INHERENT_IDENTIFIER) {
             Ok(Some(_d)) => Ok(Some(().into())),
             _ => Ok(None),
