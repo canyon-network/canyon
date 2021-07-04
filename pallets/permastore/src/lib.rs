@@ -35,6 +35,7 @@ use sp_std::{marker::PhantomData, prelude::*};
 use frame_support::{
     dispatch::DispatchResult,
     ensure,
+    inherent::{InherentData, InherentIdentifier, MakeFatalError, ProvideInherent},
     traits::{Currency, ExistenceRequirement, Get, IsSubType},
 };
 use frame_system::ensure_signed;
@@ -51,6 +52,8 @@ pub type BalanceOf<T> =
     <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
 type ExtrinsicIndex = u32;
+
+const POA_ENGINE_ID: sp_runtime::ConsensusEngineId = [b'p', b'o', b'a', b'_'];
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -86,14 +89,11 @@ pub mod pallet {
 
     #[pallet::hooks]
     impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-        fn on_initialize(n: BlockNumberFor<T>) -> frame_support::weights::Weight {
+        fn on_initialize(_n: BlockNumberFor<T>) -> frame_support::weights::Weight {
             0
         }
 
-        fn on_finalize(n: BlockNumberFor<T>) {
-            use sp_runtime::ConsensusEngineId;
-            const POA_ENGINE_ID: ConsensusEngineId = [b'p', b'o', b'a', b'_'];
-
+        fn on_finalize(_n: BlockNumberFor<T>) {
             let current_block_data_size = <BlockDataSize<T>>::take().unwrap_or_default();
             let last_weave_size = 0u64;
             let weave_size = last_weave_size + current_block_data_size;
@@ -333,5 +333,51 @@ where
         }
 
         Ok(Default::default())
+    }
+}
+
+/// Type for proving the data access.
+#[derive(Debug, Clone, Encode, Decode)]
+pub struct Poa {
+    ///
+    pub depth: u32,
+    ///
+    pub tx_path: Vec<Vec<u8>>,
+}
+
+impl<T: Config> ProvideInherent for Pallet<T> {
+    type Call = Call<T>;
+    type Error = MakeFatalError<()>;
+
+    const INHERENT_IDENTIFIER: InherentIdentifier =
+        canyon_primitives::PERMASTORE_INHERENT_IDENTIFIER;
+
+    fn create_inherent(data: &InherentData) -> Option<Self::Call> {
+        let maybe_poa: Option<Poa> = match data.get_data(&Self::INHERENT_IDENTIFIER) {
+            Ok(Some(d)) => d,
+            Ok(None) => return None,
+            Err(_) => {
+                frame_support::log::error!("failed to decode poa");
+                return None;
+            }
+        };
+
+        <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(POA_ENGINE_ID, maybe_poa.encode()));
+
+        None
+    }
+
+    fn is_inherent(_call: &Self::Call) -> bool {
+        false
+    }
+
+    /// Required when inherent data is Some(_).
+    ///
+    /// NOTE: inherent data can only be None when the weave is empty.
+    fn is_inherent_required(data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
+        match data.get_data::<Option<u32>>(&Self::INHERENT_IDENTIFIER) {
+            Ok(Some(_d)) => Ok(Some(().into())),
+            _ => Ok(None),
+        }
     }
 }

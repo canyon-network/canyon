@@ -20,6 +20,8 @@ frame-support = { git = "https://github.com/canyon-network/substrate", branch = 
 frame-system = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 pallet-balances = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 
+canyon-primitives = { path = "../../primitives/", default-features = false }
+
 [dev-dependencies]
 sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 
@@ -35,6 +37,7 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"pallet-balances/std",
+	"canyon-primitives/std",
 ]
 runtime-benchmarks = ["frame-benchmarking"]
 try-runtime = ["frame-support/try-runtime"]
