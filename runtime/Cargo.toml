@@ -79,6 +79,7 @@ pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/canyon-
 pallet-vesting = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 
 canyon-primitives = { path = "../primitives", default-features = false }
+cp-permastore = { path = "../primitives/permastore", default-features = false }
 
 pallet-permastore = { path = "../pallets/permastore", default-features = false }
 pallet-poa = { path = "../pallets/poa", default-features = false }
@@ -151,6 +152,7 @@ std = [
 	"frame-system/std",
 	"frame-try-runtime/std",
 	"canyon-primitives/std",
+	"cp-permastore/std",
 	"pallet-permastore/std",
 	"pallet-poa/std",
 ]

@@ -19,12 +19,13 @@
 //! This crate creates the inherent data based on the Proof of Access consensus.
 
 use sp_blockchain::HeaderBackend;
+use sp_core::H256;
 use sp_runtime::traits::Block as BlockT;
 
 use sc_client_api::BlockBackend;
 
+use cc_client_db::TransactionDataBackend as TransactionDataBackendT;
 use cc_consensus_poa::{construct_poa, Error};
-use cp_permastore::TransactionDataBackend as TransactionDataBackendT;
 
 pub struct InherentDataProvider {
     /// Depth
@@ -34,7 +35,7 @@ pub struct InherentDataProvider {
 impl InherentDataProvider {
     /// Creates a new instance of `InherentDataProvider`.
     pub fn create<
-        Block: BlockT<Hash = sp_core::H256> + 'static,
+        Block: BlockT<Hash = H256> + 'static,
         Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
         TransactionDataBackend: TransactionDataBackendT<Block>,
     >(

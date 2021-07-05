@@ -40,6 +40,7 @@ substrate-frame-rpc-system = { git = "https://github.com/canyon-network/substrat
 
 canyon-primitives = { path = "../primitives" }
 canyon-runtime = { path = "../runtime" }
+cp-permastore = { path = "../primitives/permastore" }
 
 cc-rpc = { path = "../client/rpc" }
 cc-rpc-api = { path = "../client/rpc-api" }

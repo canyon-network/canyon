@@ -1,0 +1,20 @@
+[package]
+name = "cc-client-db"
+version = "0.1.0"
+authors = ["Canyon Labs <https://github.com/canyon-network>"]
+edition = "2018"
+
+[dependencies]
+codec = { package = "parity-scale-codec", version = "2.1", features = ["derive"] }
+thiserror = "1.0"
+
+sp-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-offchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
+sc-client-db = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
+canyon-primitives = { path = "../../primitives" }
+cp-permastore = { path = "../../primitives/permastore" }

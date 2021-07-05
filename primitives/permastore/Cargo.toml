@@ -5,20 +5,19 @@ authors = ["Canyon Labs <https://github.com/canyon-network>"]
 edition = "2018"
 
 [dependencies]
-serde = { version = "1.0.102", features = ["derive"], optional = true }
+codec = { package = "parity-scale-codec", version = "2.1", default-features = false, features = ["derive"] }
 
-sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-offchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-std = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 sp-trie = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 
 [features]
 default = ["std"]
 std = [
-	"serde",
+	"codec/std",
+	"sp-api/std",
 	"sp-core/std",
-	"sp-offchain/std",
-	"sp-runtime/std",
+	"sp-std/std",
 	"sp-trie/std",
 ]

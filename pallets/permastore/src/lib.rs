@@ -146,6 +146,8 @@ pub mod pallet {
             let current_data_size = <BlockDataSize<T>>::get().unwrap_or_default();
             <BlockDataSize<T>>::put(current_data_size + data_size as u64);
 
+            ChunkRootIndex::<T>::insert((block_number, extrinsic_index), chunk_root);
+
             Self::deposit_event(Event::Stored(sender, chunk_root));
 
             Ok(().into())
@@ -231,6 +233,12 @@ pub mod pallet {
     #[pallet::getter(fn block_data_size)]
     pub(super) type BlockDataSize<T: Config> = StorageValue<_, u64>;
 
+    /// (block_number, extrinsic_index) => Option<chunk_root>
+    #[pallet::storage]
+    #[pallet::getter(fn chunk_root_index)]
+    pub(super) type ChunkRootIndex<T: Config> =
+        StorageMap<_, Twox64Concat, (T::BlockNumber, ExtrinsicIndex), T::Hash>;
+
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config> {
         pub ledger: Vec<(T::AccountId, BalanceOf<T>)>,
@@ -276,6 +284,10 @@ impl<T: Config> Pallet<T> {
     }
 
     fn refund_storage_fee(_who: &T::AccountId, _created_at: T::BlockNumber) {}
+
+    pub fn chunk_root(block_number: T::BlockNumber, extrinsic_index: u32) -> Option<T::Hash> {
+        <ChunkRootIndex<T>>::get((block_number, extrinsic_index))
+    }
 }
 
 /// A signed extension that checks for the `store` call.

@@ -32,7 +32,8 @@ use sp_runtime::{
 use sc_client_api::BlockBackend;
 
 use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
-use cp_permastore::{TransactionDataBackend as TransactionDataBackendT, CHUNK_SIZE, POA_ENGINE_ID};
+use cc_client_db::TransactionDataBackend as TransactionDataBackendT;
+use cp_permastore::{CHUNK_SIZE, POA_ENGINE_ID};
 
 mod chunk_proof;
 mod tx_proof;
