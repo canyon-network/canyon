@@ -23,8 +23,8 @@ use sp_runtime::traits::Block as BlockT;
 
 use sc_client_api::BlockBackend;
 
+use cc_client_db::TransactionDataBackend as TransactionDataBackendT;
 use cc_consensus_poa::{construct_poa, Error};
-use cp_permastore::TransactionDataBackend as TransactionDataBackendT;
 
 pub struct InherentDataProvider {
     /// Depth

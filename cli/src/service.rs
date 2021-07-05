@@ -188,7 +188,7 @@ pub fn new_partial(
                 perma_storage: cc_client_db::PermanentStorage::new(
                     offchain_storage.clone(),
                     client.clone(),
-                    client.clone()
+                    client.clone(),
                 ),
             };
 

@@ -69,7 +69,36 @@ where
     }
 }
 
-impl<Block, C, RA> cp_permastore::TransactionDataBackend<Block> for PermanentStorage<C, RA>
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    #[error("chunk root not found for block `{0}` at extrinsic index `{1}`")]
+    ChunkRootNotFound(String, u32),
+    #[error(transparent)]
+    Blockchain(#[from] sp_blockchain::Error),
+    #[error(transparent)]
+    ApiError(#[from] sp_api::ApiError),
+}
+
+/// Permanent transaction data backend.
+///
+/// High level API for accessing the transaction data.
+pub trait TransactionDataBackend<Block: BlockT>: PermaStorage {
+    /// Get transaction data. Returns `None` if data is not found.
+    fn transaction_data(
+        &self,
+        id: BlockId<Block>,
+        extrinsic_index: u32,
+    ) -> Result<Option<Vec<u8>>, Error>;
+
+    fn chunk_root(
+        &self,
+        at: Option<BlockId<Block>>,
+        block_number: <<Block as BlockT>::Header as HeaderT>::Number,
+        extrinsic_index: u32,
+    ) -> Result<Option<<<Block as BlockT>::Header as HeaderT>::Hash>, Error>;
+}
+
+impl<Block, C, RA> TransactionDataBackend<Block> for PermanentStorage<C, RA>
 where
     Block: BlockT,
     C: HeaderBackend<Block> + Send + Sync,
@@ -81,16 +110,22 @@ where
         <<Block as BlockT>::Header as HeaderT>::Hash,
     >,
 {
-    fn transaction_data(&self, block_id: BlockId<Block>, extrinsic_index: u32) -> Option<Vec<u8>> {
+    fn transaction_data(
+        &self,
+        block_id: BlockId<Block>,
+        extrinsic_index: u32,
+    ) -> Result<Option<Vec<u8>>, Error> {
         let chunk_root = self.chunk_root(
             None,
             self.client
-                .block_number_from_id(&block_id)
-                .expect("todo! ")
-                .unwrap(),
+                .block_number_from_id(&block_id)?
+                .ok_or(Error::ChunkRootNotFound(
+                    block_id.to_string(),
+                    extrinsic_index,
+                ))?,
             extrinsic_index,
-        );
-        self.retrieve(&chunk_root.encode())
+        )?;
+        Ok(self.retrieve(&chunk_root.encode()))
     }
 
     /// Returns the chunk root at block `block_id` given `block_number` and `extrinsic_index`.
@@ -99,35 +134,11 @@ where
         at: Option<BlockId<Block>>,
         block_number: <<Block as BlockT>::Header as HeaderT>::Number,
         extrinsic_index: u32,
-    ) -> Option<<<Block as BlockT>::Header as HeaderT>::Hash> {
+    ) -> Result<Option<<<Block as BlockT>::Header as HeaderT>::Hash>, Error> {
         let at = at.unwrap_or_else(|| BlockId::hash(self.client.info().best_hash));
         self.runtime_api
             .runtime_api()
             .chunk_root(&at, block_number, extrinsic_index)
-            .expect("todo")
+            .map_err(|e| Error::ApiError(e))
     }
 }
-
-/// Permanent transaction data backend.
-///
-/// High level API for accessing the transaction data.
-pub trait TransactionDataBackend<Block: BlockT>: Send + Sync {
-    /// Get transaction data. Returns `None` if data is not found.
-    fn transaction_data(
-        &self,
-        id: BlockId<Block>,
-        extrinsic_index: u32,
-    ) -> sp_blockchain::Result<Option<Vec<u8>>>;
-}
-
-// (block_id, extrinsic_index) => chunk_root
-// chunk_root => transaction_data
-// impl<T, Block: BlockT> TransactionDataBackend<Block> for T {
-// fn transaction_data(
-// &self,
-// _id: BlockId<Block>,
-// _extrinsic_index: u32,
-// ) -> sp_blockchain::Result<Option<Vec<u8>>> {
-// todo!("Impl it using the underlying offchain storage")
-// }
-// }

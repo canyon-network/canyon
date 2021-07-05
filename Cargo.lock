@@ -1044,6 +1044,7 @@ dependencies = [
  "sp-inherents",
  "sp-offchain",
  "sp-runtime",
+ "thiserror",
 ]
 
 [[package]]
@@ -1052,6 +1053,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "canyon-primitives",
+ "cc-client-db",
  "cp-permastore",
  "criterion",
  "log",
@@ -1078,8 +1080,8 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "canyon-primitives",
+ "cc-client-db",
  "cc-consensus-poa",
- "cp-permastore",
  "sc-client-api",
  "sp-blockchain",
  "sp-core",
@@ -1292,7 +1294,6 @@ dependencies = [
  "parity-scale-codec",
  "sp-api",
  "sp-core",
- "sp-runtime",
  "sp-std",
  "sp-trie",
 ]

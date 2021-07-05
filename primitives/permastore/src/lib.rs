@@ -18,10 +18,6 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_runtime::{
-    generic::BlockId,
-    traits::{Block as BlockT, Header as HeaderT},
-};
 use sp_std::vec::Vec;
 
 pub const POA_ENGINE_ID: [u8; 4] = *b"poa_";
@@ -53,21 +49,6 @@ pub trait PermaStorage: Send + Sync {
     fn exists(&self, key: &[u8]) -> bool {
         self.retrieve(key).is_some()
     }
-}
-
-/// Permanent transaction data backend.
-///
-/// High level API for accessing the transaction data.
-pub trait TransactionDataBackend<Block: BlockT>: PermaStorage {
-    /// Get transaction data. Returns `None` if data is not found.
-    fn transaction_data(&self, id: BlockId<Block>, extrinsic_index: u32) -> Option<Vec<u8>>;
-
-    fn chunk_root(
-        &self,
-        at: Option<BlockId<Block>>,
-        block_number: <<Block as BlockT>::Header as HeaderT>::Number,
-        extrinsic_index: u32,
-    ) -> Option<<<Block as BlockT>::Header as HeaderT>::Hash>;
 }
 
 sp_api::decl_runtime_apis! {

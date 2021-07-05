@@ -32,7 +32,8 @@ use sp_runtime::{
 use sc_client_api::BlockBackend;
 
 use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
-use cp_permastore::{TransactionDataBackend as TransactionDataBackendT, CHUNK_SIZE, POA_ENGINE_ID};
+use cc_client_db::TransactionDataBackend as TransactionDataBackendT;
+use cp_permastore::{CHUNK_SIZE, POA_ENGINE_ID};
 
 mod chunk_proof;
 mod tx_proof;
@@ -221,7 +222,7 @@ pub fn construct_poa<
         // continue;
         // }
 
-        if let Some(tx_data) = transaction_data_backend
+        if let Ok(Some(tx_data)) = transaction_data_backend
             .transaction_data(recall_block_id, recall_extrinsic_index as u32)
         {
             let transaction_data_offset = recall_byte - recall_block_data_base;

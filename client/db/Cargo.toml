@@ -7,6 +7,7 @@ edition = "2018"
 [dependencies]
 async-trait = "0.1.47"
 codec = { package = "parity-scale-codec", version = "2.1", features = ["derive"] }
+thiserror = "1.0"
 
 sp-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
