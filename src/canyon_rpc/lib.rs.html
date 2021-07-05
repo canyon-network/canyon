@@ -330,7 +330,7 @@
 }
 
 <span class="doccomment">/// Full client dependencies.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FullDeps</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">SC</span>, <span class="ident">B</span>, <span class="ident">O</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FullDeps</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">SC</span>, <span class="ident">B</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The client instance to use.</span>
     <span class="kw">pub</span> <span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Transaction pool instance.</span>
@@ -345,16 +345,16 @@
     <span class="kw">pub</span> <span class="ident">babe</span>: <span class="ident">BabeDeps</span>,
     <span class="doccomment">/// GRANDPA specific dependencies.</span>
     <span class="kw">pub</span> <span class="ident">grandpa</span>: <span class="ident">GrandpaDeps</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// offchain storage</span>
-    <span class="kw">pub</span> <span class="ident">offchain_storage</span>: <span class="ident">O</span>,
+    <span class="doccomment">/// permanent storage</span>
+    <span class="kw">pub</span> <span class="ident">perma_storage</span>: <span class="ident">S</span>,
 }
 
 <span class="doccomment">/// A IO handler that uses all Full RPC extensions.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">IoHandler</span> <span class="op">=</span> <span class="ident">jsonrpc_core</span>::<span class="ident">IoHandler</span><span class="op">&lt;</span><span class="ident">sc_rpc</span>::<span class="ident">Metadata</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// Instantiate all Full RPC extensions.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_full</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">SC</span>, <span class="ident">B</span>, <span class="ident">O</span><span class="op">&gt;</span>(
-    <span class="ident">deps</span>: <span class="ident">FullDeps</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">SC</span>, <span class="ident">B</span>, <span class="ident">O</span><span class="op">&gt;</span>,
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_full</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">SC</span>, <span class="ident">B</span>, <span class="ident">S</span><span class="op">&gt;</span>(
+    <span class="ident">deps</span>: <span class="ident">FullDeps</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">SC</span>, <span class="ident">B</span>, <span class="ident">S</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">jsonrpc_core</span>::<span class="ident">IoHandler</span><span class="op">&lt;</span><span class="ident">sc_rpc_api</span>::<span class="ident">Metadata</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">C</span>: <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>
@@ -373,7 +373,7 @@
     <span class="ident">SC</span>: <span class="ident">SelectChain</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">B</span>: <span class="ident">sc_client_api</span>::<span class="ident">Backend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">B</span>::<span class="ident">State</span>: <span class="ident">sc_client_api</span>::<span class="ident">backend</span>::<span class="ident">StateBackend</span><span class="op">&lt;</span><span class="ident">sp_runtime</span>::<span class="ident">traits</span>::<span class="ident">HashFor</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">O</span>: <span class="ident">sp_core</span>::<span class="ident">offchain</span>::<span class="ident">OffchainStorage</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">S</span>: <span class="ident">cp_permastore</span>::<span class="ident">PermaStorage</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">use</span> <span class="ident">pallet_mmr_rpc</span>::{<span class="ident">Mmr</span>, <span class="ident">MmrApi</span>};
     <span class="kw">use</span> <span class="ident">pallet_transaction_payment_rpc</span>::{<span class="ident">TransactionPayment</span>, <span class="ident">TransactionPaymentApi</span>};
@@ -388,7 +388,7 @@
         <span class="ident">deny_unsafe</span>,
         <span class="ident">babe</span>,
         <span class="ident">grandpa</span>,
-        <span class="ident">offchain_storage</span>,
+        <span class="ident">perma_storage</span>,
     } <span class="op">=</span> <span class="ident">deps</span>;
 
     <span class="kw">let</span> <span class="ident">BabeDeps</span> {
@@ -444,7 +444,7 @@
     ));
 
     <span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">cc_rpc_api</span>::<span class="ident">permastore</span>::<span class="ident">PermastoreApi</span>::<span class="ident">to_delegate</span>(
-        <span class="ident">cc_rpc</span>::<span class="ident">permastore</span>::<span class="ident">Permastore</span>::<span class="ident">new</span>(<span class="ident">offchain_storage</span>),
+        <span class="ident">cc_rpc</span>::<span class="ident">permastore</span>::<span class="ident">Permastore</span>::<span class="ident">new</span>(<span class="ident">perma_storage</span>),
     ));
 
     <span class="ident">io</span>

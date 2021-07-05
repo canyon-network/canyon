@@ -1467,6 +1467,12 @@
 <span id="1464">1464</span>
 <span id="1465">1465</span>
 <span id="1466">1466</span>
+<span id="1467">1467</span>
+<span id="1468">1468</span>
+<span id="1469">1469</span>
+<span id="1470">1470</span>
+<span id="1471">1471</span>
+<span id="1472">1472</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -2838,6 +2844,12 @@
             <span class="ident">encoded</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
         ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">KeyTypeId</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
             <span class="ident">SessionKeys</span>::<span class="ident">decode_into_raw_public_keys</span>(<span class="kw-2">&amp;</span><span class="ident">encoded</span>)
+        }
+    }
+
+    <span class="kw">impl</span> <span class="ident">cp_permastore</span>::<span class="ident">PermastoreApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">BlockNumber</span>, <span class="ident">u32</span>, <span class="ident">Hash</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+        <span class="kw">fn</span> <span class="ident">chunk_root</span>(<span class="ident">block_number</span>: <span class="ident">BlockNumber</span>, <span class="ident">extrinsic_index</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span> {
+            <span class="ident">Permastore</span>::<span class="ident">chunk_root</span>(<span class="ident">block_number</span>, <span class="ident">extrinsic_index</span>)
         }
     }
 

@@ -72,6 +72,7 @@
 <span id="69">69</span>
 <span id="70">70</span>
 <span id="71">71</span>
+<span id="72">72</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -94,12 +95,13 @@
 <span class="doccomment">//! This crate creates the inherent data based on the Proof of Access consensus.</span>
 
 <span class="kw">use</span> <span class="ident">sp_blockchain</span>::<span class="ident">HeaderBackend</span>;
+<span class="kw">use</span> <span class="ident">sp_core</span>::<span class="ident">H256</span>;
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::<span class="ident">traits</span>::<span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>;
 
 <span class="kw">use</span> <span class="ident">sc_client_api</span>::<span class="ident">BlockBackend</span>;
 
+<span class="kw">use</span> <span class="ident">cc_client_db</span>::<span class="ident">TransactionDataBackend</span> <span class="kw">as</span> <span class="ident">TransactionDataBackendT</span>;
 <span class="kw">use</span> <span class="ident">cc_consensus_poa</span>::{<span class="ident">construct_poa</span>, <span class="ident">Error</span>};
-<span class="kw">use</span> <span class="ident">cp_permastore</span>::<span class="ident">TransactionDataBackend</span> <span class="kw">as</span> <span class="ident">TransactionDataBackendT</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InherentDataProvider</span> {
     <span class="doccomment">/// Depth</span>
@@ -109,7 +111,7 @@
 <span class="kw">impl</span> <span class="ident">InherentDataProvider</span> {
     <span class="doccomment">/// Creates a new instance of `InherentDataProvider`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span><span class="op">&lt;</span>
-        <span class="ident">Block</span>: <span class="ident">BlockT</span><span class="op">&lt;</span><span class="ident">Hash</span> <span class="op">=</span> <span class="ident">sp_core</span>::<span class="ident">H256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">Block</span>: <span class="ident">BlockT</span><span class="op">&lt;</span><span class="ident">Hash</span> <span class="op">=</span> <span class="ident">H256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
         <span class="ident">Client</span>: <span class="ident">BlockBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
         <span class="ident">TransactionDataBackend</span>: <span class="ident">TransactionDataBackendT</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
     <span class="op">&gt;</span>(

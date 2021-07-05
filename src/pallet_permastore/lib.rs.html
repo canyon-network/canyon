@@ -309,6 +309,18 @@
 <span id="306">306</span>
 <span id="307">307</span>
 <span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -433,6 +445,8 @@
             <span class="comment">// FIXME: Move to off-chain solution</span>
             <span class="ident">PermaData</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">insert</span>((<span class="ident">block_number</span>, <span class="ident">extrinsic_index</span>), <span class="ident">data</span>);
 
+            <span class="ident">ChunkRootIndex</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">insert</span>((<span class="ident">block_number</span>, <span class="ident">extrinsic_index</span>), <span class="ident">chunk_root</span>);
+
             <span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">Stored</span>(<span class="ident">sender</span>, <span class="ident">chunk_root</span>));
 
             <span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
@@ -514,6 +528,12 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type</span> <span class="ident">PermaData</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
         <span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Blake2_128Concat</span>, (<span class="ident">T</span>::<span class="ident">BlockNumber</span>, <span class="ident">ExtrinsicIndex</span>), <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
+    <span class="doccomment">/// (block_number, extrinsic_index) =&gt; Option&lt;chunk_root&gt;</span>
+    <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">storage</span>]</span>
+    <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">getter</span>(<span class="kw">fn</span> <span class="ident">chunk_root_index</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type</span> <span class="ident">ChunkRootIndex</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
+        <span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Twox64Concat</span>, (<span class="ident">T</span>::<span class="ident">BlockNumber</span>, <span class="ident">ExtrinsicIndex</span>), <span class="ident">T</span>::<span class="ident">Hash</span><span class="op">&gt;</span>;
+
     <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">genesis_config</span>]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GenesisConfig</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> {
         <span class="kw">pub</span> <span class="ident">ledger</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">T</span>::<span class="ident">AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
@@ -559,6 +579,10 @@
     }
 
     <span class="kw">fn</span> <span class="ident">refund_storage_fee</span>(<span class="ident">_who</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>::<span class="ident">AccountId</span>, <span class="ident">_created_at</span>: <span class="ident">T</span>::<span class="ident">BlockNumber</span>) {}
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">chunk_root</span>(<span class="ident">block_number</span>: <span class="ident">T</span>::<span class="ident">BlockNumber</span>, <span class="ident">extrinsic_index</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">Hash</span><span class="op">&gt;</span> {
+        <span class="op">&lt;</span><span class="ident">ChunkRootIndex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>((<span class="ident">block_number</span>, <span class="ident">extrinsic_index</span>))
+    }
 }
 
 <span class="doccomment">/// A signed extension that checks for the `store` call.</span>

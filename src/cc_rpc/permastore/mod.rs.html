@@ -81,6 +81,7 @@
 <span id="78">78</span>
 <span id="79">79</span>
 <span id="80">80</span>
+<span id="81">81</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -142,6 +143,7 @@
                 <span class="ident">MAX_UPLOAD_DATA_SIZE</span>,
             )));
         }
+        <span class="comment">// TODO: verify chunk_root matches the submitted data.</span>
         <span class="self">self</span>.<span class="ident">storage</span>.<span class="ident">write</span>().<span class="ident">submit</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">value</span>);
         <span class="prelude-val">Ok</span>(())
     }

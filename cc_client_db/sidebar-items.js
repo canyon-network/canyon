@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Error",""]],"struct":[["PermanentStorage","Permanent storage backed by offchain storage."]],"trait":[["TransactionDataBackend","Permanent transaction data backend."]]});
