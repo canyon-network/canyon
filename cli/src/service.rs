@@ -342,7 +342,7 @@ pub fn new_full_base(
                     let poa = cc_poa_inherent::InherentDataProvider::create(
                         &*client_clone2,
                         parent,
-                        offchain_storage_clone,
+                        cc_client_db::PermanentStorage::new(offchain_storage_clone, client_clone2, clie),
                     )?;
 
                     Ok((timestamp, slot, uncles, poa))

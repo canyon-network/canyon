@@ -105,16 +105,16 @@ pub struct FullDeps<C, P, SC, B, O> {
     pub babe: BabeDeps,
     /// GRANDPA specific dependencies.
     pub grandpa: GrandpaDeps<B>,
-    /// offchain storage
-    pub offchain_storage: O,
+    /// permanent storage
+    pub perma_storage: S,
 }
 
 /// A IO handler that uses all Full RPC extensions.
 pub type IoHandler = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
 
 /// Instantiate all Full RPC extensions.
-pub fn create_full<C, P, SC, B, O>(
-    deps: FullDeps<C, P, SC, B, O>,
+pub fn create_full<C, P, SC, B, S>(
+    deps: FullDeps<C, P, SC, B, S>,
 ) -> jsonrpc_core::IoHandler<sc_rpc_api::Metadata>
 where
     C: ProvideRuntimeApi<Block>
@@ -133,7 +133,7 @@ where
     SC: SelectChain<Block> + 'static,
     B: sc_client_api::Backend<Block> + Send + Sync + 'static,
     B::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashFor<Block>>,
-    O: sp_core::offchain::OffchainStorage + 'static,
+    S: cp_permastore::PermaStorage + 'static,
 {
     use pallet_mmr_rpc::{Mmr, MmrApi};
     use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};

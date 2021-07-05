@@ -18,8 +18,10 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_core::offchain::OffchainStorage;
-use sp_runtime::{generic::BlockId, traits::Block as BlockT};
+use sp_runtime::{
+    generic::BlockId,
+    traits::{Block as BlockT, Header as HeaderT},
+};
 use sp_std::vec::Vec;
 
 pub const POA_ENGINE_ID: [u8; 4] = *b"poa_";
@@ -38,8 +40,8 @@ pub type TrieLayout = sp_trie::Layout<Hasher>;
 /// Error type of chunk proof verification.
 pub type VerifyError = sp_trie::VerifyError<sp_core::H256, sp_trie::Error>;
 
-/// Low level APIs for manipulating the persistent transaction data
-/// storage as well as some auxiliary information.
+/// Low level APIs for manipulating the persistent transaction data storage.
+/// No data validation performed.
 pub trait PermaStorage: Send + Sync + Clone {
     /// Persist a value in storage under given key.
     fn submit(&mut self, key: &[u8], value: &[u8]);
@@ -53,31 +55,19 @@ pub trait PermaStorage: Send + Sync + Clone {
     }
 }
 
-/// Implements the persistent transaction storage based on the offchain storage.
-impl<T: OffchainStorage> PermaStorage for T {
-    fn submit(&mut self, key: &[u8], value: &[u8]) {
-        self.set(sp_offchain::STORAGE_PREFIX, key, value)
-    }
-
-    fn retrieve(&self, key: &[u8]) -> Option<Vec<u8>> {
-        self.get(sp_offchain::STORAGE_PREFIX, key)
-    }
-}
-
 /// Permanent transaction data backend.
 ///
 /// High level API for accessing the transaction data.
-pub trait TransactionDataBackend<Block: BlockT>: Send + Sync {
+pub trait TransactionDataBackend<Block: BlockT>: PermaStorage + Send + Sync {
     /// Get transaction data. Returns `None` if data is not found.
     fn transaction_data(&self, id: BlockId<Block>, extrinsic_index: u32) -> Option<Vec<u8>>;
-}
 
-// (block_id, extrinsic_index) => chunk_root
-// chunk_root => transaction_data
-impl<T: PermaStorage, Block: BlockT> TransactionDataBackend<Block> for T {
-    fn transaction_data(&self, _id: BlockId<Block>, _extrinsic_index: u32) -> Option<Vec<u8>> {
-        todo!("Impl it using the underlying offchain storage")
-    }
+    fn chunk_root(
+        &self,
+        at: Option<BlockId<Block>>,
+        block_number: <<Block as BlockT>::Header as HeaderT>::Number,
+        extrinsic_index: u32,
+    ) -> Option<<<Block as BlockT>::Header as HeaderT>::Hash>;
 }
 
 sp_api::decl_runtime_apis! {

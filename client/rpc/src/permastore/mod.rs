@@ -58,6 +58,7 @@ impl<T: PermaStorage + 'static> PermastoreApi for Permastore<T> {
                 MAX_UPLOAD_DATA_SIZE,
             )));
         }
+        // TODO: verify chunk_root matches the data.
         self.storage.write().submit(&*key, &*value);
         Ok(())
     }

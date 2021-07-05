@@ -121,6 +121,8 @@ pub mod pallet {
             // FIXME: Move to off-chain solution
             PermaData::<T>::insert((block_number, extrinsic_index), data);
 
+            ChunkRootIndex::<T>::insert((block_number, extrinsic_index), chunk_root);
+
             Self::deposit_event(Event::Stored(sender, chunk_root));
 
             Ok(().into())
