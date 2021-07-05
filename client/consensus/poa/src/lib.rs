@@ -96,7 +96,7 @@ fn multihash(seed: Randomness, n: Depth) -> [u8; 32] {
 
 fn make_bytes(h: [u8; 32]) -> [u8; 8] {
     let mut res = [0u8; 8];
-    res.copy_from_slice(&h);
+    res.copy_from_slice(&h[..8]);
     res
 }
 

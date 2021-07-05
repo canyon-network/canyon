@@ -35,9 +35,8 @@ pub type TrieLayout = sp_trie::Layout<Hasher>;
 /// Error type of chunk proof verification.
 pub type VerifyError = sp_trie::VerifyError<sp_core::H256, sp_trie::Error>;
 
-/// Persistent transaction data storage.
-///
-/// Low level API for the underlying database.
+/// Low level APIs for manipulating the persistent transaction data
+/// storage as well as some auxiliary information.
 pub trait PermaStorage: Send + Sync + Clone {
     /// Persist a value in storage under given key.
     fn submit(&mut self, key: &[u8], value: &[u8]);
