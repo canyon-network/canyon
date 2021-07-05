@@ -729,6 +729,7 @@ dependencies = [
  "canyon-primitives",
  "canyon-rpc",
  "canyon-runtime",
+ "cc-client-db",
  "cc-poa-inherent",
  "frame-benchmarking-cli",
  "frame-support",
@@ -870,6 +871,7 @@ dependencies = [
  "canyon-runtime",
  "cc-rpc",
  "cc-rpc-api",
+ "cp-permastore",
  "jsonrpc-core",
  "pallet-mmr-rpc",
  "pallet-transaction-payment-rpc",
@@ -901,6 +903,7 @@ name = "canyon-runtime"
 version = "0.1.0"
 dependencies = [
  "canyon-primitives",
+ "cp-permastore",
  "frame-benchmarking",
  "frame-election-provider-support",
  "frame-executive",
@@ -1026,11 +1029,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "cc-client-db"
+version = "0.1.0"
+dependencies = [
+ "canyon-primitives",
+ "cp-permastore",
+ "parity-scale-codec",
+ "sc-client-db",
+ "sp-api",
+ "sp-blockchain",
+ "sp-core",
+ "sp-offchain",
+ "sp-runtime",
+ "thiserror",
+]
+
+[[package]]
 name = "cc-consensus-poa"
 version = "0.1.0"
 dependencies = [
  "async-trait",
  "canyon-primitives",
+ "cc-client-db",
  "cp-permastore",
  "criterion",
  "log",
@@ -1057,8 +1077,8 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "canyon-primitives",
+ "cc-client-db",
  "cc-consensus-poa",
- "cp-permastore",
  "sc-client-api",
  "sp-blockchain",
  "sp-core",
@@ -1268,11 +1288,10 @@ checksum = "ea221b5284a47e40033bf9b66f35f984ec0ea2931eb03505246cd27a963f981b"
 name = "cp-permastore"
 version = "0.1.0"
 dependencies = [
- "serde",
- "sp-blockchain",
+ "parity-scale-codec",
+ "sp-api",
  "sp-core",
- "sp-offchain",
- "sp-runtime",
+ "sp-std",
  "sp-trie",
 ]
 
