@@ -221,7 +221,7 @@ pub fn construct_poa<
         // continue;
         // }
 
-        if let Ok(Some(tx_data)) = transaction_data_backend
+        if let Some(tx_data) = transaction_data_backend
             .transaction_data(recall_block_id, recall_extrinsic_index as u32)
         {
             let transaction_data_offset = recall_byte - recall_block_data_base;

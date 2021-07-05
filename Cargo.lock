@@ -901,6 +901,7 @@ name = "canyon-runtime"
 version = "0.1.0"
 dependencies = [
  "canyon-primitives",
+ "cp-permastore",
  "frame-benchmarking",
  "frame-election-provider-support",
  "frame-executive",
@@ -1268,11 +1269,12 @@ checksum = "ea221b5284a47e40033bf9b66f35f984ec0ea2931eb03505246cd27a963f981b"
 name = "cp-permastore"
 version = "0.1.0"
 dependencies = [
- "serde",
- "sp-blockchain",
+ "parity-scale-codec",
+ "sp-api",
  "sp-core",
  "sp-offchain",
  "sp-runtime",
+ "sp-std",
  "sp-trie",
 ]
 

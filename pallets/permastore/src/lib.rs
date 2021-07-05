@@ -202,6 +202,12 @@ pub mod pallet {
     pub(super) type PermaData<T: Config> =
         StorageMap<_, Blake2_128Concat, (T::BlockNumber, ExtrinsicIndex), Vec<u8>>;
 
+    /// (block_number, extrinsic_index) => Option<chunk_root>
+    #[pallet::storage]
+    #[pallet::getter(fn chunk_root_index)]
+    pub(super) type ChunkRootIndex<T: Config> =
+        StorageMap<_, Twox64Concat, (T::BlockNumber, ExtrinsicIndex), T::Hash>;
+
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config> {
         pub ledger: Vec<(T::AccountId, BalanceOf<T>)>,
@@ -247,6 +253,10 @@ impl<T: Config> Pallet<T> {
     }
 
     fn refund_storage_fee(_who: &T::AccountId, _created_at: T::BlockNumber) {}
+
+    pub fn chunk_root(block_number: T::BlockNumber, extrinsic_index: u32) -> Option<T::Hash> {
+        <ChunkRootIndex<T>>::get((block_number, extrinsic_index))
+    }
 }
 
 /// A signed extension that checks for the `store` call.

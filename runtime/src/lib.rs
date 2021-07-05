@@ -1371,6 +1371,12 @@ impl_runtime_apis! {
         }
     }
 
+    impl cp_permastore::PermastoreApi<Block, BlockNumber, u32, Hash> for Runtime {
+        fn chunk_root(block_number: BlockNumber, extrinsic_index: u32) -> Option<Hash> {
+            Permastore::chunk_root(block_number, extrinsic_index)
+        }
+    }
+
     #[cfg(feature = "try-runtime")]
     impl frame_try_runtime::TryRuntime<Block> for Runtime {
         fn on_runtime_upgrade() -> Result<(Weight, Weight), sp_runtime::RuntimeString> {

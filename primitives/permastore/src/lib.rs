@@ -20,6 +20,7 @@
 
 use sp_core::offchain::OffchainStorage;
 use sp_runtime::{generic::BlockId, traits::Block as BlockT};
+use sp_std::vec::Vec;
 
 pub const POA_ENGINE_ID: [u8; 4] = *b"poa_";
 
@@ -27,9 +28,11 @@ pub const POA_ENGINE_ID: [u8; 4] = *b"poa_";
 pub const CHUNK_SIZE: u32 = 256 * 1024;
 
 /// Hasher type for permastore.
+#[cfg(feature = "std")]
 pub type Hasher = sp_core::Blake2Hasher;
 
 /// Trie layout used for permastore.
+#[cfg(feature = "std")]
 pub type TrieLayout = sp_trie::Layout<Hasher>;
 
 /// Error type of chunk proof verification.
@@ -66,21 +69,25 @@ impl<T: OffchainStorage> PermaStorage for T {
 /// High level API for accessing the transaction data.
 pub trait TransactionDataBackend<Block: BlockT>: Send + Sync {
     /// Get transaction data. Returns `None` if data is not found.
-    fn transaction_data(
-        &self,
-        id: BlockId<Block>,
-        extrinsic_index: u32,
-    ) -> sp_blockchain::Result<Option<Vec<u8>>>;
+    fn transaction_data(&self, id: BlockId<Block>, extrinsic_index: u32) -> Option<Vec<u8>>;
 }
 
 // (block_id, extrinsic_index) => chunk_root
 // chunk_root => transaction_data
 impl<T: PermaStorage, Block: BlockT> TransactionDataBackend<Block> for T {
-    fn transaction_data(
-        &self,
-        _id: BlockId<Block>,
-        _extrinsic_index: u32,
-    ) -> sp_blockchain::Result<Option<Vec<u8>>> {
+    fn transaction_data(&self, _id: BlockId<Block>, _extrinsic_index: u32) -> Option<Vec<u8>> {
         todo!("Impl it using the underlying offchain storage")
+    }
+}
+
+sp_api::decl_runtime_apis! {
+    /// The API to query chunk root.
+    pub trait PermastoreApi<BlockNumber, ExtrinsicIndex, Hash> where
+        BlockNumber: codec::Codec,
+        ExtrinsicIndex: codec::Codec,
+        Hash: codec::Codec,
+    {
+        /// Get chunk root given the block number and extrinsic index.
+        fn chunk_root(block_number: BlockNumber, extrinsic_index: ExtrinsicIndex) -> Option<Hash>;
     }
 }
