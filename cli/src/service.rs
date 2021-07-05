@@ -185,7 +185,11 @@ pub fn new_partial(
                     subscription_executor,
                     finality_provider: finality_proof_provider.clone(),
                 },
-                offchain_storage: offchain_storage.clone(),
+                perma_storage: cc_client_db::PermanentStorage::new(
+                    offchain_storage.clone(),
+                    client.clone(),
+                    client.clone()
+                ),
             };
 
             canyon_rpc::create_full(deps)
@@ -325,6 +329,8 @@ pub fn new_full_base(
             create_inherent_data_providers: move |parent, ()| {
                 let client_clone = client_clone.clone();
                 let client_clone2 = client_clone.clone();
+                let client_clone3 = client_clone.clone();
+                let client_clone4 = client_clone.clone();
                 let offchain_storage_clone = offchain_storage.clone();
                 async move {
                     let uncles = sc_consensus_uncles::create_uncles_inherent_data_provider(
@@ -342,7 +348,11 @@ pub fn new_full_base(
                     let poa = cc_poa_inherent::InherentDataProvider::create(
                         &*client_clone2,
                         parent,
-                        cc_client_db::PermanentStorage::new(offchain_storage_clone, client_clone2, clie),
+                        cc_client_db::PermanentStorage::new(
+                            offchain_storage_clone,
+                            client_clone3,
+                            client_clone4,
+                        ),
                     )?;
 
                     Ok((timestamp, slot, uncles, poa))

@@ -22,7 +22,7 @@ use std::sync::Arc;
 
 use codec::Encode;
 
-use sc_client_db::{offchain::LocalStorage, Database, DbHash};
+use sc_client_db::offchain::LocalStorage;
 use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
 use sp_runtime::{
@@ -31,26 +31,31 @@ use sp_runtime::{
     traits::{Block as BlockT, Header as HeaderT},
 };
 
-use cp_permastore::PermaStorage;
-use canyon_primitives::{BlockNumber, Hash};
+use cp_permastore::{PermaStorage, PermastoreApi};
 
 #[derive(Clone)]
-pub struct PermanentStorage<C> {
+pub struct PermanentStorage<C, RA> {
     offchain_storage: LocalStorage,
-    client: C,
+    client: Arc<C>,
+    runtime_api: Arc<RA>,
 }
 
-impl<C> PermanentStorage<C> {
+impl<C, RA> PermanentStorage<C, RA> {
     /// Create permanent storage backed by offchain storage.
-    pub fn new(offchain_storage: LocalStorage, client: C) -> Self {
+    pub fn new(offchain_storage: LocalStorage, client: Arc<C>, runtime_api: Arc<RA>) -> Self {
         Self {
             offchain_storage,
             client,
+            runtime_api,
         }
     }
 }
 
-impl<C: Send + Sync + Clone> cp_permastore::PermaStorage for PermanentStorage<C> {
+impl<C, RA> cp_permastore::PermaStorage for PermanentStorage<C, RA>
+where
+    C: Send + Sync,
+    RA: Send + Sync,
+{
     /// key: chunk_root
     /// value: transaction data
     fn submit(&mut self, key: &[u8], value: &[u8]) {
@@ -64,8 +69,17 @@ impl<C: Send + Sync + Clone> cp_permastore::PermaStorage for PermanentStorage<C>
     }
 }
 
-impl<Block: BlockT, C: ProvideRuntimeApi<Block> + HeaderBackend<Block> + Send + Sync + Clone>
-    cp_permastore::TransactionDataBackend<Block> for PermanentStorage<C>
+impl<Block, C, RA> cp_permastore::TransactionDataBackend<Block> for PermanentStorage<C, RA>
+where
+    Block: BlockT,
+    C: HeaderBackend<Block> + Send + Sync,
+    RA: ProvideRuntimeApi<Block> + Send + Sync,
+    RA::Api: cp_permastore::PermastoreApi<
+        Block,
+        <<Block as BlockT>::Header as HeaderT>::Number,
+        u32,
+        <<Block as BlockT>::Header as HeaderT>::Hash,
+    >,
 {
     fn transaction_data(&self, block_id: BlockId<Block>, extrinsic_index: u32) -> Option<Vec<u8>> {
         let chunk_root = self.chunk_root(
@@ -87,9 +101,10 @@ impl<Block: BlockT, C: ProvideRuntimeApi<Block> + HeaderBackend<Block> + Send + 
         extrinsic_index: u32,
     ) -> Option<<<Block as BlockT>::Header as HeaderT>::Hash> {
         let at = at.unwrap_or_else(|| BlockId::hash(self.client.info().best_hash));
-        self.client
+        self.runtime_api
             .runtime_api()
             .chunk_root(&at, block_number, extrinsic_index)
+            .expect("todo")
     }
 }
 

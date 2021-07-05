@@ -42,7 +42,7 @@ pub type VerifyError = sp_trie::VerifyError<sp_core::H256, sp_trie::Error>;
 
 /// Low level APIs for manipulating the persistent transaction data storage.
 /// No data validation performed.
-pub trait PermaStorage: Send + Sync + Clone {
+pub trait PermaStorage: Send + Sync {
     /// Persist a value in storage under given key.
     fn submit(&mut self, key: &[u8], value: &[u8]);
 
@@ -58,7 +58,7 @@ pub trait PermaStorage: Send + Sync + Clone {
 /// Permanent transaction data backend.
 ///
 /// High level API for accessing the transaction data.
-pub trait TransactionDataBackend<Block: BlockT>: PermaStorage + Send + Sync {
+pub trait TransactionDataBackend<Block: BlockT>: PermaStorage {
     /// Get transaction data. Returns `None` if data is not found.
     fn transaction_data(&self, id: BlockId<Block>, extrinsic_index: u32) -> Option<Vec<u8>>;
 

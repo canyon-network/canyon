@@ -90,7 +90,7 @@ pub struct GrandpaDeps<B> {
 }
 
 /// Full client dependencies.
-pub struct FullDeps<C, P, SC, B, O> {
+pub struct FullDeps<C, P, SC, B, S> {
     /// The client instance to use.
     pub client: Arc<C>,
     /// Transaction pool instance.
@@ -148,7 +148,7 @@ where
         deny_unsafe,
         babe,
         grandpa,
-        offchain_storage,
+        perma_storage,
     } = deps;
 
     let BabeDeps {
@@ -204,7 +204,7 @@ where
     ));
 
     io.extend_with(cc_rpc_api::permastore::PermastoreApi::to_delegate(
-        cc_rpc::permastore::Permastore::new(offchain_storage),
+        cc_rpc::permastore::Permastore::new(perma_storage),
     ));
 
     io
