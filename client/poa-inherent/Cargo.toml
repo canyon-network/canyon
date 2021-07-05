@@ -15,5 +15,5 @@ sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "ca
 sc-client-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 
 canyon-primitives = { path = "../../primitives" }
-cc-consensus-poa = { path = "../consensus/poa" }
 cc-client-db = { path = "../db" }
+cc-consensus-poa = { path = "../consensus/poa" }

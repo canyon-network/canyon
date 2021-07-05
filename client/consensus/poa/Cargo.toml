@@ -20,8 +20,8 @@ sp-trie = { git = "https://github.com/canyon-network/substrate", branch = "canyo
 sc-client-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 
 canyon-primitives = { path = "../../../primitives" }
-cp-permastore = { path = "../../../primitives/permastore" }
 cc-client-db = { path = "../../db" }
+cp-permastore = { path = "../../../primitives/permastore" }
 
 [dev-dependencies]
 criterion = "0.3"

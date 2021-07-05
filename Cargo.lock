@@ -1032,16 +1032,13 @@ dependencies = [
 name = "cc-client-db"
 version = "0.1.0"
 dependencies = [
- "async-trait",
  "canyon-primitives",
  "cp-permastore",
  "parity-scale-codec",
- "sc-client-api",
  "sc-client-db",
  "sp-api",
  "sp-blockchain",
  "sp-core",
- "sp-inherents",
  "sp-offchain",
  "sp-runtime",
  "thiserror",
