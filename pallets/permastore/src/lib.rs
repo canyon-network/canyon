@@ -89,10 +89,6 @@ pub mod pallet {
 
     #[pallet::hooks]
     impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-        fn on_initialize(_n: BlockNumberFor<T>) -> frame_support::weights::Weight {
-            0
-        }
-
         fn on_finalize(_n: BlockNumberFor<T>) {
             let current_block_data_size = <BlockDataSize<T>>::take().unwrap_or_default();
             let last_weave_size = <WeaveSize<T>>::get().unwrap_or_default();
@@ -154,8 +150,6 @@ pub mod pallet {
         }
 
         /// Forgets the data.
-        ///
-        /// The transaction
         #[pallet::weight(0)]
         pub fn forget(
             origin: OriginFor<T>,
@@ -210,8 +204,6 @@ pub mod pallet {
     pub(super) type Ledger<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, BalanceOf<T>>;
 
     /// Map of all the storage orders.
-    ///
-    /// TODO: use StorageNMap?
     #[pallet::storage]
     #[pallet::getter(fn orders)]
     pub(super) type Orders<T: Config> = StorageDoubleMap<
@@ -223,18 +215,19 @@ pub mod pallet {
         Option<DataInfo<T::Hashing>>,
     >;
 
+    /// FIXME: remove this once the offchain transaction data storage is done!
     /// Temeporary on-chain storage.
     #[pallet::storage]
     #[pallet::getter(fn perma_data)]
     pub(super) type PermaData<T: Config> =
         StorageMap<_, Blake2_128Concat, (T::BlockNumber, ExtrinsicIndex), Vec<u8>>;
 
-    /// Total byte size of data stored in network when building this block.
+    /// Total byte size of data stored onto network until last block.
     #[pallet::storage]
     #[pallet::getter(fn weave_size)]
     pub(super) type WeaveSize<T: Config> = StorageValue<_, u64>;
 
-    /// Total byte size of data stored in current block.
+    /// Total byte size of data stored in current building block.
     #[pallet::storage]
     #[pallet::getter(fn block_data_size)]
     pub(super) type BlockDataSize<T: Config> = StorageValue<_, u64>;
@@ -291,6 +284,7 @@ impl<T: Config> Pallet<T> {
 
     fn refund_storage_fee(_who: &T::AccountId, _created_at: T::BlockNumber) {}
 
+    /// Returns the chunk root given `block_number` and `extrinsic_index`.
     pub fn chunk_root(block_number: T::BlockNumber, extrinsic_index: u32) -> Option<T::Hash> {
         <ChunkRootIndex<T>>::get((block_number, extrinsic_index))
     }
