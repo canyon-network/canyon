@@ -1052,6 +1052,7 @@ dependencies = [
  "async-trait",
  "canyon-primitives",
  "cc-client-db",
+ "cp-consensus-poa",
  "cp-permastore",
  "criterion",
  "log",
@@ -1285,6 +1286,18 @@ name = "core-foundation-sys"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ea221b5284a47e40033bf9b66f35f984ec0ea2931eb03505246cd27a963f981b"
+
+[[package]]
+name = "cp-consensus-poa"
+version = "0.1.0"
+dependencies = [
+ "parity-scale-codec",
+ "sp-api",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+ "sp-trie",
+]
 
 [[package]]
 name = "cp-permastore"

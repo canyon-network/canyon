@@ -20,8 +20,6 @@
 
 use sp_std::vec::Vec;
 
-pub const POA_ENGINE_ID: [u8; 4] = *b"poa_";
-
 /// 256B per chunk.
 pub const CHUNK_SIZE: u32 = 256 * 1024;
 

@@ -33,7 +33,8 @@ use sc_client_api::BlockBackend;
 
 use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
 use cc_client_db::TransactionDataBackend as TransactionDataBackendT;
-use cp_permastore::{CHUNK_SIZE, POA_ENGINE_ID};
+use cp_permastore::CHUNK_SIZE;
+use cp_consensus_poa::POA_ENGINE_ID;
 
 mod chunk_proof;
 mod tx_proof;

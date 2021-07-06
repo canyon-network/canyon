@@ -21,6 +21,7 @@ members = [
     "pallets/permastore",
     "pallets/poa",
     "primitives",
+    "primitives/consensus/poa",
     "primitives/permastore",
     "rpc",
     "runtime",
