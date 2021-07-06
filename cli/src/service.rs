@@ -356,7 +356,8 @@ pub fn new_full_base(
                         ),
                     )?;
 
-                    let weave_size = cc_permastore::InherentDataProvider::create(&*client_clone4, parent)?;
+                    let weave_size =
+                        cc_permastore::InherentDataProvider::create(&*client_clone4, parent)?;
 
                     Ok((timestamp, slot, uncles, poa, weave_size))
                 }
