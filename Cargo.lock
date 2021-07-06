@@ -1061,6 +1061,7 @@ dependencies = [
  "rand 0.8.4",
  "sc-block-builder",
  "sc-client-api",
+ "sp-api",
  "sp-blockchain",
  "sp-core",
  "sp-inherents",

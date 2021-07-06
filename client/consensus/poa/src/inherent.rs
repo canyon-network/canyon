@@ -18,9 +18,11 @@
 
 //! This crate creates the inherent data based on the Proof of Access consensus.
 
+use std::sync::Arc;
+
+use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
-use sp_core::H256;
-use sp_runtime::traits::Block as BlockT;
+use sp_runtime::traits::{NumberFor, Block as BlockT};
 
 use sc_client_api::BlockBackend;
 
@@ -34,16 +36,21 @@ pub struct InherentDataProvider {
 
 impl InherentDataProvider {
     /// Creates a new instance of `InherentDataProvider`.
-    pub fn create<
-        Block: BlockT<Hash = H256> + 'static,
-        Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
-        TransactionDataBackend: TransactionDataBackendT<Block>,
-    >(
+    pub fn create<Block, Client, TransactionDataBackend, RA>(
         client: &Client,
         parent: Block::Hash,
         transaction_data_backend: TransactionDataBackend,
-    ) -> Result<Self, crate::Error<Block>> {
-        let maybe_poa = crate::construct_poa(client, parent, transaction_data_backend)?;
+        runtime_api: Arc<RA>,
+    ) -> Result<Self, crate::Error<Block>>
+    where
+        Block: BlockT<Hash = sp_core::H256> + 'static,
+        Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
+        TransactionDataBackend: TransactionDataBackendT<Block>,
+        RA: ProvideRuntimeApi<Block> + Send + Sync,
+        RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
+    {
+        let maybe_poa =
+            crate::construct_poa(client, parent, transaction_data_backend, runtime_api)?;
         Ok(Self { maybe_poa })
     }
 }

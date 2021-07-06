@@ -305,6 +305,7 @@ impl<T: Config> Pallet<T> {
         <ChunkRootIndex<T>>::get((block_number, extrinsic_index))
     }
 
+    /// Returns the block number in which the recall byte is included.
     pub fn find_recall_block(recall_byte: u64) -> Option<T::BlockNumber> {
         let weave_size_list = <GlobalWeaveSizeList<T>>::get()?;
 

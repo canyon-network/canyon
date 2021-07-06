@@ -1375,6 +1375,9 @@ impl_runtime_apis! {
         fn chunk_root(block_number: BlockNumber, extrinsic_index: u32) -> Option<Hash> {
             Permastore::chunk_root(block_number, extrinsic_index)
         }
+        fn find_recall_block(recall_byte: u64) -> Option<BlockNumber> {
+            Permastore::find_recall_block(recall_byte)
+        }
     }
 
     #[cfg(feature = "try-runtime")]

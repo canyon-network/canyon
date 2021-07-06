@@ -20,13 +20,16 @@
 //!
 //! TODO: verify PoA stored in the block header.
 
+use std::sync::Arc;
+
 use codec::{Decode, Encode};
 use thiserror::Error;
 
+use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
 use sp_runtime::{
     generic::BlockId,
-    traits::{Block as BlockT, DigestItemFor, Extrinsic, Header as HeaderT},
+    traits::{Block as BlockT, DigestItemFor, Extrinsic, Header as HeaderT, NumberFor},
 };
 
 use sc_client_api::BlockBackend;
@@ -34,7 +37,7 @@ use sc_client_api::BlockBackend;
 use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
 use cc_client_db::TransactionDataBackend as TransactionDataBackendT;
 use cp_consensus_poa::POA_ENGINE_ID;
-use cp_permastore::CHUNK_SIZE;
+use cp_permastore::{PermastoreApi, CHUNK_SIZE};
 
 mod chunk_proof;
 mod inherent;
@@ -64,8 +67,12 @@ pub enum Error<Block: BlockT> {
     Codec(#[from] codec::Error),
     #[error("blockchain error")]
     BlockchainError(#[from] sp_blockchain::Error),
+    #[error(transparent)]
+    ApiError(#[from] sp_api::ApiError),
     #[error("block {0} not found")]
     BlockNotFound(BlockId<Block>),
+    #[error("recall block not found given the recall byte {0}")]
+    RecallBlockNotFound(DataIndex),
     #[error("block header {0} not found")]
     HeaderNotFound(BlockId<Block>),
     #[error("the chunk in recall tx not found")]
@@ -155,21 +162,39 @@ fn fetch_header<Block: BlockT, Client: HeaderBackend<Block>>(
 }
 
 /// Returns the block number of recall block.
-fn find_recall_block<Block: BlockT>(_recall_byte: DataIndex) -> BlockId<Block> {
-    todo!("find recall block number")
+fn find_recall_block<Block, RA>(
+    at: BlockId<Block>,
+    recall_byte: DataIndex,
+    runtime_api: Arc<RA>,
+) -> Result<BlockId<Block>, Error<Block>>
+where
+    Block: BlockT,
+    RA: ProvideRuntimeApi<Block> + Send + Sync,
+    RA::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
+{
+    runtime_api
+        .runtime_api()
+        .find_recall_block(&at, recall_byte)?
+        .map(|number| BlockId::Number(number))
+        .ok_or(Error::RecallBlockNotFound(recall_byte))
 }
 
 /// Constructs a valid Proof of Access.
-pub fn construct_poa<
-    Block: BlockT<Hash = sp_core::H256> + 'static,
-    Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
-    TransactionDataBackend: TransactionDataBackendT<Block>,
->(
+pub fn construct_poa<Block, Client, TransactionDataBackend, RA>(
     client: &Client,
     parent: Block::Hash,
     transaction_data_backend: TransactionDataBackend,
-) -> Result<Option<ProofOfAccess>, Error<Block>> {
-    let chain_head = fetch_header(BlockId::Hash(parent), client)?;
+    runtime_api: Arc<RA>,
+) -> Result<Option<ProofOfAccess>, Error<Block>>
+where
+    Block: BlockT<Hash = sp_core::H256> + 'static,
+    Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
+    TransactionDataBackend: TransactionDataBackendT<Block>,
+    RA: ProvideRuntimeApi<Block> + Send + Sync,
+    RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
+{
+    let parent_id = BlockId::Hash(parent);
+    let chain_head = fetch_header(parent_id, client)?;
 
     let weave_size = extract_weave_size::<Block>(&chain_head)?;
 
@@ -179,7 +204,7 @@ pub fn construct_poa<
         }
 
         let recall_byte = calculate_challenge_byte(chain_head.encode(), weave_size, depth);
-        let recall_block_id = find_recall_block(recall_byte);
+        let recall_block_id = find_recall_block(parent_id, recall_byte, runtime_api.clone())?;
 
         let (header, extrinsics) = fetch_block(recall_block_id, client)?;
 
