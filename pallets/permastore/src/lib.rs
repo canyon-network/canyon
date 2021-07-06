@@ -229,6 +229,7 @@ pub mod pallet {
     pub(super) type PermaData<T: Config> =
         StorageMap<_, Blake2_128Concat, (T::BlockNumber, ExtrinsicIndex), Vec<u8>>;
 
+    /// Total byte size of data stored in current block.
     #[pallet::storage]
     #[pallet::getter(fn block_data_size)]
     pub(super) type BlockDataSize<T: Config> = StorageValue<_, u64>;

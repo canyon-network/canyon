@@ -77,11 +77,11 @@ pub enum Error<Block: BlockT> {
 /// Type for proving the data access.
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct Poa {
-    ///
+    /// poa depth.
     pub depth: Depth,
-    ///
+    /// merkle path of recall tx.
     pub tx_path: Vec<Vec<u8>>,
-    ///
+    /// merkle path of recall chunk.
     pub chunk_proof: ChunkProof,
 }
 

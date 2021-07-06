@@ -28,7 +28,7 @@ use sp_blockchain::HeaderBackend;
 use sp_runtime::{
     generic::BlockId,
     offchain::OffchainStorage,
-    traits::{Block as BlockT, Header as HeaderT, NumberFor},
+    traits::{Block as BlockT, NumberFor},
 };
 
 use cp_permastore::{PermaStorage, PermastoreApi};
@@ -82,18 +82,13 @@ where
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error<Block: BlockT> {
-    #[error("chunk root not found for block `{0}` at extrinsic index `{1}`")]
-    ChunkRootNotFound(BlockId<Block>, u32),
+    #[error("block number not found given block id `{0}`")]
+    BlockNumberNotFound(BlockId<Block>),
     #[error(transparent)]
     Blockchain(#[from] sp_blockchain::Error),
     #[error(transparent)]
     ApiError(#[from] sp_api::ApiError),
 }
-
-/// Extract the header hash type for a block
-///
-/// chunk root uses the same hash type with header hash.
-type Hash<Block> = <<Block as BlockT>::Header as HeaderT>::Hash;
 
 /// Backend for storing a map of (block_number, extrinsic_index) to chunk_root.
 pub trait ChunkRootBackend<Block: BlockT> {
@@ -105,7 +100,7 @@ pub trait ChunkRootBackend<Block: BlockT> {
         at: Option<BlockId<Block>>,
         block_number: NumberFor<Block>,
         extrinsic_index: u32,
-    ) -> Result<Option<Hash<Block>>, Error<Block>>;
+    ) -> Result<Option<Block::Hash>, Error<Block>>;
 }
 
 /// Permanent transaction data backend.
@@ -125,7 +120,7 @@ where
     Block: BlockT,
     C: HeaderBackend<Block> + Send + Sync,
     RA: ProvideRuntimeApi<Block> + Send + Sync,
-    RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Hash<Block>>,
+    RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
 {
     fn transaction_data(
         &self,
@@ -136,7 +131,7 @@ where
             None,
             self.client
                 .block_number_from_id(&block_id)?
-                .ok_or(Error::ChunkRootNotFound(block_id, extrinsic_index))?,
+                .ok_or(Error::BlockNumberNotFound(block_id))?,
             extrinsic_index,
         )?;
         Ok(self.retrieve(&chunk_root.encode()))
@@ -148,14 +143,14 @@ where
     Block: BlockT,
     C: HeaderBackend<Block> + Send + Sync,
     RA: ProvideRuntimeApi<Block> + Send + Sync,
-    RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Hash<Block>>,
+    RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
 {
     fn chunk_root(
         &self,
         at: Option<BlockId<Block>>,
         block_number: NumberFor<Block>,
         extrinsic_index: u32,
-    ) -> Result<Option<Hash<Block>>, Error<Block>> {
+    ) -> Result<Option<Block::Hash>, Error<Block>> {
         let at = at.unwrap_or_else(|| BlockId::hash(self.client.info().best_hash));
         self.runtime_api
             .runtime_api()
