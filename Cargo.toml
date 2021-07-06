@@ -27,6 +27,9 @@ members = [
     "runtime",
 ]
 
+[profile.release]
+panic = "unwind"
+
 [[bin]]
 name = "canyon"
 path = "src/main.rs"
