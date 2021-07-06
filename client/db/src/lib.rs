@@ -90,24 +90,29 @@ pub enum Error<Block: BlockT> {
     ApiError(#[from] sp_api::ApiError),
 }
 
-/// Permanent transaction data backend.
-///
-/// High level API for accessing the transaction data.
-pub trait TransactionDataBackend<Block: BlockT>: PermaStorage {
-    /// Get transaction data. Returns `None` if data is not found.
-    fn transaction_data(
-        &self,
-        id: BlockId<Block>,
-        extrinsic_index: u32,
-    ) -> Result<Option<Vec<u8>>, Error<Block>>;
-
+/// Backend for storing a map of (block_number, extrinsic_index) to chunk_root.
+pub trait ChunkRootBackend<Block: BlockT> {
     /// Returns chunk root given `block_number` and `extrinsic_index`.
+    ///
+    /// Usually fetched from the runtime.
     fn chunk_root(
         &self,
         at: Option<BlockId<Block>>,
         block_number: <<Block as BlockT>::Header as HeaderT>::Number,
         extrinsic_index: u32,
     ) -> Result<Option<<<Block as BlockT>::Header as HeaderT>::Hash>, Error<Block>>;
+}
+
+/// Permanent transaction data backend.
+///
+/// High level API for accessing the transaction data.
+pub trait TransactionDataBackend<Block: BlockT>: PermaStorage + ChunkRootBackend<Block> {
+    /// Get transaction data. Returns `None` if data is not found.
+    fn transaction_data(
+        &self,
+        id: BlockId<Block>,
+        extrinsic_index: u32,
+    ) -> Result<Option<Vec<u8>>, Error<Block>>;
 }
 
 impl<Block, C, RA> TransactionDataBackend<Block> for PermanentStorage<C, RA>
@@ -136,8 +141,20 @@ where
         )?;
         Ok(self.retrieve(&chunk_root.encode()))
     }
+}
 
-    /// Returns the chunk root at block `block_id` given `block_number` and `extrinsic_index`.
+impl<Block, C, RA> ChunkRootBackend<Block> for PermanentStorage<C, RA>
+where
+    Block: BlockT,
+    C: HeaderBackend<Block> + Send + Sync,
+    RA: ProvideRuntimeApi<Block> + Send + Sync,
+    RA::Api: cp_permastore::PermastoreApi<
+        Block,
+        <<Block as BlockT>::Header as HeaderT>::Number,
+        u32,
+        <<Block as BlockT>::Header as HeaderT>::Hash,
+    >,
+{
     fn chunk_root(
         &self,
         at: Option<BlockId<Block>>,
