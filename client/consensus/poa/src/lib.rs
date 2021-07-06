@@ -33,14 +33,15 @@ use sc_client_api::BlockBackend;
 
 use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
 use cc_client_db::TransactionDataBackend as TransactionDataBackendT;
-use cp_permastore::CHUNK_SIZE;
 use cp_consensus_poa::POA_ENGINE_ID;
+use cp_permastore::CHUNK_SIZE;
 
 mod chunk_proof;
 mod tx_proof;
 
-pub use self::chunk_proof::{verify_chunk_proof, ChunkProof, ChunkProofBuilder};
+pub use self::chunk_proof::{verify_chunk_proof, ChunkProofBuilder, ChunkProofVerifier};
 pub use self::tx_proof::{build_extrinsic_proof, verify_extrinsic_proof};
+pub use cp_consensus_poa::{ChunkProof, ProofOfAccess};
 
 /// The maximum depth of attempting to generate a valid PoA.
 ///
@@ -73,17 +74,6 @@ pub enum Error<Block: BlockT> {
     MaxDepthReached(Depth),
     #[error("unknown poa error")]
     Unknown,
-}
-
-/// Type for proving the data access.
-#[derive(Debug, Clone, Encode, Decode)]
-pub struct Poa {
-    /// poa depth.
-    pub depth: Depth,
-    /// merkle path of recall tx.
-    pub tx_path: Vec<Vec<u8>>,
-    /// merkle path of recall chunk.
-    pub chunk_proof: ChunkProof,
 }
 
 /// Applies the hashing on `seed` for `n` times
@@ -178,7 +168,7 @@ pub fn construct_poa<
     client: &Client,
     parent: Block::Hash,
     transaction_data_backend: TransactionDataBackend,
-) -> Result<Option<Poa>, Error<Block>> {
+) -> Result<Option<ProofOfAccess>, Error<Block>> {
     let chain_head = fetch_header(BlockId::Hash(parent), client)?;
 
     let weave_size = extract_weave_size::<Block>(&chain_head)?;
@@ -249,7 +239,7 @@ pub fn construct_poa<
                     }
 
                     // find one proof!
-                    return Ok(Some(Poa {
+                    return Ok(Some(ProofOfAccess {
                         depth,
                         tx_path: tx_proof,
                         chunk_proof,

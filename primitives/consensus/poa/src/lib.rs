@@ -18,7 +18,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use codec::{Encode, Decode};
+use codec::{Decode, Encode};
 
 use sp_runtime::ConsensusEngineId;
 use sp_std::vec::Vec;
@@ -27,7 +27,7 @@ pub const POA_ENGINE_ID: ConsensusEngineId = *b"poa_";
 
 /// This type represents the raw bytes of chunk as well as the chunk proof.
 #[derive(Debug, Clone, Encode, Decode)]
-pub struct ChunkProof<Hash> {
+pub struct ChunkProof {
     /// Random data chunk that is proved to exist.
     pub chunk: Vec<u8>,
     /// Index of `chunk`.
@@ -36,6 +36,22 @@ pub struct ChunkProof<Hash> {
     ///
     /// Merkle path of chunks from `chunk` to the chunk root.
     pub proof: Vec<Vec<u8>>,
-    /// Merkle root of chunks trie.
-    pub chunk_root: Hash,
+}
+
+impl ChunkProof {
+    /// Returns the proof size in bytes.
+    pub fn size(&self) -> usize {
+        self.proof.iter().map(|p| p.len()).sum()
+    }
+}
+
+/// Type for proving the historical data access.
+#[derive(Debug, Clone, Encode, Decode)]
+pub struct ProofOfAccess {
+    /// poa depth.
+    pub depth: u32,
+    /// merkle path of recall tx.
+    pub tx_path: Vec<Vec<u8>>,
+    /// data chunk proof.
+    pub chunk_proof: ChunkProof,
 }

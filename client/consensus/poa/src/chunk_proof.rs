@@ -16,11 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
-use codec::{Decode, Encode};
-
 use sp_core::H256;
 use sp_trie::TrieMut;
 
+use cp_consensus_poa::ChunkProof;
 use cp_permastore::{Hasher, TrieLayout, VerifyError};
 
 pub fn encode_index(input: u32) -> Vec<u8> {
@@ -34,35 +33,24 @@ pub enum Error {
     Trie(#[from] Box<dyn std::error::Error + Send + Sync>),
 }
 
-/// This type represents the raw bytes of chunk as well as the chunk proof.
-#[derive(Debug, Clone, Encode, Decode)]
-pub struct ChunkProof {
-    /// Random data chunk that is proved to exist.
-    pub chunk: Vec<u8>,
-    /// Index of `chunk`.
-    pub chunk_index: u32,
-    /// Trie nodes that compose the proof.
-    ///
-    /// Merkle path of chunks from `chunk` to the chunk root.
-    pub proof: Vec<Vec<u8>>,
-    /// Merkle root of chunks trie.
-    pub chunk_root: H256,
+#[derive(Debug, Clone)]
+pub struct ChunkProofVerifier(pub ChunkProof);
+
+impl From<ChunkProof> for ChunkProofVerifier {
+    fn from(inner: ChunkProof) -> Self {
+        Self(inner)
+    }
 }
 
-impl ChunkProof {
+impl ChunkProofVerifier {
     /// Checks if the proof is valid against the chunk root.
     pub fn verify(&self, chunk_root: &H256) -> Result<(), VerifyError> {
         verify_chunk_proof(
             chunk_root,
-            self.chunk.clone(),
-            self.chunk_index,
-            &self.proof,
+            self.0.chunk.clone(),
+            self.0.chunk_index,
+            &self.0.proof,
         )
-    }
-
-    /// Returns the proof size in bytes.
-    pub fn size(&self) -> usize {
-        self.proof.iter().map(|p| p.len()).sum()
     }
 }
 
@@ -154,7 +142,6 @@ impl ChunkProofBuilder {
             chunk: target_chunk,
             chunk_index: self.target_chunk_index,
             proof,
-            chunk_root,
         })
     }
 }

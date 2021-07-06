@@ -349,15 +349,6 @@ where
     }
 }
 
-/// Type for proving the data access.
-#[derive(Debug, Clone, Encode, Decode)]
-pub struct Poa {
-    ///
-    pub depth: u32,
-    ///
-    pub tx_path: Vec<Vec<u8>>,
-}
-
 impl<T: Config> ProvideInherent for Pallet<T> {
     type Call = Call<T>;
     type Error = MakeFatalError<()>;
@@ -366,40 +357,26 @@ impl<T: Config> ProvideInherent for Pallet<T> {
         canyon_primitives::PERMASTORE_INHERENT_IDENTIFIER;
 
     fn create_inherent(data: &InherentData) -> Option<Self::Call> {
-        frame_support::log::info!(
-            "permastore inherent data: {:?}",
-            data.get_data::<Option<Poa>>(&Self::INHERENT_IDENTIFIER)
-        );
-        let maybe_poa: Option<Poa> = match data.get_data(&Self::INHERENT_IDENTIFIER) {
+        use cp_consensus_poa::ProofOfAccess;
+
+        let maybe_poa: Option<ProofOfAccess> = match data.get_data(&Self::INHERENT_IDENTIFIER) {
             Ok(Some(d)) => d,
             Ok(None) => return None,
             Err(_) => {
-                frame_support::log::error!("failed to decode poa");
+                frame_support::log::error!("failed to decode ProofOfAccess");
                 return None;
             }
         };
 
-        frame_support::log::info!("deposit log, maybe_poa: {:?}", maybe_poa);
-        <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(POA_ENGINE_ID, maybe_poa.encode()));
+        if let Some(poa) = maybe_poa {
+            // TODO: Required when weave size is not 0.
+            <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(POA_ENGINE_ID, poa.encode()));
+        }
 
         None
     }
 
     fn is_inherent(_call: &Self::Call) -> bool {
-        frame_support::log::info!("is permastore inherent");
         false
-    }
-
-    /// Required when inherent data is Some(_).
-    ///
-    /// NOTE: inherent data can only be None when the weave is empty.
-    fn is_inherent_required(data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
-        frame_support::log::info!("is permastore inherent required");
-        #[cfg(feature = "std")]
-        println!("------------- ");
-        match data.get_data::<Option<u32>>(&Self::INHERENT_IDENTIFIER) {
-            Ok(Some(_d)) => Ok(Some(().into())),
-            _ => Ok(None),
-        }
     }
 }
