@@ -345,7 +345,7 @@ pub fn new_full_base(
                                                     slot_duration,
                                             );
 
-                    let poa = cc_poa_inherent::InherentDataProvider::create(
+                    let poa = cc_consensus_poa::InherentDataProvider::create(
                         &*client_clone2,
                         parent,
                         cc_client_db::PermanentStorage::new(

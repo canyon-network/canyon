@@ -97,10 +97,12 @@ pub mod pallet {
             let current_block_data_size = <BlockDataSize<T>>::take().unwrap_or_default();
             let last_weave_size = <WeaveSize<T>>::get().unwrap_or_default();
             let weave_size = last_weave_size + current_block_data_size;
-            <frame_system::Pallet<T>>::deposit_log(DigestItem::Consensus(
-                POA_ENGINE_ID,
-                weave_size.encode(),
-            ));
+            if weave_size > 0 {
+                <frame_system::Pallet<T>>::deposit_log(DigestItem::Consensus(
+                    POA_ENGINE_ID,
+                    weave_size.encode(),
+                ));
+            }
         }
     }
 
@@ -363,17 +365,19 @@ impl<T: Config> ProvideInherent for Pallet<T> {
         let weave_size: u64 = match data.get_data(&Self::INHERENT_IDENTIFIER) {
             Ok(Some(d)) => d,
             Ok(None) => return None,
-            Err(_) => {
-                frame_support::log::error!("failed to decode ProofOfAccess");
+            Err(e) => {
+                frame_support::log::error!(target: "runtime::permastore", "failed to decode weave size: {:?}", e);
                 return None;
             }
         };
 
-        <WeaveSize<T>>::put(weave_size);
-        <frame_system::Pallet<T>>::deposit_log(DigestItem::PreRuntime(
-            POA_ENGINE_ID,
-            weave_size.encode(),
-        ));
+        if weave_size > 0 {
+            <WeaveSize<T>>::put(weave_size);
+            <frame_system::Pallet<T>>::deposit_log(DigestItem::PreRuntime(
+                POA_ENGINE_ID,
+                weave_size.encode(),
+            ));
+        }
 
         None
     }

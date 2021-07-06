@@ -1,5 +1,5 @@
 [package]
-name = "cc-poa-inherent"
+name = "cc-permastore"
 version = "0.1.0"
 authors = ["Canyon Labs <https://github.com/canyon-network>"]
 edition = "2018"
@@ -16,5 +16,4 @@ sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "ca
 sc-client-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 
 canyon-primitives = { path = "../../primitives" }
-cc-client-db = { path = "../db" }
 cc-consensus-poa = { path = "../consensus/poa" }

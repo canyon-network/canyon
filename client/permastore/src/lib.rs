@@ -16,20 +16,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
-//! This crate creates the inherent data based on the Proof of Access consensus.
+//! This crate creates the inherent data for permastore pallet.
 
 use sp_blockchain::HeaderBackend;
 use sp_core::H256;
-use sp_runtime::traits::Block as BlockT;
+use sp_runtime::{generic::BlockId, traits::Block as BlockT};
 
 use sc_client_api::BlockBackend;
 
-use cc_client_db::TransactionDataBackend as TransactionDataBackendT;
-use cc_consensus_poa::{construct_poa, Error};
+use cc_consensus_poa::{extract_weave_size, Error};
 
 pub struct InherentDataProvider {
-    /// Depth
-    pub maybe_depth: Option<u32>,
+    /// Size of entire weave.
+    pub weave_size: u64,
 }
 
 impl InherentDataProvider {
@@ -37,15 +36,16 @@ impl InherentDataProvider {
     pub fn create<
         Block: BlockT<Hash = H256> + 'static,
         Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
-        TransactionDataBackend: TransactionDataBackendT<Block>,
     >(
         client: &Client,
         parent: Block::Hash,
-        transaction_data_backend: TransactionDataBackend,
     ) -> Result<Self, Error<Block>> {
-        let maybe_depth =
-            construct_poa(client, parent, transaction_data_backend)?.map(|poa| poa.depth as u32);
-        Ok(Self { maybe_depth })
+        let parent_id = BlockId::Hash(parent);
+        let parent_header = client
+            .header(parent_id)?
+            .ok_or_else(|| Error::HeaderNotFound(parent_id))?;
+        let weave_size = extract_weave_size::<Block>(&parent_header).unwrap_or_default();
+        Ok(Self { weave_size })
     }
 }
 
@@ -55,10 +55,9 @@ impl sp_inherents::InherentDataProvider for InherentDataProvider {
         &self,
         inherent_data: &mut sp_inherents::InherentData,
     ) -> Result<(), sp_inherents::Error> {
-        log::info!("----------- put data: {:?}", self.maybe_depth);
         inherent_data.put_data(
-            canyon_primitives::POA_INHERENT_IDENTIFIER,
-            &self.maybe_depth,
+            canyon_primitives::PERMASTORE_INHERENT_IDENTIFIER,
+            &self.weave_size,
         )
     }
 

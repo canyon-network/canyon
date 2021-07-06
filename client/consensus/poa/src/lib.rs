@@ -37,9 +37,11 @@ use cp_consensus_poa::POA_ENGINE_ID;
 use cp_permastore::CHUNK_SIZE;
 
 mod chunk_proof;
+mod inherent;
 mod tx_proof;
 
 pub use self::chunk_proof::{verify_chunk_proof, ChunkProofBuilder, ChunkProofVerifier};
+pub use self::inherent::InherentDataProvider;
 pub use self::tx_proof::{build_extrinsic_proof, verify_extrinsic_proof};
 pub use cp_consensus_poa::{ChunkProof, ProofOfAccess};
 
@@ -116,7 +118,10 @@ fn find_recall_tx(
     binary_search(recall_byte, sized_extrinsics)
 }
 
-fn extract_weave_size<Block: BlockT>(header: &Block::Header) -> Result<DataIndex, Error<Block>> {
+/// Extracts the weave size from block header.
+pub fn extract_weave_size<Block: BlockT>(
+    header: &Block::Header,
+) -> Result<DataIndex, Error<Block>> {
     let opaque_weave_size = header.digest().logs.iter().find_map(|log| {
         if let DigestItemFor::<Block>::Consensus(POA_ENGINE_ID, opaque_data) = log {
             Some(opaque_data)
@@ -127,12 +132,7 @@ fn extract_weave_size<Block: BlockT>(header: &Block::Header) -> Result<DataIndex
 
     match opaque_weave_size {
         Some(weave_size) => Decode::decode(&mut weave_size.as_slice()).map_err(Error::Codec),
-        None => {
-            Ok(Default::default())
-
-            // FIXME: weave size should only be zero for genesis?
-            // Err(Error::EmptyWeaveSize),
-        }
+        None => Ok(Default::default()),
     }
 }
 

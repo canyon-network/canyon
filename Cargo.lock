@@ -731,7 +731,8 @@ dependencies = [
  "canyon-rpc",
  "canyon-runtime",
  "cc-client-db",
- "cc-poa-inherent",
+ "cc-consensus-poa",
+ "cc-permastore",
  "frame-benchmarking-cli",
  "frame-support",
  "frame-system",
@@ -1074,12 +1075,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "cc-poa-inherent"
+name = "cc-permastore"
 version = "0.1.0"
 dependencies = [
  "async-trait",
  "canyon-primitives",
- "cc-client-db",
  "cc-consensus-poa",
  "log",
  "sc-client-api",
