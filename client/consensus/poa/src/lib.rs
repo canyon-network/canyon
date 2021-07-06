@@ -51,7 +51,7 @@ pub use cp_consensus_poa::{ChunkProof, ProofOfAccess};
 /// The maximum depth of attempting to generate a valid PoA.
 ///
 /// TODO: make it configurable in Runtime?
-pub const MAX_DEPTH: u32 = 1_000_000;
+pub const MAX_DEPTH: u32 = 1_000;
 
 /// Maximum byte size of transaction merkle path.
 pub const MAX_TX_PATH: u32 = 256 * 1024;
@@ -172,6 +172,7 @@ where
     RA: ProvideRuntimeApi<Block> + Send + Sync,
     RA::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
 {
+    log::debug!(target: "poa", "calling into runtime to find the recall block, at: {:?}, recall_byte: {:?}", at, recall_byte);
     runtime_api
         .runtime_api()
         .find_recall_block(&at, recall_byte)?
@@ -193,6 +194,7 @@ where
     RA: ProvideRuntimeApi<Block> + Send + Sync,
     RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
 {
+    log::debug!(target: "poa", "try constructing poa at parent: {:?}", parent);
     let parent_id = BlockId::Hash(parent);
     let chain_head = fetch_header(parent_id, client)?;
 

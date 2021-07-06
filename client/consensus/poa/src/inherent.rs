@@ -50,7 +50,13 @@ impl InherentDataProvider {
         RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
     {
         let maybe_poa =
-            crate::construct_poa(client, parent, transaction_data_backend, runtime_api)?;
+            match crate::construct_poa(client, parent, transaction_data_backend, runtime_api) {
+                Ok(maybe_poa) => maybe_poa,
+                Err(e) => {
+                    log::error!(target: "poa", "Failed to construct poa: {:?}", e);
+                    return Err(e);
+                }
+            };
         Ok(Self { maybe_poa })
     }
 }
