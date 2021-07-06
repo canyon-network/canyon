@@ -28,7 +28,7 @@ use sp_blockchain::HeaderBackend;
 use sp_runtime::{
     generic::BlockId,
     offchain::OffchainStorage,
-    traits::{Block as BlockT, Header as HeaderT},
+    traits::{Block as BlockT, Header as HeaderT, NumberFor},
 };
 
 use cp_permastore::{PermaStorage, PermastoreApi};
@@ -90,6 +90,11 @@ pub enum Error<Block: BlockT> {
     ApiError(#[from] sp_api::ApiError),
 }
 
+/// Extract the header hash type for a block
+///
+/// chunk root uses the same hash type with header hash.
+type Hash<Block> = <<Block as BlockT>::Header as HeaderT>::Hash;
+
 /// Backend for storing a map of (block_number, extrinsic_index) to chunk_root.
 pub trait ChunkRootBackend<Block: BlockT> {
     /// Returns chunk root given `block_number` and `extrinsic_index`.
@@ -98,9 +103,9 @@ pub trait ChunkRootBackend<Block: BlockT> {
     fn chunk_root(
         &self,
         at: Option<BlockId<Block>>,
-        block_number: <<Block as BlockT>::Header as HeaderT>::Number,
+        block_number: NumberFor<Block>,
         extrinsic_index: u32,
-    ) -> Result<Option<<<Block as BlockT>::Header as HeaderT>::Hash>, Error<Block>>;
+    ) -> Result<Option<Hash<Block>>, Error<Block>>;
 }
 
 /// Permanent transaction data backend.
@@ -120,12 +125,7 @@ where
     Block: BlockT,
     C: HeaderBackend<Block> + Send + Sync,
     RA: ProvideRuntimeApi<Block> + Send + Sync,
-    RA::Api: cp_permastore::PermastoreApi<
-        Block,
-        <<Block as BlockT>::Header as HeaderT>::Number,
-        u32,
-        <<Block as BlockT>::Header as HeaderT>::Hash,
-    >,
+    RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Hash<Block>>,
 {
     fn transaction_data(
         &self,
@@ -148,19 +148,14 @@ where
     Block: BlockT,
     C: HeaderBackend<Block> + Send + Sync,
     RA: ProvideRuntimeApi<Block> + Send + Sync,
-    RA::Api: cp_permastore::PermastoreApi<
-        Block,
-        <<Block as BlockT>::Header as HeaderT>::Number,
-        u32,
-        <<Block as BlockT>::Header as HeaderT>::Hash,
-    >,
+    RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Hash<Block>>,
 {
     fn chunk_root(
         &self,
         at: Option<BlockId<Block>>,
-        block_number: <<Block as BlockT>::Header as HeaderT>::Number,
+        block_number: NumberFor<Block>,
         extrinsic_index: u32,
-    ) -> Result<Option<<<Block as BlockT>::Header as HeaderT>::Hash>, Error<Block>> {
+    ) -> Result<Option<Hash<Block>>, Error<Block>> {
         let at = at.unwrap_or_else(|| BlockId::hash(self.client.info().best_hash));
         self.runtime_api
             .runtime_api()

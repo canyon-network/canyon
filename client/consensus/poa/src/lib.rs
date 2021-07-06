@@ -87,7 +87,7 @@ pub struct Poa {
 
 /// Applies the hashing on `seed` for `n` times
 fn multihash(seed: Randomness, n: Depth) -> [u8; 32] {
-    assert!(n > 0);
+    assert!(n > 0, "n can not be 0 when calculating multihash");
     let mut r = sp_io::hashing::blake2_256(&seed);
     for _ in 1..n {
         r = sp_io::hashing::blake2_256(&r);
@@ -103,7 +103,10 @@ fn make_bytes(h: [u8; 32]) -> [u8; 8] {
 
 /// Returns the position of recall byte in the entire weave.
 fn calculate_challenge_byte(seed: Randomness, weave_size: DataIndex, depth: Depth) -> DataIndex {
-    assert!(weave_size > 0, "weave size can not be 0");
+    assert!(
+        weave_size > 0,
+        "weave size can not be 0 when calculating the recall byte"
+    );
     DataIndex::from_le_bytes(make_bytes(multihash(seed, depth))) % weave_size
 }
 
@@ -165,7 +168,7 @@ fn find_recall_block<Block: BlockT>(_recall_byte: DataIndex) -> BlockId<Block> {
     todo!("find recall block number")
 }
 
-/// Constructs a valid PoA.
+/// Constructs a valid Proof of Access.
 pub fn construct_poa<
     Block: BlockT<Hash = sp_core::H256> + 'static,
     Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
