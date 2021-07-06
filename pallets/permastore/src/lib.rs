@@ -89,10 +89,14 @@ pub mod pallet {
 
     #[pallet::hooks]
     impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-        fn on_finalize(_n: BlockNumberFor<T>) {
+        fn on_finalize(n: BlockNumberFor<T>) {
             let current_block_data_size = <BlockDataSize<T>>::take().unwrap_or_default();
             let last_weave_size = <WeaveSize<T>>::get().unwrap_or_default();
             let weave_size = last_weave_size + current_block_data_size;
+            if current_block_data_size > 0 {
+                <GlobalBlockSizeIndex<T>>::append(weave_size);
+                <GlobalBlockNumberIndex<T>>::append(n);
+            }
             if weave_size > 0 {
                 <frame_system::Pallet<T>>::deposit_log(DigestItem::Consensus(
                     POA_ENGINE_ID,
@@ -238,6 +242,18 @@ pub mod pallet {
     pub(super) type ChunkRootIndex<T: Config> =
         StorageMap<_, Twox64Concat, (T::BlockNumber, ExtrinsicIndex), T::Hash>;
 
+    /// FIXME: find a proper way to store these info.
+    ///
+    /// Temp solution for locating the recall block. An ever increasing array of global weave size.
+    #[pallet::storage]
+    #[pallet::getter(fn global_block_size_index)]
+    pub(super) type GlobalBlockSizeIndex<T: Config> = StorageValue<_, Vec<u64>>;
+
+    /// Temp solution for locating the recall block.
+    #[pallet::storage]
+    #[pallet::getter(fn global_block_number_index)]
+    pub(super) type GlobalBlockNumberIndex<T: Config> = StorageValue<_, Vec<T::BlockNumber>>;
+
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config> {
         pub ledger: Vec<(T::AccountId, BalanceOf<T>)>,
@@ -287,6 +303,10 @@ impl<T: Config> Pallet<T> {
     /// Returns the chunk root given `block_number` and `extrinsic_index`.
     pub fn chunk_root(block_number: T::BlockNumber, extrinsic_index: u32) -> Option<T::Hash> {
         <ChunkRootIndex<T>>::get((block_number, extrinsic_index))
+    }
+
+    pub fn find_recall_block(recall_byte: u64) -> T::BlockNumber {
+        todo!()
     }
 }
 

@@ -64,7 +64,7 @@ where
     /// # Arguments
     ///
     /// * `key`: chunk_root of the transaction data.
-    /// * `value`: entire data of transaction.
+    /// * `value`: entire data of a transaction.
     fn submit(&mut self, key: &[u8], value: &[u8]) {
         self.offchain_storage
             .set(sp_offchain::STORAGE_PREFIX, key, value)

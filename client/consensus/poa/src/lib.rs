@@ -174,7 +174,6 @@ pub fn construct_poa<
     let weave_size = extract_weave_size::<Block>(&chain_head)?;
 
     for depth in 1..=MAX_DEPTH {
-        // Genesis block?
         if weave_size == 0 {
             return Ok(None);
         }
@@ -238,7 +237,7 @@ pub fn construct_poa<
                         continue;
                     }
 
-                    // find one proof!
+                    // find a valid proof!
                     return Ok(Some(ProofOfAccess {
                         depth,
                         tx_path: tx_proof,
@@ -248,6 +247,7 @@ pub fn construct_poa<
             }
         } else {
             log::error!(
+                target: "poa",
                 "transaction data not found given block {} and extrinsic index {}",
                 recall_block_id,
                 recall_extrinsic_index
