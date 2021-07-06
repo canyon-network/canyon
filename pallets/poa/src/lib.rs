@@ -24,7 +24,10 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(unused)]
 
+use codec::Encode;
+
 use sp_runtime::{
+    generic::DigestItem,
     traits::{Bounded, DispatchInfoOf, SaturatedConversion, SignedExtension},
     transaction_validity::{
         InvalidTransaction, TransactionValidity, TransactionValidityError, ValidTransaction,
@@ -40,6 +43,7 @@ use frame_support::{
 use frame_system::ensure_signed;
 
 use canyon_primitives::Depth;
+use cp_consensus_poa::POA_ENGINE_ID;
 
 #[cfg(any(feature = "runtime-benchmarks", test))]
 mod benchmarking;
@@ -147,20 +151,20 @@ impl<T: Config> ProvideInherent for Pallet<T> {
     const INHERENT_IDENTIFIER: InherentIdentifier = canyon_primitives::POA_INHERENT_IDENTIFIER;
 
     fn create_inherent(data: &InherentData) -> Option<Self::Call> {
-        frame_support::log::info!(
-            "poa inherent: {:?}",
-            data.get_data::<Option<u32>>(&Self::INHERENT_IDENTIFIER)
-        );
-        let depth: Option<u32> = match data.get_data(&Self::INHERENT_IDENTIFIER) {
+        use cp_consensus_poa::ProofOfAccess;
+
+        let maybe_poa: Option<ProofOfAccess> = match data.get_data(&Self::INHERENT_IDENTIFIER) {
             Ok(Some(d)) => d,
             Ok(None) => return None,
-            Err(_) => {
-                frame_support::log::error!("Depth failed to decode");
+            Err(e) => {
+                frame_support::log::error!(target: "runtime::poa", "failed to decode ProofOfAccess: {:?}", e);
                 return None;
             }
         };
 
-        if let Some(depth) = depth {
+        if let Some(poa) = maybe_poa {
+            let depth = poa.depth;
+            <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(POA_ENGINE_ID, poa.encode()));
             Some(Call::update_storage_capacity(depth))
         } else {
             None
@@ -175,7 +179,9 @@ impl<T: Config> ProvideInherent for Pallet<T> {
     ///
     /// NOTE: inherent data can only be None when the weave is empty.
     fn is_inherent_required(data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
-        match data.get_data::<Option<u32>>(&Self::INHERENT_IDENTIFIER) {
+        use cp_consensus_poa::ProofOfAccess;
+
+        match data.get_data::<Option<ProofOfAccess>>(&Self::INHERENT_IDENTIFIER) {
             Ok(Some(_d)) => Ok(Some(().into())),
             _ => Ok(None),
         }

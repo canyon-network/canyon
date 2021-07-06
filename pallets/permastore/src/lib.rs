@@ -40,6 +40,8 @@ use frame_support::{
 };
 use frame_system::ensure_signed;
 
+use cp_consensus_poa::POA_ENGINE_ID;
+
 #[cfg(any(feature = "runtime-benchmarks", test))]
 mod benchmarking;
 #[cfg(all(feature = "std", test))]
@@ -52,8 +54,6 @@ pub type BalanceOf<T> =
     <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
 type ExtrinsicIndex = u32;
-
-const POA_ENGINE_ID: sp_runtime::ConsensusEngineId = [b'p', b'o', b'a', b'_'];
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -95,14 +95,12 @@ pub mod pallet {
 
         fn on_finalize(_n: BlockNumberFor<T>) {
             let current_block_data_size = <BlockDataSize<T>>::take().unwrap_or_default();
-            let last_weave_size = 0u64;
+            let last_weave_size = <WeaveSize<T>>::get().unwrap_or_default();
             let weave_size = last_weave_size + current_block_data_size;
             <frame_system::Pallet<T>>::deposit_log(DigestItem::Consensus(
                 POA_ENGINE_ID,
                 weave_size.encode(),
             ));
-
-            // TODO: deposit_log(Seal)
         }
     }
 
@@ -228,6 +226,11 @@ pub mod pallet {
     #[pallet::getter(fn perma_data)]
     pub(super) type PermaData<T: Config> =
         StorageMap<_, Blake2_128Concat, (T::BlockNumber, ExtrinsicIndex), Vec<u8>>;
+
+    /// Total byte size of data stored in network when building this block.
+    #[pallet::storage]
+    #[pallet::getter(fn weave_size)]
+    pub(super) type WeaveSize<T: Config> = StorageValue<_, u64>;
 
     /// Total byte size of data stored in current block.
     #[pallet::storage]
@@ -357,9 +360,7 @@ impl<T: Config> ProvideInherent for Pallet<T> {
         canyon_primitives::PERMASTORE_INHERENT_IDENTIFIER;
 
     fn create_inherent(data: &InherentData) -> Option<Self::Call> {
-        use cp_consensus_poa::ProofOfAccess;
-
-        let maybe_poa: Option<ProofOfAccess> = match data.get_data(&Self::INHERENT_IDENTIFIER) {
+        let weave_size: u64 = match data.get_data(&Self::INHERENT_IDENTIFIER) {
             Ok(Some(d)) => d,
             Ok(None) => return None,
             Err(_) => {
@@ -368,10 +369,11 @@ impl<T: Config> ProvideInherent for Pallet<T> {
             }
         };
 
-        if let Some(poa) = maybe_poa {
-            // TODO: Required when weave size is not 0.
-            <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(POA_ENGINE_ID, poa.encode()));
-        }
+        <WeaveSize<T>>::put(weave_size);
+        <frame_system::Pallet<T>>::deposit_log(DigestItem::PreRuntime(
+            POA_ENGINE_ID,
+            weave_size.encode(),
+        ));
 
         None
     }

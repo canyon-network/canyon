@@ -4950,6 +4950,7 @@ name = "pallet-poa"
 version = "0.1.0"
 dependencies = [
  "canyon-primitives",
+ "cp-consensus-poa",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
