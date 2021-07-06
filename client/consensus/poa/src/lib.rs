@@ -230,7 +230,7 @@ pub fn construct_poa<
 
                 if let Ok(tx_proof) = build_extrinsic_proof::<Block>(
                     recall_extrinsic_index,
-                    header.extrinsics_root().clone(),
+                    *header.extrinsics_root(),
                     extrinsics,
                 ) {
                     let tx_path_size: usize = tx_proof.iter().map(|t| t.len()).sum();
