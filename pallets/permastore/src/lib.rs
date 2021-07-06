@@ -44,10 +44,10 @@ use cp_consensus_poa::POA_ENGINE_ID;
 
 // #[cfg(any(feature = "runtime-benchmarks", test))]
 // mod benchmarking;
-// #[cfg(all(feature = "std", test))]
-// mod mock;
-// #[cfg(all(feature = "std", test))]
-// mod tests;
+#[cfg(all(feature = "std", test))]
+mod mock;
+#[cfg(all(feature = "std", test))]
+mod tests;
 
 /// The balance type of this module.
 pub type BalanceOf<T> =
@@ -94,7 +94,7 @@ pub mod pallet {
             let last_weave_size = <WeaveSize<T>>::get().unwrap_or_default();
             let weave_size = last_weave_size + current_block_data_size;
             if current_block_data_size > 0 {
-                <GlobalBlockSizeIndex<T>>::append(weave_size);
+                <GlobalWeaveSizeList<T>>::append(weave_size);
                 <GlobalBlockNumberIndex<T>>::append(n);
             }
             if weave_size > 0 {
@@ -247,7 +247,7 @@ pub mod pallet {
     /// Temp solution for locating the recall block. An ever increasing array of global weave size.
     #[pallet::storage]
     #[pallet::getter(fn global_block_size_index)]
-    pub(super) type GlobalBlockSizeIndex<T: Config> = StorageValue<_, Vec<u64>>;
+    pub(super) type GlobalWeaveSizeList<T: Config> = StorageValue<_, Vec<u64>>;
 
     /// Temp solution for locating the recall block.
     #[pallet::storage]
@@ -305,8 +305,16 @@ impl<T: Config> Pallet<T> {
         <ChunkRootIndex<T>>::get((block_number, extrinsic_index))
     }
 
-    pub fn find_recall_block(recall_byte: u64) -> T::BlockNumber {
-        todo!()
+    pub fn find_recall_block(recall_byte: u64) -> Option<T::BlockNumber> {
+        let weave_size_list = <GlobalWeaveSizeList<T>>::get()?;
+
+        let recall_block_number_index =
+            match weave_size_list.binary_search_by_key(&recall_byte, |&weave_size| weave_size) {
+                Ok(i) => i,
+                Err(i) => i,
+            };
+
+        <GlobalBlockNumberIndex<T>>::get().map(|index| index[recall_block_number_index])
     }
 }
 

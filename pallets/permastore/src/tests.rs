@@ -16,79 +16,41 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
-use frame_support::{
-    assert_ok,
-    pallet_prelude::PhantomData,
-    traits::{OnFinalize, OnInitialize},
-    weights::{DispatchInfo, GetDispatchInfo},
+use frame_support::traits::OnFinalize;
+
+use crate::{
+    mock::{new_test_ext, Permastore, Test},
+    *,
 };
-use sp_runtime::{traits::SignedExtension, transaction_validity::InvalidTransaction};
-
-use crate as pallet_market;
-
-use crate::mock::{new_test_ext, Origin, Poa, Test};
-use crate::WatchDummy;
 
 #[test]
-fn it_works_for_optional_value() {
+fn find_recall_block_should_work() {
     new_test_ext().execute_with(|| {
-        // Check that GenesisBuilder works properly.
-        assert_eq!(Poa::dummy(), Some(42));
+        BlockDataSize::<Test>::put(5);
 
-        // Check that accumulate works when we have Some value in Dummy already.
-        assert_ok!(Poa::accumulate_dummy(Origin::signed(1), 27));
-        assert_eq!(Poa::dummy(), Some(69));
+        // [5]
+        // [1]
+        <Permastore as OnFinalize<u64>>::on_finalize(1);
 
-        // Check that finalizing the block removes Dummy from storage.
-        <Poa as OnFinalize<u64>>::on_finalize(1);
-        assert_eq!(Poa::dummy(), None);
+        <WeaveSize<Test>>::put(5);
 
-        // Check that accumulate works when we Dummy has None in it.
-        <Poa as OnInitialize<u64>>::on_initialize(2);
-        assert_ok!(Poa::accumulate_dummy(Origin::signed(1), 42));
-        assert_eq!(Poa::dummy(), Some(42));
+        BlockDataSize::<Test>::put(7);
+
+        // [5, 12]
+        // [1, 4]
+        <Permastore as OnFinalize<u64>>::on_finalize(4);
+
+        <WeaveSize<Test>>::put(5 + 7);
+
+        BlockDataSize::<Test>::put(10);
+
+        // [5, 12, 22]
+        // [1, 4, 10]
+        <Permastore as OnFinalize<u64>>::on_finalize(10);
+
+        assert_eq!(Pallet::<Test>::find_recall_block(3), Some(1));
+        assert_eq!(Pallet::<Test>::find_recall_block(12), Some(4));
+        assert_eq!(Pallet::<Test>::find_recall_block(13), Some(10));
+        assert_eq!(Pallet::<Test>::find_recall_block(15), Some(10));
     });
-}
-
-#[test]
-fn it_works_for_default_value() {
-    new_test_ext().execute_with(|| {
-        assert_eq!(Poa::foo(), 24);
-        assert_ok!(Poa::accumulate_foo(Origin::signed(1), 1));
-        assert_eq!(Poa::foo(), 25);
-    });
-}
-
-#[test]
-fn signed_ext_watch_dummy_works() {
-    new_test_ext().execute_with(|| {
-        let call = <pallet_market::Call<Test>>::set_dummy(10).into();
-        let info = DispatchInfo::default();
-
-        assert_eq!(
-            WatchDummy::<Test>(PhantomData)
-                .validate(&1, &call, &info, 150)
-                .unwrap()
-                .priority,
-            u64::max_value(),
-        );
-        assert_eq!(
-            WatchDummy::<Test>(PhantomData).validate(&1, &call, &info, 250),
-            InvalidTransaction::ExhaustsResources.into(),
-        );
-    })
-}
-
-#[test]
-fn weights_work() {
-    // must have a defined weight.
-    let default_call = <pallet_market::Call<Test>>::accumulate_dummy(10);
-    let info = default_call.get_dispatch_info();
-    // aka. `let info = <Call<Test> as GetDispatchInfo>::get_dispatch_info(&default_call);`
-    assert_eq!(info.weight, 0);
-
-    // must have a custom weight of `100 * arg = 2000`
-    let custom_call = <pallet_market::Call<Test>>::set_dummy(20);
-    let info = custom_call.get_dispatch_info();
-    assert_eq!(info.weight, 2000);
 }
