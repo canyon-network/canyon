@@ -51,7 +51,7 @@ pub use cp_consensus_poa::{ChunkProof, ProofOfAccess};
 /// The maximum depth of attempting to generate a valid PoA.
 ///
 /// TODO: make it configurable in Runtime?
-pub const MAX_DEPTH: u32 = 100;
+pub const MAX_DEPTH: u32 = 1_000_000;
 
 /// Maximum byte size of transaction merkle path.
 pub const MAX_TX_PATH: u32 = 256 * 1024;
