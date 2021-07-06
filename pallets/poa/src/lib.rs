@@ -45,12 +45,12 @@ use frame_system::ensure_signed;
 use canyon_primitives::Depth;
 use cp_consensus_poa::{ProofOfAccess, POA_ENGINE_ID};
 
-#[cfg(any(feature = "runtime-benchmarks", test))]
-mod benchmarking;
-#[cfg(all(feature = "std", test))]
-mod mock;
-#[cfg(all(feature = "std", test))]
-mod tests;
+// #[cfg(any(feature = "runtime-benchmarks", test))]
+// mod benchmarking;
+// #[cfg(all(feature = "std", test))]
+// mod mock;
+// #[cfg(all(feature = "std", test))]
+// mod tests;
 
 /// A type alias for the balance type from this pallet's point of view.
 type BalanceOf<T> = <T as pallet_balances::Config>::Balance;

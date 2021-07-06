@@ -84,7 +84,6 @@ mod tests {
     use sc_block_builder::{BlockBuilder, RecordProof};
     use sp_blockchain::HeaderBackend;
     use sp_keyring::AccountKeyring::{Alice, Bob};
-    use sp_state_machine::Backend;
     use substrate_test_runtime::{Block, Transfer};
     use substrate_test_runtime_client::{
         BlockBuilderExt, DefaultTestClientBuilderExt, TestClientBuilderExt,

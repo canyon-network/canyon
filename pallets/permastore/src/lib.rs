@@ -42,12 +42,12 @@ use frame_system::ensure_signed;
 
 use cp_consensus_poa::POA_ENGINE_ID;
 
-#[cfg(any(feature = "runtime-benchmarks", test))]
-mod benchmarking;
-#[cfg(all(feature = "std", test))]
-mod mock;
-#[cfg(all(feature = "std", test))]
-mod tests;
+// #[cfg(any(feature = "runtime-benchmarks", test))]
+// mod benchmarking;
+// #[cfg(all(feature = "std", test))]
+// mod mock;
+// #[cfg(all(feature = "std", test))]
+// mod tests;
 
 /// The balance type of this module.
 pub type BalanceOf<T> =
