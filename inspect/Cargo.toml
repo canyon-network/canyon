@@ -13,9 +13,9 @@ derive_more = "0.99"
 log = "0.4.8"
 structopt = "0.3.8"
 
-sc-cli = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sc-client-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sc-service = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-cli = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+sc-client-api = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+sc-service = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1", default-features = false }
+sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+sp-core = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }

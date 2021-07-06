@@ -15,13 +15,13 @@ targets = ["x86_64-unknown-linux-gnu"]
 codec = { package = "parity-scale-codec", version = "2.0.0" }
 trie-root = "0.16.0"
 
-sc-executor = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-keystore = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-io = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-state-machine = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-trie = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-frame-benchmarking = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-executor = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+sp-core = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+sp-keystore = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+sp-io = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+sp-state-machine = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+sp-trie = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+frame-benchmarking = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
 
 canyon-primitives = { path = "../primitives" }
 canyon-runtime = { path = "../runtime" }
@@ -30,22 +30,22 @@ canyon-runtime = { path = "../runtime" }
 criterion = "0.3.0"
 wat = "1.0"
 
-frame-support = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-frame-system = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-pallet-balances = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-pallet-contracts = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-pallet-grandpa = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-pallet-im-online = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-pallet-indices = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-pallet-session = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-pallet-timestamp = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-pallet-transaction-payment = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-pallet-treasury = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-application-crypto = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-externalities = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-substrate-test-client = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+frame-support = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+frame-system = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+pallet-balances = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+pallet-contracts = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+pallet-grandpa = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+pallet-im-online = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+pallet-indices = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+pallet-session = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+pallet-timestamp = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+pallet-transaction-payment = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+pallet-treasury = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+sp-application-crypto = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+sp-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+sp-externalities = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
+substrate-test-client = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1" }
 
 [features]
 wasmtime = [

@@ -5,8 +5,8 @@ authors = ["Liu-Cheng Xu <xuliuchengxlc@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-trie = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-core = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1", default-features = false }
+sp-trie = { git = "https://github.com/canyon-network/substrate", branch = "w3f-grant-1", default-features = false }
 
 [features]
 default = ["std"]
