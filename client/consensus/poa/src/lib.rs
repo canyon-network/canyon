@@ -198,16 +198,17 @@ where
     RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
 {
     let parent_id = BlockId::Hash(parent);
+
     let chain_head = fetch_header(parent_id, client)?;
 
     let weave_size = extract_weave_size::<Block>(&chain_head)?;
 
-    for depth in 1..=MAX_DEPTH {
-        if weave_size == 0 {
-            log::debug!(target: "poa", "Skip constructing poa as the weave size is 0");
-            return Ok(None);
-        }
+    if weave_size == 0 {
+        log::debug!(target: "poa", "Skip constructing poa as the weave size is 0");
+        return Ok(None);
+    }
 
+    for depth in 1..=MAX_DEPTH {
         log::debug!(target: "poa", "Attempting to generate poa at depth: {}", depth);
         let recall_byte = calculate_challenge_byte(chain_head.encode(), weave_size, depth);
         let recall_block_number = find_recall_block(parent_id, recall_byte, runtime_api.clone())?;
