@@ -14,9 +14,11 @@ targets = ["x86_64-unknown-linux-gnu"]
 jsonrpc-core = "15.1.0"
 jsonrpc-core-client = "15.1.0"
 jsonrpc-derive = "15.1.0"
+log = "0.4"
 parking_lot = "0.11"
 
 sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 
 cc-rpc-api = { path = "../rpc-api" }
 cp-permastore = { path = "../../primitives/permastore" }

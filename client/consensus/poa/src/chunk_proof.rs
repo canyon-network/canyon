@@ -118,7 +118,7 @@ impl ChunkProofBuilder {
                 )
                 .unwrap_or_else(|e| {
                     panic!(
-                        "failed to insert the trie node: {:?}, chunk index: {}",
+                        "Failed to insert the trie node: {:?}, chunk index: {}",
                         e, index
                     )
                 });
@@ -151,7 +151,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_build_proof() {
+    fn test_chunk_proof_builder() {
         use std::str::FromStr;
 
         let data = b"hello".to_vec();

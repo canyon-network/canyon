@@ -84,6 +84,8 @@ where
 pub enum Error<Block: BlockT> {
     #[error("block number not found given block id `{0}`")]
     BlockNumberNotFound(BlockId<Block>),
+    #[error("chunk root is None at block: {0}, extrinsic index: {1}")]
+    ChunkRootIsNone(BlockId<Block>, u32),
     #[error(transparent)]
     Blockchain(#[from] sp_blockchain::Error),
     #[error(transparent)]
@@ -127,16 +129,27 @@ where
         block_id: BlockId<Block>,
         extrinsic_index: u32,
     ) -> Result<Option<Vec<u8>>, Error<Block>> {
-        log::debug!(target: "perma-db", "Fetching chunk root from runtime at block_id: {}", block_id);
-        let chunk_root = self.chunk_root(
-            None,
-            self.client
-                .block_number_from_id(&block_id)?
-                .ok_or(Error::BlockNumberNotFound(block_id))?,
-            extrinsic_index,
-        )?;
-        log::debug!(target: "perma-db", "Fetched chunk root: {:?}", chunk_root);
-        Ok(self.retrieve(&chunk_root.encode()))
+        log::debug!(
+            target: "perma-db",
+            "Fetching chunk root at block_id: {}, extrinsic_index: {}",
+            block_id, extrinsic_index,
+        );
+        let chunk_root = self
+            .chunk_root(
+                None,
+                self.client
+                    .block_number_from_id(&block_id)?
+                    .ok_or(Error::BlockNumberNotFound(block_id))?,
+                extrinsic_index,
+            )?
+            .ok_or(Error::ChunkRootIsNone(block_id, extrinsic_index))?;
+        let key = chunk_root.encode();
+        log::debug!(
+            target: "perma-db",
+            "Fetched chunk root: {:?}, database key: {:?}",
+            chunk_root, key,
+        );
+        Ok(self.retrieve(&key))
     }
 }
 

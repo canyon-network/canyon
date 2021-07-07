@@ -172,7 +172,11 @@ where
     RA: ProvideRuntimeApi<Block> + Send + Sync,
     RA::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
 {
-    log::debug!(target: "poa", "calling into runtime to find the recall block, at: {:?}, recall_byte: {:?}", at, recall_byte);
+    log::debug!(
+        target: "poa",
+        "calling into runtime to find the recall block, at: {:?}, recall_byte: {:?}",
+        at, recall_byte,
+    );
     runtime_api
         .runtime_api()
         .find_recall_block(&at, recall_byte)?
@@ -193,13 +197,14 @@ where
     RA: ProvideRuntimeApi<Block> + Send + Sync,
     RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
 {
-    log::debug!(target: "poa", "try constructing poa at parent: {:?}", parent);
     let parent_id = BlockId::Hash(parent);
     let chain_head = fetch_header(parent_id, client)?;
 
     let weave_size = extract_weave_size::<Block>(&chain_head)?;
 
     for depth in 1..=MAX_DEPTH {
+        log::debug!(target: "poa", "Attempting to generate poa at depth: {}", depth);
+
         if weave_size == 0 {
             return Ok(None);
         }
@@ -207,7 +212,11 @@ where
         let recall_byte = calculate_challenge_byte(chain_head.encode(), weave_size, depth);
         let recall_block_number = find_recall_block(parent_id, recall_byte, runtime_api.clone())?;
         let recall_block_id = BlockId::number(recall_block_number);
-        log::debug!(target: "poa", "Found recall block id: {}", recall_block_id);
+        log::debug!(
+            target: "poa", "Found recall block id: {} given the recall byte: {}",
+            recall_block_id,
+            recall_byte,
+        );
 
         let (header, extrinsics) = fetch_block(recall_block_id, client)?;
 
@@ -234,7 +243,12 @@ where
             }
         }
 
-        log::debug!(target: "poa", "Sized extrinsics: {:?}", sized_extrinsics);
+        log::debug!(
+            target: "poa",
+            "Sized extrinsics in the recall block: {:?}",
+            sized_extrinsics,
+        );
+
         // No data store transactions in this block.
         if sized_extrinsics.is_empty() {
             continue;
@@ -251,55 +265,66 @@ where
         // continue;
         // }
 
-        if let Ok(Some(tx_data)) = transaction_data_backend
-            .transaction_data(recall_block_id, recall_extrinsic_index as u32)
-        {
-            let transaction_data_offset = recall_byte - recall_block_data_base;
+        let data_result = transaction_data_backend
+            .transaction_data(recall_block_id, recall_extrinsic_index as u32);
 
-            if let Ok(chunk_proof) =
-                ChunkProofBuilder::new(tx_data, CHUNK_SIZE, transaction_data_offset as u32).build()
-            {
-                if chunk_proof.size() > MAX_CHUNK_PATH as usize {
-                    log::debug!(
-                        target: "poa",
-                        "Dropping the chunk proof as it's too large ({} > {})",
-                        chunk_proof.size(),
-                        MAX_CHUNK_PATH,
-                    );
-                    continue;
-                }
+        match data_result {
+            Ok(Some(tx_data)) => {
+                let transaction_data_offset = recall_byte - recall_block_data_base;
 
-                if let Ok(tx_proof) = build_extrinsic_proof::<Block>(
-                    recall_extrinsic_index,
-                    *header.extrinsics_root(),
-                    extrinsics,
-                ) {
-                    let tx_path_size: usize = tx_proof.iter().map(|t| t.len()).sum();
-                    if tx_path_size > MAX_TX_PATH as usize {
+                if let Ok(chunk_proof) =
+                    ChunkProofBuilder::new(tx_data, CHUNK_SIZE, transaction_data_offset as u32)
+                        .build()
+                {
+                    if chunk_proof.size() > MAX_CHUNK_PATH as usize {
                         log::debug!(
                             target: "poa",
-                            "Dropping the tx proof as it's too large ({} > {})",
-                            tx_path_size,
-                            MAX_TX_PATH,
+                            "Dropping the chunk proof as it's too large ({} > {})",
+                            chunk_proof.size(),
+                            MAX_CHUNK_PATH,
                         );
                         continue;
                     }
-
-                    // find a valid proof!
-                    return Ok(Some(ProofOfAccess {
-                        depth,
-                        tx_path: tx_proof,
-                        chunk_proof,
-                    }));
+                    if let Ok(tx_proof) = build_extrinsic_proof::<Block>(
+                        recall_extrinsic_index,
+                        *header.extrinsics_root(),
+                        extrinsics,
+                    ) {
+                        let tx_path_size: usize = tx_proof.iter().map(|t| t.len()).sum();
+                        if tx_path_size > MAX_TX_PATH as usize {
+                            log::debug!(
+                                target: "poa",
+                                "Dropping the tx proof as it's too large ({} > {})",
+                                tx_path_size,
+                                MAX_TX_PATH,
+                            );
+                            continue;
+                        }
+                        let poa = ProofOfAccess {
+                            depth,
+                            tx_path: tx_proof,
+                            chunk_proof,
+                        };
+                        log::debug!(target: "poa", "Generated poa proof: {:?}", poa);
+                        return Ok(Some(poa));
+                    }
                 }
             }
-        } else {
-            log::error!(
-                target: "poa",
-                "transaction data not found given block {} and extrinsic index {}",
-                recall_block_id,
-                recall_extrinsic_index
-            );
+            Ok(None) => {
+                log::warn!(
+                    target: "poa",
+                    "transaction data not found given block {} and extrinsic index {}",
+                    recall_block_id,
+                    recall_extrinsic_index
+                );
+            }
+            Err(e) => {
+                log::error!(
+                    target: "poa",
+                    "error occurred when retrieving the transaction data: {:?}",
+                    e,
+                );
+            }
         }
     }
 

@@ -1100,8 +1100,10 @@ dependencies = [
  "jsonrpc-core",
  "jsonrpc-core-client",
  "jsonrpc-derive",
+ "log",
  "parking_lot 0.11.1",
  "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
