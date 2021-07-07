@@ -307,7 +307,12 @@ impl<T: Config> Pallet<T> {
 
     /// Returns the block number in which the recall byte is included.
     pub fn find_recall_block(recall_byte: u64) -> Option<T::BlockNumber> {
-        frame_support::log::debug!(target: "runtime::permastore", "weave_size_list: {:?}", <GlobalWeaveSizeList<T>>::get());
+        frame_support::log::debug!(
+            target: "runtime::permastore",
+            "weave_size_list: {:?}, block_number_index: {:?}",
+            <GlobalWeaveSizeList<T>>::get(),
+            <GlobalBlockNumberIndex<T>>::get(),
+        );
         let weave_size_list = <GlobalWeaveSizeList<T>>::get()?;
 
         let recall_block_number_index =
