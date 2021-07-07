@@ -122,6 +122,11 @@ fn find_recall_tx(
     recall_byte: DataIndex,
     sized_extrinsics: &[(ExtrinsicIndex, DataIndex)],
 ) -> (ExtrinsicIndex, DataIndex) {
+    log::debug!(
+        target: "poa",
+        "finding recall tx, recall_byte: {}, sized_extrinsics: {:?}",
+        recall_byte, sized_extrinsics
+    );
     binary_search(recall_byte, sized_extrinsics)
 }
 
@@ -129,7 +134,6 @@ fn find_recall_tx(
 pub fn extract_weave_size<Block: BlockT>(
     header: &Block::Header,
 ) -> Result<DataIndex, Error<Block>> {
-    log::debug!(target: "poa", "-------------- logs: {:?}", header.digest().logs);
     let opaque_weave_size = header.digest().logs.iter().find_map(|log| {
         if let DigestItemFor::<Block>::Consensus(POA_ENGINE_ID, opaque_data) = log {
             Some(opaque_data)
