@@ -143,6 +143,8 @@ pub mod pallet {
             // FIXME: Move to off-chain solution
             PermaData::<T>::insert((block_number, extrinsic_index), data);
 
+            TransactionDataSize::<T>::insert((block_number, extrinsic_index), data_size);
+
             let current_data_size = <BlockDataSize<T>>::get().unwrap_or_default();
             <BlockDataSize<T>>::put(current_data_size + data_size as u64);
 
@@ -254,6 +256,11 @@ pub mod pallet {
     #[pallet::getter(fn global_block_number_index)]
     pub(super) type GlobalBlockNumberIndex<T: Config> = StorageValue<_, Vec<T::BlockNumber>>;
 
+    #[pallet::storage]
+    #[pallet::getter(fn transaction_data_size)]
+    pub(super) type TransactionDataSize<T: Config> =
+        StorageMap<_, Twox64Concat, (T::BlockNumber, ExtrinsicIndex), u32>;
+
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config> {
         pub ledger: Vec<(T::AccountId, BalanceOf<T>)>,
@@ -327,6 +334,11 @@ impl<T: Config> Pallet<T> {
             recall_block_number_index,
         );
         <GlobalBlockNumberIndex<T>>::get().map(|index| index[recall_block_number_index])
+    }
+
+    /// Returns the data size of transaction given `block_number` and `extrinsic_index`.
+    pub fn data_size(block_number: T::BlockNumber, extrinsic_index: u32) -> u32 {
+        <TransactionDataSize<T>>::get((block_number, extrinsic_index)).unwrap_or_default()
     }
 }
 

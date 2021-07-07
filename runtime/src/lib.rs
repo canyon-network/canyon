@@ -1378,6 +1378,9 @@ impl_runtime_apis! {
         fn find_recall_block(recall_byte: u64) -> Option<BlockNumber> {
             Permastore::find_recall_block(recall_byte)
         }
+        fn data_size(block_number: BlockNumber, extrinsic_index: u32) -> u32 {
+            Permastore::data_size(block_number, extrinsic_index)
+        }
     }
 
     #[cfg(feature = "try-runtime")]

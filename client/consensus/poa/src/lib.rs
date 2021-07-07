@@ -166,7 +166,7 @@ fn find_recall_block<Block, RA>(
     at: BlockId<Block>,
     recall_byte: DataIndex,
     runtime_api: Arc<RA>,
-) -> Result<BlockId<Block>, Error<Block>>
+) -> Result<NumberFor<Block>, Error<Block>>
 where
     Block: BlockT,
     RA: ProvideRuntimeApi<Block> + Send + Sync,
@@ -176,7 +176,6 @@ where
     runtime_api
         .runtime_api()
         .find_recall_block(&at, recall_byte)?
-        .map(|number| BlockId::Number(number))
         .ok_or(Error::RecallBlockNotFound(recall_byte))
 }
 
@@ -206,7 +205,8 @@ where
         }
 
         let recall_byte = calculate_challenge_byte(chain_head.encode(), weave_size, depth);
-        let recall_block_id = find_recall_block(parent_id, recall_byte, runtime_api.clone())?;
+        let recall_block_number = find_recall_block(parent_id, recall_byte, runtime_api.clone())?;
+        let recall_block_id = BlockId::number(recall_block_number);
         log::debug!(target: "poa", "Found recall block id: {}", recall_block_id);
 
         let (header, extrinsics) = fetch_block(recall_block_id, client)?;
@@ -222,7 +222,12 @@ where
         for (index, extrinsic) in extrinsics.iter().enumerate() {
             log::debug!(target: "poa", "index: {}, extrinsic: {:?}", index, extrinsic);
             // FIXME: note extrinsic data size properly.
-            let tx_size = extrinsic.data_size();
+            // let tx_size = extrinsic.data_size();
+            let tx_size = runtime_api.runtime_api().data_size(
+                &recall_block_id,
+                recall_block_number,
+                index as u32,
+            )? as u64;
             if tx_size > 0 {
                 sized_extrinsics.push((index as ExtrinsicIndex, weave_base + acc + tx_size));
                 acc += tx_size;
