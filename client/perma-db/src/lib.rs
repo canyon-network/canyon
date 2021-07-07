@@ -127,6 +127,7 @@ where
         block_id: BlockId<Block>,
         extrinsic_index: u32,
     ) -> Result<Option<Vec<u8>>, Error<Block>> {
+        log::debug!(target: "perma-db", "Fetching chunk root from runtime at block_id: {}", block_id);
         let chunk_root = self.chunk_root(
             None,
             self.client
@@ -134,6 +135,7 @@ where
                 .ok_or(Error::BlockNumberNotFound(block_id))?,
             extrinsic_index,
         )?;
+        log::debug!(target: "perma-db", "Fetched chunk root: {:?}", chunk_root);
         Ok(self.retrieve(&chunk_root.encode()))
     }
 }

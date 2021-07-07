@@ -730,7 +730,7 @@ dependencies = [
  "canyon-primitives",
  "canyon-rpc",
  "canyon-runtime",
- "cc-client-db",
+ "cc-client-perma-db",
  "cc-consensus-poa",
  "cc-permastore",
  "frame-benchmarking-cli",
@@ -1031,11 +1031,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "cc-client-db"
+name = "cc-client-perma-db"
 version = "0.1.0"
 dependencies = [
  "canyon-primitives",
  "cp-permastore",
+ "log",
  "parity-scale-codec",
  "sc-client-db",
  "sp-api",
@@ -1052,7 +1053,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "canyon-primitives",
- "cc-client-db",
+ "cc-client-perma-db",
  "cp-consensus-poa",
  "cp-permastore",
  "criterion",
