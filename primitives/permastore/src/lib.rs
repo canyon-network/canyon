@@ -62,5 +62,7 @@ sp_api::decl_runtime_apis! {
         fn find_recall_block(recall_byte: u64) -> Option<BlockNumber>;
 
         fn data_size(block_number: BlockNumber, extrinsic_index: ExtrinsicIndex) -> u32;
+
+        fn weave_size() -> u64;
     }
 }

@@ -332,7 +332,6 @@ pub fn new_full_base(
                 let client_clone3 = client_clone.clone();
                 let runtime_api = client_clone.clone();
                 let runtime_api2 = client_clone.clone();
-                let client_clone4 = client_clone.clone();
                 let offchain_storage_clone = offchain_storage.clone();
                 async move {
                     let uncles = sc_consensus_uncles::create_uncles_inherent_data_provider(
@@ -358,10 +357,7 @@ pub fn new_full_base(
                         runtime_api2,
                     )?;
 
-                    let weave_size =
-                        cc_permastore::InherentDataProvider::create(&*client_clone4, parent)?;
-
-                    Ok((timestamp, slot, uncles, poa, weave_size))
+                    Ok((timestamp, slot, uncles, poa))
                 }
             },
             force_authoring,

@@ -129,6 +129,7 @@ fn find_recall_tx(
 pub fn extract_weave_size<Block: BlockT>(
     header: &Block::Header,
 ) -> Result<DataIndex, Error<Block>> {
+    log::debug!(target: "poa", "-------------- logs: {:?}", header.digest().logs);
     let opaque_weave_size = header.digest().logs.iter().find_map(|log| {
         if let DigestItemFor::<Block>::Consensus(POA_ENGINE_ID, opaque_data) = log {
             Some(opaque_data)
@@ -201,7 +202,7 @@ where
 
     let chain_head = fetch_header(parent_id, client)?;
 
-    let weave_size = extract_weave_size::<Block>(&chain_head)?;
+    let weave_size = runtime_api.runtime_api().weave_size(&parent_id)?;
 
     if weave_size == 0 {
         log::debug!(target: "poa", "Skip constructing poa as the weave size is 0");

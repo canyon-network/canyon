@@ -1381,6 +1381,9 @@ impl_runtime_apis! {
         fn data_size(block_number: BlockNumber, extrinsic_index: u32) -> u32 {
             Permastore::data_size(block_number, extrinsic_index)
         }
+        fn weave_size() -> u64 {
+            Permastore::weave_size()
+        }
     }
 
     #[cfg(feature = "try-runtime")]

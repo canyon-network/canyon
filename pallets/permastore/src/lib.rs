@@ -148,6 +148,9 @@ pub mod pallet {
             let current_data_size = <BlockDataSize<T>>::get().unwrap_or_default();
             <BlockDataSize<T>>::put(current_data_size + data_size as u64);
 
+            let current_weave_size = <WeaveSize<T>>::get().unwrap_or_default();
+            <WeaveSize<T>>::put(current_weave_size + data_size as u64);
+
             ChunkRootIndex::<T>::insert((block_number, extrinsic_index), chunk_root);
 
             Self::deposit_event(Event::Stored(sender, chunk_root));
@@ -230,7 +233,6 @@ pub mod pallet {
 
     /// Total byte size of data stored onto network until last block.
     #[pallet::storage]
-    #[pallet::getter(fn weave_size)]
     pub(super) type WeaveSize<T: Config> = StorageValue<_, u64>;
 
     /// Total byte size of data stored in current building block.
@@ -250,6 +252,13 @@ pub mod pallet {
     #[pallet::storage]
     #[pallet::getter(fn global_block_size_index)]
     pub(super) type GlobalWeaveSizeList<T: Config> = StorageValue<_, Vec<u64>>;
+
+    /// FIXME: find a proper way to store these info.
+    ///
+    /// Temp solution for locating the recall block. An ever increasing array of global weave size.
+    #[pallet::storage]
+    #[pallet::getter(fn global_block_size)]
+    pub(super) type GlobalWeaveSize<T: Config> = StorageValue<_, u64>;
 
     /// Temp solution for locating the recall block.
     #[pallet::storage]
@@ -339,6 +348,10 @@ impl<T: Config> Pallet<T> {
     /// Returns the data size of transaction given `block_number` and `extrinsic_index`.
     pub fn data_size(block_number: T::BlockNumber, extrinsic_index: u32) -> u32 {
         <TransactionDataSize<T>>::get((block_number, extrinsic_index)).unwrap_or_default()
+    }
+
+    pub fn weave_size() -> u64 {
+        <WeaveSize<T>>::get().unwrap_or_default()
     }
 }
 

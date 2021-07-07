@@ -732,7 +732,6 @@ dependencies = [
  "canyon-runtime",
  "cc-client-db",
  "cc-consensus-poa",
- "cc-permastore",
  "frame-benchmarking-cli",
  "frame-support",
  "frame-system",
@@ -1074,21 +1073,6 @@ dependencies = [
  "substrate-test-runtime",
  "substrate-test-runtime-client",
  "thiserror",
-]
-
-[[package]]
-name = "cc-permastore"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "canyon-primitives",
- "cc-consensus-poa",
- "log",
- "sc-client-api",
- "sp-blockchain",
- "sp-core",
- "sp-inherents",
- "sp-runtime",
 ]
 
 [[package]]
