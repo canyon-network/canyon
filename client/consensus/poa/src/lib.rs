@@ -207,6 +207,7 @@ where
 
         let recall_byte = calculate_challenge_byte(chain_head.encode(), weave_size, depth);
         let recall_block_id = find_recall_block(parent_id, recall_byte, runtime_api.clone())?;
+        log::debug!(target: "poa", "Found recall block id: {}", recall_block_id);
 
         let (header, extrinsics) = fetch_block(recall_block_id, client)?;
 
@@ -219,6 +220,8 @@ where
 
         let mut acc = 0u64;
         for (index, extrinsic) in extrinsics.iter().enumerate() {
+            log::debug!(target: "poa", "index: {}, extrinsic: {:?}", index, extrinsic);
+            // FIXME: note extrinsic data size properly.
             let tx_size = extrinsic.data_size();
             if tx_size > 0 {
                 sized_extrinsics.push((index as ExtrinsicIndex, weave_base + acc + tx_size));
@@ -226,6 +229,7 @@ where
             }
         }
 
+        log::debug!(target: "poa", "Sized extrinsics: {:?}", sized_extrinsics);
         // No data store transactions in this block.
         if sized_extrinsics.is_empty() {
             continue;
@@ -251,6 +255,12 @@ where
                 ChunkProofBuilder::new(tx_data, CHUNK_SIZE, transaction_data_offset as u32).build()
             {
                 if chunk_proof.size() > MAX_CHUNK_PATH as usize {
+                    log::debug!(
+                        target: "poa",
+                        "Dropping the chunk proof as it's too large ({} > {})",
+                        chunk_proof.size(),
+                        MAX_CHUNK_PATH,
+                    );
                     continue;
                 }
 
@@ -261,6 +271,12 @@ where
                 ) {
                     let tx_path_size: usize = tx_proof.iter().map(|t| t.len()).sum();
                     if tx_path_size > MAX_TX_PATH as usize {
+                        log::debug!(
+                            target: "poa",
+                            "Dropping the tx proof as it's too large ({} > {})",
+                            tx_path_size,
+                            MAX_TX_PATH,
+                        );
                         continue;
                     }
 

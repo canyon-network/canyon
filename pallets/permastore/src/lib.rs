@@ -321,6 +321,11 @@ impl<T: Config> Pallet<T> {
                 Err(i) => i,
             };
 
+        frame_support::log::debug!(
+            target: "runtime::permastore",
+            "recall_block_number_index: {}",
+            recall_block_number_index,
+        );
         <GlobalBlockNumberIndex<T>>::get().map(|index| index[recall_block_number_index])
     }
 }
