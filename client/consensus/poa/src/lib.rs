@@ -229,7 +229,7 @@ where
 
         let mut acc = 0u64;
         for (index, extrinsic) in extrinsics.iter().enumerate() {
-            log::debug!(target: "poa", "index: {}, extrinsic: {:?}", index, extrinsic);
+            log::trace!(target: "poa", "iterating index: {}, extrinsic: {:?}", index, extrinsic);
             // FIXME: note extrinsic data size properly.
             // let tx_size = extrinsic.data_size();
             let tx_size = runtime_api.runtime_api().data_size(
