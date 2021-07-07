@@ -185,7 +185,7 @@ pub fn new_partial(
                     subscription_executor,
                     finality_provider: finality_proof_provider.clone(),
                 },
-                perma_storage: cc_client_perma_db::PermanentStorage::new(
+                perma_storage: cc_client_db::PermanentStorage::new(
                     offchain_storage.clone(),
                     client.clone(),
                     client.clone(),
@@ -350,7 +350,7 @@ pub fn new_full_base(
                     let poa = cc_consensus_poa::InherentDataProvider::create(
                         &*client_clone2,
                         parent,
-                        cc_client_perma_db::PermanentStorage::new(
+                        cc_client_db::PermanentStorage::new(
                             offchain_storage_clone,
                             client_clone3,
                             runtime_api,

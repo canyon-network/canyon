@@ -35,7 +35,7 @@ use sp_runtime::{
 use sc_client_api::BlockBackend;
 
 use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
-use cc_client_perma_db::TransactionDataBackend as TransactionDataBackendT;
+use cc_client_db::TransactionDataBackend as TransactionDataBackendT;
 use cp_consensus_poa::POA_ENGINE_ID;
 use cp_permastore::{PermastoreApi, CHUNK_SIZE};
 

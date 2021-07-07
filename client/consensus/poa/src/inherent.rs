@@ -26,7 +26,7 @@ use sp_runtime::traits::{Block as BlockT, NumberFor};
 
 use sc_client_api::BlockBackend;
 
-use cc_client_perma_db::TransactionDataBackend as TransactionDataBackendT;
+use cc_client_db::TransactionDataBackend as TransactionDataBackendT;
 use cp_consensus_poa::ProofOfAccess;
 
 pub struct InherentDataProvider {
