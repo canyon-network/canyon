@@ -69,6 +69,9 @@
 <span id="66">66</span>
 <span id="67">67</span>
 <span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -122,19 +125,22 @@
 }
 
 <span class="ident">sp_api</span>::<span class="macro">decl_runtime_apis</span><span class="macro">!</span> {
-    <span class="doccomment">/// The API to query chunk root.</span>
+    <span class="doccomment">/// The permastore API.</span>
     <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PermastoreApi</span><span class="op">&lt;</span><span class="ident">BlockNumber</span>, <span class="ident">ExtrinsicIndex</span>, <span class="ident">Hash</span><span class="op">&gt;</span> <span class="kw">where</span>
         <span class="ident">BlockNumber</span>: <span class="ident">codec</span>::<span class="ident">Codec</span>,
         <span class="ident">ExtrinsicIndex</span>: <span class="ident">codec</span>::<span class="ident">Codec</span>,
         <span class="ident">Hash</span>: <span class="ident">codec</span>::<span class="ident">Codec</span>,
     {
-        <span class="doccomment">/// Get chunk root given the block number and extrinsic index.</span>
+        <span class="doccomment">/// Returns the chunk root given `block_number` and `extrinsic_index`.</span>
         <span class="kw">fn</span> <span class="ident">chunk_root</span>(<span class="ident">block_number</span>: <span class="ident">BlockNumber</span>, <span class="ident">extrinsic_index</span>: <span class="ident">ExtrinsicIndex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span>;
 
+        <span class="doccomment">/// Returns the number of block in which the recall byte is included.</span>
         <span class="kw">fn</span> <span class="ident">find_recall_block</span>(<span class="ident">recall_byte</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span>;
 
+        <span class="doccomment">/// Returns the size of transaction data given `block_number` and `extrinsic_index`.</span>
         <span class="kw">fn</span> <span class="ident">data_size</span>(<span class="ident">block_number</span>: <span class="ident">BlockNumber</span>, <span class="ident">extrinsic_index</span>: <span class="ident">ExtrinsicIndex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
 
+        <span class="doccomment">/// Returns the size of entire weave.</span>
         <span class="kw">fn</span> <span class="ident">weave_size</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span>;
     }
 }
