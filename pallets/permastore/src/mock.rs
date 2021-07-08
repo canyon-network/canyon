@@ -42,7 +42,7 @@ frame_support::construct_runtime!(
     {
         System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
         Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-        Permastore: pallet_permastore::{Pallet, Call, Storage, Config<T>, Event<T>},
+        Permastore: pallet_permastore::{Pallet, Call, Storage, Event<T>},
     }
 );
 
@@ -110,7 +110,6 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
         // We use default for brevity, but you can configure as desired if needed.
         system: Default::default(),
         balances: Default::default(),
-        permastore: Default::default(),
     }
     .build_storage()
     .unwrap();

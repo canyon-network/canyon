@@ -27,11 +27,11 @@ use sp_runtime::traits::{Block as BlockT, NumberFor};
 use sc_client_api::BlockBackend;
 
 use cc_client_db::TransactionDataBackend as TransactionDataBackendT;
-use cp_consensus_poa::ProofOfAccess;
+use cp_consensus_poa::{PoaOutcome, POA_INHERENT_IDENTIFIER};
 
 pub struct InherentDataProvider {
-    /// Proof of Access.
-    pub maybe_poa: Option<ProofOfAccess>,
+    /// Outcome of creating a proof of access
+    pub poa_outcome: PoaOutcome,
 }
 
 impl InherentDataProvider {
@@ -49,15 +49,15 @@ impl InherentDataProvider {
         RA: ProvideRuntimeApi<Block> + Send + Sync,
         RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
     {
-        let maybe_poa =
+        let poa_outcome =
             match crate::construct_poa(client, parent, transaction_data_backend, runtime_api) {
-                Ok(maybe_poa) => maybe_poa,
+                Ok(outcome) => outcome,
                 Err(e) => {
                     log::error!(target: "poa", "Failed to construct poa: {:?}", e);
                     return Err(e);
                 }
             };
-        Ok(Self { maybe_poa })
+        Ok(Self { poa_outcome })
     }
 }
 
@@ -67,7 +67,7 @@ impl sp_inherents::InherentDataProvider for InherentDataProvider {
         &self,
         inherent_data: &mut sp_inherents::InherentData,
     ) -> Result<(), sp_inherents::Error> {
-        inherent_data.put_data(canyon_primitives::POA_INHERENT_IDENTIFIER, &self.maybe_poa)
+        inherent_data.put_data(POA_INHERENT_IDENTIFIER, &self.poa_outcome)
     }
 
     async fn try_handle_error(

@@ -1110,7 +1110,7 @@ construct_runtime!(
         Lottery: pallet_lottery::{Pallet, Call, Storage, Event<T>},
         Gilt: pallet_gilt::{Pallet, Call, Storage, Event<T>, Config},
 
-        Permastore: pallet_permastore::{Pallet, Call, Storage, Event<T>, Config<T>},
+        Permastore: pallet_permastore::{Pallet, Call, Storage, Event<T>},
         Poa: pallet_poa::{Pallet, Call, Storage, Event<T>, Config<T>},
     }
 );

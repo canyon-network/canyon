@@ -20,17 +20,24 @@
 
 use codec::{Decode, Encode};
 
+use sp_inherents::InherentIdentifier;
 use sp_runtime::ConsensusEngineId;
 use sp_std::vec::Vec;
 
+/// The identifier for the poa inherent.
+pub const POA_INHERENT_IDENTIFIER: InherentIdentifier = *b"poaproof";
+
+/// The engine id for the Proof of Access consensus.
 pub const POA_ENGINE_ID: ConsensusEngineId = *b"poa_";
 
-/// This type represents the raw bytes of chunk as well as the chunk proof.
+/// This struct includes the raw bytes of recall chunk as well as the chunk proof stuffs.
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct ChunkProof {
     /// Random data chunk that is proved to exist.
     pub chunk: Vec<u8>,
-    /// Index of `chunk`.
+    /// Index of `chunk` in the total chunks of that transaction data.
+    ///
+    /// Required for verifing `proof`.
     pub chunk_index: u32,
     /// Trie nodes that compose the proof.
     ///
@@ -45,13 +52,38 @@ impl ChunkProof {
     }
 }
 
-/// Type for proving the historical data access.
+/// This struct is used to prove the random historical data access of block author.
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct ProofOfAccess {
-    /// poa depth.
+    /// Number of trials when a valid `ProofOfAccess` created.
     pub depth: u32,
-    /// merkle path of recall tx.
+    /// Merkle path/proof of the recall tx.
     pub tx_path: Vec<Vec<u8>>,
-    /// data chunk proof.
+    /// Proof of the recall chunk.
     pub chunk_proof: ChunkProof,
+}
+
+/// Outcome of generating the inherent data of [`ProofOfAccess`].
+#[derive(Debug, Clone, Encode, Decode)]
+pub enum PoaOutcome {
+    /// Not required for this block.
+    Skipped,
+    /// Failed to create a valid proof of access due to the max depth limit has been reached.
+    MaxDepthReached,
+    /// Generate a [`ProofOfAccess`] successfully.
+    ///
+    /// Each block contains a justification of poa as long as the weave size is not 0
+    /// and will be verified on block import.
+    Justification(ProofOfAccess),
+}
+
+impl PoaOutcome {
+    /// Returns true if the poa inherent must be included given the poa outcome.
+    pub fn require_inherent(&self) -> bool {
+        match self {
+            Self::Skipped => false,
+            Self::MaxDepthReached => false,
+            Self::Justification(_) => true,
+        }
+    }
 }
