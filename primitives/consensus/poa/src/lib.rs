@@ -71,7 +71,10 @@ pub enum PoaOutcome {
     /// Failed to create a valid proof of access due to the max depth limit has been reached.
     MaxDepthReached,
     /// Generate a [`ProofOfAccess`] successfully.
-    Proof(ProofOfAccess),
+    ///
+    /// Each block contains a justification of poa as long as the weave size is not 0
+    /// and will be verified on block import.
+    Justification(ProofOfAccess),
 }
 
 impl PoaOutcome {
@@ -80,7 +83,7 @@ impl PoaOutcome {
         match self {
             Self::Skipped => false,
             Self::MaxDepthReached => false,
-            Self::Proof(_) => true,
+            Self::Justification(_) => true,
         }
     }
 }

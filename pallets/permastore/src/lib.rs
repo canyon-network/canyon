@@ -221,7 +221,7 @@ pub mod pallet {
     pub(super) type PermaData<T: Config> =
         StorageMap<_, Blake2_128Concat, (T::BlockNumber, ExtrinsicIndex), Vec<u8>>;
 
-    /// Total byte size of data stored onto network until last block.
+    /// Total byte size of data stored onto the network.
     #[pallet::storage]
     pub(super) type WeaveSize<T: Config> = StorageValue<_, u64>;
 

@@ -41,7 +41,7 @@ pub fn build_extrinsic_proof<Block: BlockT<Hash = H256>>(
             trie.insert(&encode_index(index as u32), &extrinsic.encode())
                 .unwrap_or_else(|e| {
                     panic!(
-                        "failed to insert the trie node: {:?}, extrinsic index: {}",
+                        "Failed to insert the trie node: {:?}, extrinsic index: {}",
                         e, index
                     )
                 });
@@ -52,7 +52,7 @@ pub fn build_extrinsic_proof<Block: BlockT<Hash = H256>>(
 
     assert_eq!(
         extrinsics_root, calc_extrinsics_root,
-        "calculated extrinsics root mismatches"
+        "calculated `extrinsics_root` mismatches"
     );
 
     let proof = sp_trie::generate_trie_proof::<TrieLayout, _, _, _>(

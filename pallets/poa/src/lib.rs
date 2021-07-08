@@ -167,7 +167,7 @@ impl<T: Config> ProvideInherent for Pallet<T> {
         };
 
         match poa_outcome {
-            PoaOutcome::Proof(poa) => {
+            PoaOutcome::Justification(poa) => {
                 let depth = poa.depth;
                 <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(
                     POA_ENGINE_ID,
