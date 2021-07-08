@@ -43,7 +43,7 @@ use frame_support::{
 use frame_system::ensure_signed;
 
 use canyon_primitives::Depth;
-use cp_consensus_poa::{ProofOfAccess, POA_ENGINE_ID};
+use cp_consensus_poa::{PoaOutcome, ProofOfAccess, POA_ENGINE_ID, POA_INHERENT_IDENTIFIER};
 
 // #[cfg(any(feature = "runtime-benchmarks", test))]
 // mod benchmarking;
@@ -88,6 +88,8 @@ pub mod pallet {
             #[pallet::compact] depth: Depth,
         ) -> DispatchResult {
             ensure_root(origin)?;
+
+            // TODO: record the block author's storage capacity.
 
             Ok(())
         }
@@ -148,24 +150,39 @@ impl<T: Config> ProvideInherent for Pallet<T> {
     type Call = Call<T>;
     type Error = MakeFatalError<()>;
 
-    const INHERENT_IDENTIFIER: InherentIdentifier = canyon_primitives::POA_INHERENT_IDENTIFIER;
+    const INHERENT_IDENTIFIER: InherentIdentifier = POA_INHERENT_IDENTIFIER;
 
     fn create_inherent(data: &InherentData) -> Option<Self::Call> {
-        let maybe_poa: Option<ProofOfAccess> = match data.get_data(&Self::INHERENT_IDENTIFIER) {
+        let poa_outcome: PoaOutcome = match data.get_data(&Self::INHERENT_IDENTIFIER) {
             Ok(Some(d)) => d,
             Ok(None) => return None,
             Err(e) => {
-                frame_support::log::error!(target: "runtime::poa", "failed to decode ProofOfAccess: {:?}", e);
+                frame_support::log::error!(
+                    target: "runtime::poa",
+                    "Error occurred when getting the inherent data of poa: {:?}",
+                    e,
+                );
                 return None;
             }
         };
 
-        if let Some(poa) = maybe_poa {
-            let depth = poa.depth;
-            <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(POA_ENGINE_ID, poa.encode()));
-            Some(Call::update_storage_capacity(depth))
-        } else {
-            None
+        match poa_outcome {
+            PoaOutcome::Proof(poa) => {
+                let depth = poa.depth;
+                <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(
+                    POA_ENGINE_ID,
+                    poa.encode(),
+                ));
+                Some(Call::update_storage_capacity(depth))
+            }
+            PoaOutcome::MaxDepthReached => {
+                // Decrease the storage capacity?
+                // Need to update outcome.require_inherent() too.
+                //
+                // TODO: slash the block author when SLA is too low?
+                None
+            }
+            PoaOutcome::Skipped => None,
         }
     }
 
@@ -173,12 +190,9 @@ impl<T: Config> ProvideInherent for Pallet<T> {
         matches!(call, Call::update_storage_capacity(..))
     }
 
-    /// Required when inherent data is Some(_).
-    ///
-    /// NOTE: inherent data can only be None when the weave is empty.
     fn is_inherent_required(data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
-        match data.get_data::<Option<ProofOfAccess>>(&Self::INHERENT_IDENTIFIER) {
-            Ok(Some(_d)) => Ok(Some(().into())),
+        match data.get_data::<PoaOutcome>(&Self::INHERENT_IDENTIFIER) {
+            Ok(Some(outcome)) if outcome.require_inherent() => Ok(Some(().into())),
             _ => Ok(None),
         }
     }

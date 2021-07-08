@@ -26,7 +26,7 @@
 use codec::{Decode, Encode};
 
 use sp_runtime::{
-    generic::{DataInfo, DigestItem},
+    generic::DataInfo,
     traits::{AccountIdConversion, DispatchInfoOf, SaturatedConversion, SignedExtension},
     transaction_validity::{InvalidTransaction, TransactionValidity, TransactionValidityError},
 };
@@ -35,12 +35,9 @@ use sp_std::{marker::PhantomData, prelude::*};
 use frame_support::{
     dispatch::DispatchResult,
     ensure,
-    inherent::{InherentData, InherentIdentifier, MakeFatalError, ProvideInherent},
     traits::{Currency, ExistenceRequirement, Get, IsSubType},
 };
 use frame_system::ensure_signed;
-
-use cp_consensus_poa::POA_ENGINE_ID;
 
 // #[cfg(any(feature = "runtime-benchmarks", test))]
 // mod benchmarking;
@@ -111,7 +108,7 @@ pub mod pallet {
             origin: OriginFor<T>,
             data_size: u32,
             chunk_root: T::Hash,
-            data: Vec<u8>, // store the data on chain for now
+            data: Vec<u8>, // TODO: remove this argument.
         ) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
 
@@ -403,38 +400,5 @@ where
         }
 
         Ok(Default::default())
-    }
-}
-
-impl<T: Config> ProvideInherent for Pallet<T> {
-    type Call = Call<T>;
-    type Error = MakeFatalError<()>;
-
-    const INHERENT_IDENTIFIER: InherentIdentifier =
-        canyon_primitives::PERMASTORE_INHERENT_IDENTIFIER;
-
-    fn create_inherent(data: &InherentData) -> Option<Self::Call> {
-        let weave_size: u64 = match data.get_data(&Self::INHERENT_IDENTIFIER) {
-            Ok(Some(d)) => d,
-            Ok(None) => return None,
-            Err(e) => {
-                frame_support::log::error!(target: "runtime::permastore", "failed to decode weave size: {:?}", e);
-                return None;
-            }
-        };
-
-        if weave_size > 0 {
-            <WeaveSize<T>>::put(weave_size);
-            <frame_system::Pallet<T>>::deposit_log(DigestItem::PreRuntime(
-                POA_ENGINE_ID,
-                weave_size.encode(),
-            ));
-        }
-
-        None
-    }
-
-    fn is_inherent(_call: &Self::Call) -> bool {
-        false
     }
 }

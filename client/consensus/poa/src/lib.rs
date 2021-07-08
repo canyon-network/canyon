@@ -36,7 +36,7 @@ use sc_client_api::BlockBackend;
 
 use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
 use cc_client_db::TransactionDataBackend as TransactionDataBackendT;
-use cp_consensus_poa::POA_ENGINE_ID;
+use cp_consensus_poa::{PoaOutcome, POA_ENGINE_ID};
 use cp_permastore::{PermastoreApi, CHUNK_SIZE};
 
 mod chunk_proof;
@@ -197,7 +197,7 @@ pub fn construct_poa<Block, Client, TransactionDataBackend, RA>(
     parent: Block::Hash,
     transaction_data_backend: TransactionDataBackend,
     runtime_api: Arc<RA>,
-) -> Result<Option<ProofOfAccess>, Error<Block>>
+) -> Result<PoaOutcome, Error<Block>>
 where
     Block: BlockT<Hash = sp_core::H256> + 'static,
     Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
@@ -211,7 +211,7 @@ where
 
     if weave_size == 0 {
         log::debug!(target: "poa", "Skip constructing poa as the weave size is 0");
-        return Ok(None);
+        return Ok(PoaOutcome::Skipped);
     }
 
     for depth in MIN_DEPTH..=MAX_DEPTH {
@@ -322,7 +322,7 @@ where
                             chunk_proof,
                         };
                         log::debug!(target: "poa", "Generated poa proof: {:?}", poa);
-                        return Ok(Some(poa));
+                        return Ok(PoaOutcome::Proof(poa));
                     }
                 }
             }
@@ -344,5 +344,5 @@ where
         }
     }
 
-    Err(Error::MaxDepthReached(MAX_DEPTH))
+    Ok(PoaOutcome::MaxDepthReached)
 }

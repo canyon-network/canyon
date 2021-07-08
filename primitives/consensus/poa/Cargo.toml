@@ -9,6 +9,7 @@ codec = { package = "parity-scale-codec", version = "2.1", default-features = fa
 
 sp-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-inherents = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 sp-std = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 sp-trie = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
@@ -19,6 +20,7 @@ std = [
 	"codec/std",
 	"sp-api/std",
 	"sp-core/std",
+	"sp-inherents/std",
 	"sp-runtime/std",
 	"sp-std/std",
 	"sp-trie/std",
