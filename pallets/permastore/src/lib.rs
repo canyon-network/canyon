@@ -26,14 +26,12 @@
 use codec::{Decode, Encode};
 
 use sp_runtime::{
-    generic::DataInfo,
     traits::{AccountIdConversion, DispatchInfoOf, SaturatedConversion, SignedExtension},
     transaction_validity::{InvalidTransaction, TransactionValidity, TransactionValidityError},
 };
 use sp_std::{marker::PhantomData, prelude::*};
 
 use frame_support::{
-    dispatch::DispatchResult,
     ensure,
     traits::{Currency, ExistenceRequirement, Get, IsSubType},
 };
@@ -118,19 +116,12 @@ pub mod pallet {
             );
             ensure!(Self::stored_locally(&chunk_root), Error::<T>::NotStored);
 
-            Self::charge_storage_fee(&sender, data_size)?;
+            let storage_fee = Self::charge_storage_fee(&sender, data_size)?;
 
-            // Notes who stores the data.
-            // who, (block_number, extrinsic_index) => data_info
             let block_number = frame_system::Pallet::<T>::block_number();
             let extrinsic_index = frame_system::Pallet::<T>::extrinsic_index().unwrap_or_default();
-            let data_info = DataInfo {
-                size: data_size as u64,
-                chunk_root,
-            };
 
-            // FIXME: this storage is redundant?
-            Orders::<T>::insert(&sender, (block_number, extrinsic_index), Some(data_info));
+            Orders::<T>::insert(&sender, (block_number, extrinsic_index), storage_fee);
 
             ChunkRootIndex::<T>::insert((block_number, extrinsic_index), chunk_root);
             TransactionDataSize::<T>::insert((block_number, extrinsic_index), data_size);
@@ -152,7 +143,7 @@ pub mod pallet {
             let sender = ensure_signed(origin)?;
 
             // Remove the order.
-            let _data_info = Orders::<T>::take(&sender, (block_number, extrinsic_index))
+            let _fee = Orders::<T>::take(&sender, (block_number, extrinsic_index))
                 .ok_or(Error::<T>::OrderDoesNotExist)?;
 
             // refund the remaining fee.
@@ -200,7 +191,7 @@ pub mod pallet {
         T::AccountId,
         Twox64Concat,
         (T::BlockNumber, ExtrinsicIndex),
-        Option<DataInfo<T::Hashing>>,
+        BalanceOf<T>,
     >;
 
     /// Total byte size of data stored onto the network.
@@ -251,10 +242,14 @@ impl<T: Config> Pallet<T> {
     /// Charges the perpetual storage fee.
     ///
     /// TODO: Currently all the fee is simply transfered to the treasury.
-    fn charge_storage_fee(who: &T::AccountId, data_size: u32) -> DispatchResult {
+    fn charge_storage_fee(
+        who: &T::AccountId,
+        data_size: u32,
+    ) -> Result<BalanceOf<T>, sp_runtime::DispatchError> {
         let fee = Self::calculate_storage_fee(data_size);
         let treasury_account: T::AccountId = T::TreasuryPalletId::get().into_account();
-        T::Currency::transfer(who, &treasury_account, fee, ExistenceRequirement::KeepAlive)
+        T::Currency::transfer(who, &treasury_account, fee, ExistenceRequirement::KeepAlive)?;
+        Ok(fee)
     }
 
     fn refund_storage_fee(_who: &T::AccountId, _created_at: T::BlockNumber) {}
