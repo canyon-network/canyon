@@ -109,7 +109,6 @@ pub mod pallet {
             origin: OriginFor<T>,
             data_size: u32,
             chunk_root: T::Hash,
-            data: Vec<u8>, // TODO: remove this argument.
         ) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
 
@@ -132,9 +131,6 @@ pub mod pallet {
 
             // FIXME: this storage is redundant?
             Orders::<T>::insert(&sender, (block_number, extrinsic_index), Some(data_info));
-
-            // FIXME: Move to off-chain solution
-            PermaData::<T>::insert((block_number, extrinsic_index), data);
 
             ChunkRootIndex::<T>::insert((block_number, extrinsic_index), chunk_root);
             TransactionDataSize::<T>::insert((block_number, extrinsic_index), data_size);
@@ -239,13 +235,6 @@ pub mod pallet {
     #[pallet::storage]
     #[pallet::getter(fn global_block_number_index)]
     pub(super) type GlobalBlockNumberIndex<T: Config> = StorageValue<_, Vec<T::BlockNumber>>;
-
-    /// FIXME: remove this once the offchain transaction data storage is done!
-    /// Temeporary on-chain storage.
-    #[pallet::storage]
-    #[pallet::getter(fn perma_data)]
-    pub(super) type PermaData<T: Config> =
-        StorageMap<_, Blake2_128Concat, (T::BlockNumber, ExtrinsicIndex), Vec<u8>>;
 }
 
 impl<T: Config> Pallet<T> {
