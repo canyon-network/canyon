@@ -82,6 +82,24 @@
 <span id="79">79</span>
 <span id="80">80</span>
 <span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -106,13 +124,14 @@
 
 <span class="kw">use</span> <span class="ident">parking_lot</span>::<span class="ident">RwLock</span>;
 
-<span class="kw">use</span> <span class="ident">sp_core</span>::<span class="ident">Bytes</span>;
+<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">Bytes</span>, <span class="ident">Encode</span>, <span class="ident">H256</span>};
+<span class="kw">use</span> <span class="ident">sp_runtime</span>::<span class="ident">traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Hash</span>};
 
 <span class="kw">use</span> <span class="ident">cc_rpc_api</span>::<span class="ident">permastore</span>::{
     <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="ident">InvalidCount</span>, <span class="prelude-ty">Result</span>},
     <span class="ident">PermastoreApi</span>,
 };
-<span class="kw">use</span> <span class="ident">cp_permastore</span>::<span class="ident">PermaStorage</span>;
+<span class="kw">use</span> <span class="ident">cp_permastore</span>::{<span class="ident">PermaStorage</span>, <span class="ident">CHUNK_SIZE</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Permastore</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PermaStorage</span><span class="op">&gt;</span> {
@@ -134,8 +153,8 @@
 <span class="kw">const</span> <span class="ident">MAX_DOWNLOAD_DATA_SIZE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">12</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>;
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PermaStorage</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">PermastoreApi</span> <span class="kw">for</span> <span class="ident">Permastore</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Submit the transaction data under given key.</span>
-    <span class="kw">fn</span> <span class="ident">submit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">Bytes</span>, <span class="ident">value</span>: <span class="ident">Bytes</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="comment">// Can this be an attack as anyone can submit arbitrary data to the node?</span>
+    <span class="kw">fn</span> <span class="ident">submit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">Bytes</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">data_size</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">deref</span>().<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="kw">if</span> <span class="ident">data_size</span> <span class="op">&gt;</span> <span class="ident">MAX_UPLOAD_DATA_SIZE</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">DataTooLarge</span>(<span class="ident">InvalidCount</span>::<span class="ident">new</span>(
@@ -143,12 +162,29 @@
                 <span class="ident">MAX_UPLOAD_DATA_SIZE</span>,
             )));
         }
+
+        <span class="kw">let</span> <span class="ident">chunks</span> <span class="op">=</span> <span class="ident">value</span>
+            .<span class="number">0</span>
+            .<span class="ident">chunks</span>(<span class="ident">CHUNK_SIZE</span> <span class="kw">as</span> <span class="ident">usize</span>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">BlakeTwo256</span>::<span class="ident">hash</span>(<span class="ident">c</span>).<span class="ident">encode</span>())
+            .<span class="ident">collect</span>();
+
+        <span class="kw">let</span> <span class="ident">chunk_root</span> <span class="op">=</span> <span class="ident">BlakeTwo256</span>::<span class="ident">ordered_trie_root</span>(<span class="ident">chunks</span>);
+
+        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">chunk_root</span>.<span class="ident">encode</span>();
+
+        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
+            <span class="ident">target</span>: <span class="string">&quot;rpc::permastore&quot;</span>,
+            <span class="string">&quot;Submitted chunk_root: {:?}, stored key: {:?}&quot;</span>,
+            <span class="ident">chunk_root</span>, <span class="ident">key</span>,
+        );
+
         <span class="comment">// TODO: verify chunk_root matches the submitted data.</span>
-        <span class="self">self</span>.<span class="ident">storage</span>.<span class="ident">write</span>().<span class="ident">submit</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">value</span>);
-        <span class="prelude-val">Ok</span>(())
+        <span class="self">self</span>.<span class="ident">storage</span>.<span class="ident">write</span>().<span class="ident">submit</span>(<span class="ident">key</span>.<span class="ident">as_slice</span>(), <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">value</span>);
+
+        <span class="prelude-val">Ok</span>(<span class="ident">chunk_root</span>)
     }
 
-    <span class="doccomment">/// Fetch storage under given key.</span>
     <span class="kw">fn</span> <span class="ident">retrieve</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">Bytes</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">storage</span>.<span class="ident">read</span>().<span class="ident">retrieve</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">key</span>) {
             <span class="kw">let</span> <span class="ident">data_size</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;

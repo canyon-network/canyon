@@ -291,6 +291,64 @@
 <span id="288">288</span>
 <span id="289">289</span>
 <span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -314,31 +372,40 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! TODO: verify PoA stored in the block header.</span>
 
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
+
 <span class="kw">use</span> <span class="ident">codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
 <span class="kw">use</span> <span class="ident">thiserror</span>::<span class="ident">Error</span>;
 
+<span class="kw">use</span> <span class="ident">sp_api</span>::<span class="ident">ProvideRuntimeApi</span>;
 <span class="kw">use</span> <span class="ident">sp_blockchain</span>::<span class="ident">HeaderBackend</span>;
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{
     <span class="ident">generic</span>::<span class="ident">BlockId</span>,
-    <span class="ident">traits</span>::{<span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>, <span class="ident">DigestItemFor</span>, <span class="ident">Extrinsic</span>, <span class="ident">Header</span> <span class="kw">as</span> <span class="ident">HeaderT</span>},
+    <span class="ident">traits</span>::{<span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>, <span class="ident">DigestItemFor</span>, <span class="ident">Header</span> <span class="kw">as</span> <span class="ident">HeaderT</span>, <span class="ident">NumberFor</span>},
 };
 
 <span class="kw">use</span> <span class="ident">sc_client_api</span>::<span class="ident">BlockBackend</span>;
 
 <span class="kw">use</span> <span class="ident">canyon_primitives</span>::{<span class="ident">DataIndex</span>, <span class="ident">Depth</span>, <span class="ident">ExtrinsicIndex</span>};
 <span class="kw">use</span> <span class="ident">cc_client_db</span>::<span class="ident">TransactionDataBackend</span> <span class="kw">as</span> <span class="ident">TransactionDataBackendT</span>;
-<span class="kw">use</span> <span class="ident">cp_permastore</span>::{<span class="ident">CHUNK_SIZE</span>, <span class="ident">POA_ENGINE_ID</span>};
+<span class="kw">use</span> <span class="ident">cp_consensus_poa</span>::<span class="ident">POA_ENGINE_ID</span>;
+<span class="kw">use</span> <span class="ident">cp_permastore</span>::{<span class="ident">PermastoreApi</span>, <span class="ident">CHUNK_SIZE</span>};
 
 <span class="kw">mod</span> <span class="ident">chunk_proof</span>;
+<span class="kw">mod</span> <span class="ident">inherent</span>;
 <span class="kw">mod</span> <span class="ident">tx_proof</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">chunk_proof</span>::{<span class="ident">verify_chunk_proof</span>, <span class="ident">ChunkProof</span>, <span class="ident">ChunkProofBuilder</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">chunk_proof</span>::{<span class="ident">verify_chunk_proof</span>, <span class="ident">ChunkProofBuilder</span>, <span class="ident">ChunkProofVerifier</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">inherent</span>::<span class="ident">InherentDataProvider</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">tx_proof</span>::{<span class="ident">build_extrinsic_proof</span>, <span class="ident">verify_extrinsic_proof</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">cp_consensus_poa</span>::{<span class="ident">ChunkProof</span>, <span class="ident">ProofOfAccess</span>};
+
+<span class="kw">const</span> <span class="ident">MIN_DEPTH</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
 
 <span class="doccomment">/// The maximum depth of attempting to generate a valid PoA.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// TODO: make it configurable in Runtime?</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAX_DEPTH</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAX_DEPTH</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1_000</span>;
 
 <span class="doccomment">/// Maximum byte size of transaction merkle path.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAX_TX_PATH</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">256</span> <span class="op">*</span> <span class="number">1024</span>;
@@ -354,8 +421,12 @@
     <span class="ident">Codec</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">codec</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;blockchain error&quot;</span>)]</span>
     <span class="ident">BlockchainError</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">sp_blockchain</span>::<span class="ident">Error</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
+    <span class="ident">ApiError</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">sp_api</span>::<span class="ident">ApiError</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;block {0} not found&quot;</span>)]</span>
     <span class="ident">BlockNotFound</span>(<span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;recall block not found given the recall byte {0}&quot;</span>)]</span>
+    <span class="ident">RecallBlockNotFound</span>(<span class="ident">DataIndex</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;block header {0} not found&quot;</span>)]</span>
     <span class="ident">HeaderNotFound</span>(<span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;the chunk in recall tx not found&quot;</span>)]</span>
@@ -368,20 +439,9 @@
     <span class="ident">Unknown</span>,
 }
 
-<span class="doccomment">/// Type for proving the data access.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Poa</span> {
-    <span class="doccomment">///</span>
-    <span class="kw">pub</span> <span class="ident">depth</span>: <span class="ident">Depth</span>,
-    <span class="doccomment">///</span>
-    <span class="kw">pub</span> <span class="ident">tx_path</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="doccomment">///</span>
-    <span class="kw">pub</span> <span class="ident">chunk_proof</span>: <span class="ident">ChunkProof</span>,
-}
-
 <span class="doccomment">/// Applies the hashing on `seed` for `n` times</span>
 <span class="kw">fn</span> <span class="ident">multihash</span>(<span class="ident">seed</span>: <span class="ident">Randomness</span>, <span class="ident">n</span>: <span class="ident">Depth</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u8</span>; <span class="number">32</span>] {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">n</span> <span class="op">&gt;</span> <span class="number">0</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">n</span> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;n can not be 0 when calculating multihash&quot;</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">sp_io</span>::<span class="ident">hashing</span>::<span class="ident">blake2_256</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>);
     <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">1</span>..<span class="ident">n</span> {
         <span class="ident">r</span> <span class="op">=</span> <span class="ident">sp_io</span>::<span class="ident">hashing</span>::<span class="ident">blake2_256</span>(<span class="kw-2">&amp;</span><span class="ident">r</span>);
@@ -397,7 +457,10 @@
 
 <span class="doccomment">/// Returns the position of recall byte in the entire weave.</span>
 <span class="kw">fn</span> <span class="ident">calculate_challenge_byte</span>(<span class="ident">seed</span>: <span class="ident">Randomness</span>, <span class="ident">weave_size</span>: <span class="ident">DataIndex</span>, <span class="ident">depth</span>: <span class="ident">Depth</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DataIndex</span> {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">weave_size</span> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;weave size can not be 0&quot;</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(
+        <span class="ident">weave_size</span> <span class="op">&gt;</span> <span class="number">0</span>,
+        <span class="string">&quot;weave size can not be 0 when calculating the recall byte&quot;</span>
+    );
     <span class="ident">DataIndex</span>::<span class="ident">from_le_bytes</span>(<span class="ident">make_bytes</span>(<span class="ident">multihash</span>(<span class="ident">seed</span>, <span class="ident">depth</span>))) <span class="op">%</span> <span class="ident">weave_size</span>
 }
 
@@ -413,10 +476,18 @@
     <span class="ident">recall_byte</span>: <span class="ident">DataIndex</span>,
     <span class="ident">sized_extrinsics</span>: <span class="kw-2">&amp;</span>[(<span class="ident">ExtrinsicIndex</span>, <span class="ident">DataIndex</span>)],
 ) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">ExtrinsicIndex</span>, <span class="ident">DataIndex</span>) {
+    <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
+        <span class="ident">target</span>: <span class="string">&quot;poa&quot;</span>,
+        <span class="string">&quot;finding recall tx, recall_byte: {}, sized_extrinsics: {:?}&quot;</span>,
+        <span class="ident">recall_byte</span>, <span class="ident">sized_extrinsics</span>
+    );
     <span class="ident">binary_search</span>(<span class="ident">recall_byte</span>, <span class="ident">sized_extrinsics</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">extract_weave_size</span><span class="op">&lt;</span><span class="ident">Block</span>: <span class="ident">BlockT</span><span class="op">&gt;</span>(<span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="ident">Block</span>::<span class="ident">Header</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DataIndex</span>, <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="doccomment">/// Extracts the weave size from block header.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extract_weave_size</span><span class="op">&lt;</span><span class="ident">Block</span>: <span class="ident">BlockT</span><span class="op">&gt;</span>(
+    <span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="ident">Block</span>::<span class="ident">Header</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DataIndex</span>, <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">opaque_weave_size</span> <span class="op">=</span> <span class="ident">header</span>.<span class="ident">digest</span>().<span class="ident">logs</span>.<span class="ident">iter</span>().<span class="ident">find_map</span>(<span class="op">|</span><span class="ident">log</span><span class="op">|</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DigestItemFor</span>::<span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>::<span class="ident">Consensus</span>(<span class="ident">POA_ENGINE_ID</span>, <span class="ident">opaque_data</span>) <span class="op">=</span> <span class="ident">log</span> {
             <span class="prelude-val">Some</span>(<span class="ident">opaque_data</span>)
@@ -427,12 +498,7 @@
 
     <span class="kw">match</span> <span class="ident">opaque_weave_size</span> {
         <span class="prelude-val">Some</span>(<span class="ident">weave_size</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Decode</span>::<span class="ident">decode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">weave_size</span>.<span class="ident">as_slice</span>()).<span class="ident">map_err</span>(<span class="ident">Error</span>::<span class="ident">Codec</span>),
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Default</span>::<span class="ident">default</span>())
-
-            <span class="comment">// FIXME: weave size should only be zero for genesis?</span>
-            <span class="comment">// Err(Error::EmptyWeaveSize),</span>
-        }
+        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Default</span>::<span class="ident">default</span>()),
     }
 }
 
@@ -447,6 +513,7 @@
         .<span class="ident">deconstruct</span>())
 }
 
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
 <span class="kw">fn</span> <span class="ident">fetch_header</span><span class="op">&lt;</span><span class="ident">Block</span>: <span class="ident">BlockT</span>, <span class="ident">Client</span>: <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>(
     <span class="ident">id</span>: <span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
     <span class="ident">client</span>: <span class="kw-2">&amp;</span><span class="ident">Client</span>,
@@ -455,57 +522,100 @@
 }
 
 <span class="doccomment">/// Returns the block number of recall block.</span>
-<span class="kw">fn</span> <span class="ident">find_recall_block</span><span class="op">&lt;</span><span class="ident">Block</span>: <span class="ident">BlockT</span><span class="op">&gt;</span>(<span class="ident">_recall_byte</span>: <span class="ident">DataIndex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> {
-    <span class="macro">todo</span><span class="macro">!</span>(<span class="string">&quot;find recall block number&quot;</span>)
+<span class="kw">fn</span> <span class="ident">find_recall_block</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">RA</span><span class="op">&gt;</span>(
+    <span class="ident">at</span>: <span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
+    <span class="ident">recall_byte</span>: <span class="ident">DataIndex</span>,
+    <span class="ident">runtime_api</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">RA</span><span class="op">&gt;</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NumberFor</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">Block</span>: <span class="ident">BlockT</span>,
+    <span class="ident">RA</span>: <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
+    <span class="ident">RA</span>::<span class="ident">Api</span>: <span class="ident">PermastoreApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">NumberFor</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>, <span class="ident">u32</span>, <span class="ident">Block</span>::<span class="ident">Hash</span><span class="op">&gt;</span>,
+{
+    <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
+        <span class="ident">target</span>: <span class="string">&quot;poa&quot;</span>,
+        <span class="string">&quot;calling into runtime to find the recall block, at: {:?}, recall_byte: {:?}&quot;</span>,
+        <span class="ident">at</span>, <span class="ident">recall_byte</span>,
+    );
+    <span class="ident">runtime_api</span>
+        .<span class="ident">runtime_api</span>()
+        .<span class="ident">find_recall_block</span>(<span class="kw-2">&amp;</span><span class="ident">at</span>, <span class="ident">recall_byte</span>)<span class="question-mark">?</span>
+        .<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="ident">RecallBlockNotFound</span>(<span class="ident">recall_byte</span>))
 }
 
-<span class="doccomment">/// Constructs a valid PoA.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct_poa</span><span class="op">&lt;</span>
-    <span class="ident">Block</span>: <span class="ident">BlockT</span><span class="op">&lt;</span><span class="ident">Hash</span> <span class="op">=</span> <span class="ident">sp_core</span>::<span class="ident">H256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">Client</span>: <span class="ident">BlockBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">TransactionDataBackend</span>: <span class="ident">TransactionDataBackendT</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
-<span class="op">&gt;</span>(
+<span class="doccomment">/// Constructs a valid Proof of Access.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct_poa</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">Client</span>, <span class="ident">TransactionDataBackend</span>, <span class="ident">RA</span><span class="op">&gt;</span>(
     <span class="ident">client</span>: <span class="kw-2">&amp;</span><span class="ident">Client</span>,
     <span class="ident">parent</span>: <span class="ident">Block</span>::<span class="ident">Hash</span>,
     <span class="ident">transaction_data_backend</span>: <span class="ident">TransactionDataBackend</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Poa</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">chain_head</span> <span class="op">=</span> <span class="ident">fetch_header</span>(<span class="ident">BlockId</span>::<span class="ident">Hash</span>(<span class="ident">parent</span>), <span class="ident">client</span>)<span class="question-mark">?</span>;
+    <span class="ident">runtime_api</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">RA</span><span class="op">&gt;</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ProofOfAccess</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">Block</span>: <span class="ident">BlockT</span><span class="op">&lt;</span><span class="ident">Hash</span> <span class="op">=</span> <span class="ident">sp_core</span>::<span class="ident">H256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">Client</span>: <span class="ident">BlockBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">TransactionDataBackend</span>: <span class="ident">TransactionDataBackendT</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
+    <span class="ident">RA</span>: <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
+    <span class="ident">RA</span>::<span class="ident">Api</span>: <span class="ident">cp_permastore</span>::<span class="ident">PermastoreApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">NumberFor</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>, <span class="ident">u32</span>, <span class="ident">Block</span>::<span class="ident">Hash</span><span class="op">&gt;</span>,
+{
+    <span class="kw">let</span> <span class="ident">parent_id</span> <span class="op">=</span> <span class="ident">BlockId</span>::<span class="ident">Hash</span>(<span class="ident">parent</span>);
 
-    <span class="kw">let</span> <span class="ident">weave_size</span> <span class="op">=</span> <span class="ident">extract_weave_size</span>::<span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">chain_head</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">weave_size</span> <span class="op">=</span> <span class="ident">runtime_api</span>.<span class="ident">runtime_api</span>().<span class="ident">weave_size</span>(<span class="kw-2">&amp;</span><span class="ident">parent_id</span>)<span class="question-mark">?</span>;
 
-    <span class="kw">for</span> <span class="ident">depth</span> <span class="kw">in</span> <span class="number">1</span>..<span class="op">=</span><span class="ident">MAX_DEPTH</span> {
-        <span class="comment">// Genesis block?</span>
-        <span class="kw">if</span> <span class="ident">weave_size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
-        }
+    <span class="kw">if</span> <span class="ident">weave_size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="ident">target</span>: <span class="string">&quot;poa&quot;</span>, <span class="string">&quot;Skip constructing poa as the weave size is 0&quot;</span>);
+        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+    }
 
-        <span class="kw">let</span> <span class="ident">recall_byte</span> <span class="op">=</span> <span class="ident">calculate_challenge_byte</span>(<span class="ident">chain_head</span>.<span class="ident">encode</span>(), <span class="ident">weave_size</span>, <span class="ident">depth</span>);
-        <span class="kw">let</span> <span class="ident">recall_block_id</span> <span class="op">=</span> <span class="ident">find_recall_block</span>(<span class="ident">recall_byte</span>);
+    <span class="kw">for</span> <span class="ident">depth</span> <span class="kw">in</span> <span class="ident">MIN_DEPTH</span>..<span class="op">=</span><span class="ident">MAX_DEPTH</span> {
+        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="ident">target</span>: <span class="string">&quot;poa&quot;</span>, <span class="string">&quot;Attempting to generate poa at depth: {}&quot;</span>, <span class="ident">depth</span>);
+        <span class="kw">let</span> <span class="ident">recall_byte</span> <span class="op">=</span> <span class="ident">calculate_challenge_byte</span>(<span class="ident">parent</span>.<span class="ident">encode</span>(), <span class="ident">weave_size</span>, <span class="ident">depth</span>);
+        <span class="kw">let</span> <span class="ident">recall_block_number</span> <span class="op">=</span> <span class="ident">find_recall_block</span>(<span class="ident">parent_id</span>, <span class="ident">recall_byte</span>, <span class="ident">runtime_api</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">recall_block_id</span> <span class="op">=</span> <span class="ident">BlockId</span>::<span class="ident">number</span>(<span class="ident">recall_block_number</span>);
+        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
+            <span class="ident">target</span>: <span class="string">&quot;poa&quot;</span>, <span class="string">&quot;Found recall block id: {} given the recall byte: {}&quot;</span>,
+            <span class="ident">recall_block_id</span>,
+            <span class="ident">recall_byte</span>,
+        );
 
         <span class="kw">let</span> (<span class="ident">header</span>, <span class="ident">extrinsics</span>) <span class="op">=</span> <span class="ident">fetch_block</span>(<span class="ident">recall_block_id</span>, <span class="ident">client</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">recall_parent_block_id</span> <span class="op">=</span> <span class="ident">BlockId</span>::<span class="ident">Hash</span>(<span class="kw-2">*</span><span class="ident">header</span>.<span class="ident">parent_hash</span>());
-        <span class="kw">let</span> <span class="ident">recall_parent_header</span> <span class="op">=</span> <span class="ident">fetch_header</span>(<span class="ident">recall_parent_block_id</span>, <span class="ident">client</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">weave_base</span> <span class="op">=</span> <span class="ident">extract_weave_size</span>::<span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">recall_parent_header</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">recall_block_weave_base</span> <span class="op">=</span> <span class="ident">runtime_api</span>
+            .<span class="ident">runtime_api</span>()
+            .<span class="ident">weave_size</span>(<span class="kw-2">&amp;</span><span class="ident">recall_parent_block_id</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sized_extrinsics</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">extrinsics</span>.<span class="ident">len</span>());
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">acc</span> <span class="op">=</span> <span class="number">0u64</span>;
         <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">extrinsic</span>) <span class="kw">in</span> <span class="ident">extrinsics</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">let</span> <span class="ident">tx_size</span> <span class="op">=</span> <span class="ident">extrinsic</span>.<span class="ident">data_size</span>();
+            <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="ident">target</span>: <span class="string">&quot;poa&quot;</span>, <span class="string">&quot;iterating index: {}, extrinsic: {:?}&quot;</span>, <span class="ident">index</span>, <span class="ident">extrinsic</span>);
+            <span class="kw">let</span> <span class="ident">tx_size</span> <span class="op">=</span> <span class="ident">runtime_api</span>.<span class="ident">runtime_api</span>().<span class="ident">data_size</span>(
+                <span class="kw-2">&amp;</span><span class="ident">recall_block_id</span>,
+                <span class="ident">recall_block_number</span>,
+                <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>,
+            )<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">u64</span>;
             <span class="kw">if</span> <span class="ident">tx_size</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                <span class="ident">sized_extrinsics</span>.<span class="ident">push</span>((<span class="ident">index</span> <span class="kw">as</span> <span class="ident">ExtrinsicIndex</span>, <span class="ident">weave_base</span> <span class="op">+</span> <span class="ident">acc</span> <span class="op">+</span> <span class="ident">tx_size</span>));
+                <span class="ident">sized_extrinsics</span>.<span class="ident">push</span>((
+                    <span class="ident">index</span> <span class="kw">as</span> <span class="ident">ExtrinsicIndex</span>,
+                    <span class="ident">recall_block_weave_base</span> <span class="op">+</span> <span class="ident">acc</span> <span class="op">+</span> <span class="ident">tx_size</span>,
+                ));
                 <span class="ident">acc</span> <span class="op">+</span><span class="op">=</span> <span class="ident">tx_size</span>;
             }
         }
+
+        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
+            <span class="ident">target</span>: <span class="string">&quot;poa&quot;</span>,
+            <span class="string">&quot;Sized extrinsics in the recall block: {:?}&quot;</span>,
+            <span class="ident">sized_extrinsics</span>,
+        );
 
         <span class="comment">// No data store transactions in this block.</span>
         <span class="kw">if</span> <span class="ident">sized_extrinsics</span>.<span class="ident">is_empty</span>() {
             <span class="kw">continue</span>;
         }
 
-        <span class="kw">let</span> (<span class="ident">recall_extrinsic_index</span>, <span class="ident">recall_block_data_base</span>) <span class="op">=</span>
+        <span class="kw">let</span> (<span class="ident">recall_extrinsic_index</span>, <span class="ident">_recall_block_data_ceil</span>) <span class="op">=</span>
             <span class="ident">find_recall_tx</span>(<span class="ident">recall_byte</span>, <span class="kw-2">&amp;</span><span class="ident">sized_extrinsics</span>);
 
         <span class="comment">// Continue if the recall tx has been forgotten as the forgot</span>
@@ -516,71 +626,77 @@
         <span class="comment">// continue;</span>
         <span class="comment">// }</span>
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">tx_data</span>)) <span class="op">=</span> <span class="ident">transaction_data_backend</span>
-            .<span class="ident">transaction_data</span>(<span class="ident">recall_block_id</span>, <span class="ident">recall_extrinsic_index</span> <span class="kw">as</span> <span class="ident">u32</span>)
-        {
-            <span class="kw">let</span> <span class="ident">transaction_data_offset</span> <span class="op">=</span> <span class="ident">recall_byte</span> <span class="op">-</span> <span class="ident">recall_block_data_base</span>;
+        <span class="kw">let</span> <span class="ident">data_result</span> <span class="op">=</span> <span class="ident">transaction_data_backend</span>
+            .<span class="ident">transaction_data</span>(<span class="ident">recall_block_id</span>, <span class="ident">recall_extrinsic_index</span> <span class="kw">as</span> <span class="ident">u32</span>);
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">chunk_proof</span>) <span class="op">=</span>
-                <span class="ident">ChunkProofBuilder</span>::<span class="ident">new</span>(<span class="ident">tx_data</span>, <span class="ident">CHUNK_SIZE</span>, <span class="ident">transaction_data_offset</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">build</span>()
-            {
-                <span class="kw">if</span> <span class="ident">chunk_proof</span>.<span class="ident">size</span>() <span class="op">&gt;</span> <span class="ident">MAX_CHUNK_PATH</span> <span class="kw">as</span> <span class="ident">usize</span> {
-                    <span class="kw">continue</span>;
-                }
+        <span class="kw">match</span> <span class="ident">data_result</span> {
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">tx_data</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">transaction_data_offset</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">recall_byte</span>.<span class="ident">checked_sub</span>(<span class="ident">recall_block_weave_base</span>)
+                {
+                    <span class="prelude-val">Some</span>(<span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">o</span>,
+                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(
+                        <span class="string">&quot;Underflow happens! recall_byte: {}, recall_block_weave_base: {}&quot;</span>,
+                        <span class="ident">recall_byte</span>, <span class="ident">recall_block_weave_base</span>
+                    ),
+                };
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">tx_proof</span>) <span class="op">=</span> <span class="ident">build_extrinsic_proof</span>::<span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>(
-                    <span class="ident">recall_extrinsic_index</span>,
-                    <span class="ident">header</span>.<span class="ident">extrinsics_root</span>().<span class="ident">clone</span>(),
-                    <span class="ident">extrinsics</span>,
-                ) {
-                    <span class="kw">let</span> <span class="ident">tx_path_size</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">tx_proof</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">len</span>()).<span class="ident">sum</span>();
-                    <span class="kw">if</span> <span class="ident">tx_path_size</span> <span class="op">&gt;</span> <span class="ident">MAX_TX_PATH</span> <span class="kw">as</span> <span class="ident">usize</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">chunk_proof</span>) <span class="op">=</span>
+                    <span class="ident">ChunkProofBuilder</span>::<span class="ident">new</span>(<span class="ident">tx_data</span>, <span class="ident">CHUNK_SIZE</span>, <span class="ident">transaction_data_offset</span> <span class="kw">as</span> <span class="ident">u32</span>)
+                        .<span class="ident">build</span>()
+                {
+                    <span class="kw">if</span> <span class="ident">chunk_proof</span>.<span class="ident">size</span>() <span class="op">&gt;</span> <span class="ident">MAX_CHUNK_PATH</span> <span class="kw">as</span> <span class="ident">usize</span> {
+                        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
+                            <span class="ident">target</span>: <span class="string">&quot;poa&quot;</span>,
+                            <span class="string">&quot;Dropping the chunk proof as it&#39;s too large ({} &gt; {})&quot;</span>,
+                            <span class="ident">chunk_proof</span>.<span class="ident">size</span>(),
+                            <span class="ident">MAX_CHUNK_PATH</span>,
+                        );
                         <span class="kw">continue</span>;
                     }
-
-                    <span class="comment">// find one proof!</span>
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Poa</span> {
-                        <span class="ident">depth</span>,
-                        <span class="ident">tx_path</span>: <span class="ident">tx_proof</span>,
-                        <span class="ident">chunk_proof</span>,
-                    }));
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">tx_proof</span>) <span class="op">=</span> <span class="ident">build_extrinsic_proof</span>::<span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>(
+                        <span class="ident">recall_extrinsic_index</span>,
+                        <span class="kw-2">*</span><span class="ident">header</span>.<span class="ident">extrinsics_root</span>(),
+                        <span class="ident">extrinsics</span>,
+                    ) {
+                        <span class="kw">let</span> <span class="ident">tx_path_size</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">tx_proof</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">len</span>()).<span class="ident">sum</span>();
+                        <span class="kw">if</span> <span class="ident">tx_path_size</span> <span class="op">&gt;</span> <span class="ident">MAX_TX_PATH</span> <span class="kw">as</span> <span class="ident">usize</span> {
+                            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
+                                <span class="ident">target</span>: <span class="string">&quot;poa&quot;</span>,
+                                <span class="string">&quot;Dropping the tx proof as it&#39;s too large ({} &gt; {})&quot;</span>,
+                                <span class="ident">tx_path_size</span>,
+                                <span class="ident">MAX_TX_PATH</span>,
+                            );
+                            <span class="kw">continue</span>;
+                        }
+                        <span class="kw">let</span> <span class="ident">poa</span> <span class="op">=</span> <span class="ident">ProofOfAccess</span> {
+                            <span class="ident">depth</span>,
+                            <span class="ident">tx_path</span>: <span class="ident">tx_proof</span>,
+                            <span class="ident">chunk_proof</span>,
+                        };
+                        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="ident">target</span>: <span class="string">&quot;poa&quot;</span>, <span class="string">&quot;Generated poa proof: {:?}&quot;</span>, <span class="ident">poa</span>);
+                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">poa</span>));
+                    }
                 }
             }
-        } <span class="kw">else</span> {
-            <span class="ident">log</span>::<span class="macro">error</span><span class="macro">!</span>(
-                <span class="string">&quot;transaction data not found given block {} and extrinsic index {}&quot;</span>,
-                <span class="ident">recall_block_id</span>,
-                <span class="ident">recall_extrinsic_index</span>
-            );
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">log</span>::<span class="macro">warn</span><span class="macro">!</span>(
+                    <span class="ident">target</span>: <span class="string">&quot;poa&quot;</span>,
+                    <span class="string">&quot;transaction data not found given block {} and extrinsic index {}&quot;</span>,
+                    <span class="ident">recall_block_id</span>,
+                    <span class="ident">recall_extrinsic_index</span>
+                );
+            }
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">log</span>::<span class="macro">error</span><span class="macro">!</span>(
+                    <span class="ident">target</span>: <span class="string">&quot;poa&quot;</span>,
+                    <span class="string">&quot;error occurred when retrieving the transaction data: {:?}&quot;</span>,
+                    <span class="ident">e</span>,
+                );
+            }
         }
     }
 
     <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">MaxDepthReached</span>(<span class="ident">MAX_DEPTH</span>))
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">canyon_primitives</span>::<span class="ident">BlockNumber</span>;
-
-    <span class="comment">// struct GlobalBlockIndex(Vec&lt;(BlockNumber, DataIndex)&gt;);</span>
-
-    <span class="comment">// impl GlobalBlockIndex {</span>
-    <span class="comment">// pub fn find_challenge_block(&amp;self, recall_byte: DataIndex) -&gt; BlockNumber {</span>
-    <span class="comment">// binary_search(recall_byte, &amp;self.0).0</span>
-    <span class="comment">// }</span>
-    <span class="comment">// }</span>
-
-    <span class="comment">// #[test]</span>
-    <span class="comment">// fn test_find_challenge_block() {</span>
-    <span class="comment">// let global_index = GlobalBlockIndex(vec![(0, 10), (3, 15), (5, 20), (6, 30), (7, 32)]);</span>
-
-    <span class="comment">// assert_eq!(0, global_index.find_callenge_block(5));</span>
-    <span class="comment">// assert_eq!(3, global_index.find_callenge_block(15));</span>
-    <span class="comment">// assert_eq!(5, global_index.find_callenge_block(16));</span>
-    <span class="comment">// assert_eq!(6, global_index.find_callenge_block(29));</span>
-    <span class="comment">// assert_eq!(7, global_index.find_callenge_block(31));</span>
-    <span class="comment">// }</span>
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="cc_consensus_poa"></div>

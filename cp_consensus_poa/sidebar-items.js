@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["POA_ENGINE_ID",""]],"struct":[["ChunkProof","This type represents the raw bytes of chunk as well as the chunk proof."],["ProofOfAccess","Type for proving the historical data access."]]});
