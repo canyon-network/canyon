@@ -27,22 +27,21 @@ use crate::{
 fn find_recall_block_should_work() {
     new_test_ext().execute_with(|| {
         BlockDataSize::<Test>::put(5);
+        <WeaveSize<Test>>::put(5);
 
         // [5]
         // [1]
         <Permastore as OnFinalize<u64>>::on_finalize(1);
 
-        <WeaveSize<Test>>::put(5);
-
         BlockDataSize::<Test>::put(7);
+        <WeaveSize<Test>>::put(5 + 7);
 
         // [5, 12]
         // [1, 4]
         <Permastore as OnFinalize<u64>>::on_finalize(4);
 
-        <WeaveSize<Test>>::put(5 + 7);
-
         BlockDataSize::<Test>::put(10);
+        <WeaveSize<Test>>::put(5 + 7 + 10);
 
         // [5, 12, 22]
         // [1, 4, 10]
