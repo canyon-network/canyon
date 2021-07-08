@@ -26,7 +26,7 @@
 use codec::{Decode, Encode};
 
 use sp_runtime::{
-    generic::DataInfo,
+    generic::{DataInfo, DigestItem},
     traits::{AccountIdConversion, DispatchInfoOf, SaturatedConversion, SignedExtension},
     transaction_validity::{InvalidTransaction, TransactionValidity, TransactionValidityError},
 };
@@ -35,12 +35,15 @@ use sp_std::{marker::PhantomData, prelude::*};
 use frame_support::{
     dispatch::DispatchResult,
     ensure,
+    inherent::{InherentData, InherentIdentifier, MakeFatalError, ProvideInherent},
     traits::{Currency, ExistenceRequirement, Get, IsSubType},
 };
 use frame_system::ensure_signed;
 
-#[cfg(any(feature = "runtime-benchmarks", test))]
-mod benchmarking;
+use cp_consensus_poa::POA_ENGINE_ID;
+
+// #[cfg(any(feature = "runtime-benchmarks", test))]
+// mod benchmarking;
 #[cfg(all(feature = "std", test))]
 mod mock;
 #[cfg(all(feature = "std", test))]
@@ -63,7 +66,7 @@ pub mod pallet {
         traits::{Currency, Get},
         PalletId,
     };
-    use frame_system::pallet_prelude::OriginFor;
+    use frame_system::pallet_prelude::{BlockNumberFor, OriginFor};
 
     #[pallet::config]
     pub trait Config: frame_system::Config {
@@ -83,6 +86,18 @@ pub mod pallet {
     #[pallet::pallet]
     #[pallet::generate_store(pub(super) trait Store)]
     pub struct Pallet<T>(_);
+
+    #[pallet::hooks]
+    impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+        fn on_finalize(n: BlockNumberFor<T>) {
+            let current_block_data_size = <BlockDataSize<T>>::take().unwrap_or_default();
+            if current_block_data_size > 0 {
+                let latest_weave_size = <WeaveSize<T>>::get().unwrap_or_default();
+                <GlobalWeaveSizeList<T>>::append(latest_weave_size);
+                <GlobalBlockNumberIndex<T>>::append(n);
+            }
+        }
+    }
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
@@ -121,6 +136,14 @@ pub mod pallet {
             // FIXME: Move to off-chain solution
             PermaData::<T>::insert((block_number, extrinsic_index), data);
 
+            TransactionDataSize::<T>::insert((block_number, extrinsic_index), data_size);
+
+            let current_data_size = <BlockDataSize<T>>::get().unwrap_or_default();
+            <BlockDataSize<T>>::put(current_data_size + data_size as u64);
+
+            let current_weave_size = <WeaveSize<T>>::get().unwrap_or_default();
+            <WeaveSize<T>>::put(current_weave_size + data_size as u64);
+
             ChunkRootIndex::<T>::insert((block_number, extrinsic_index), chunk_root);
 
             Self::deposit_event(Event::Stored(sender, chunk_root));
@@ -129,8 +152,6 @@ pub mod pallet {
         }
 
         /// Forgets the data.
-        ///
-        /// The transaction
         #[pallet::weight(0)]
         pub fn forget(
             origin: OriginFor<T>,
@@ -185,8 +206,6 @@ pub mod pallet {
     pub(super) type Ledger<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, BalanceOf<T>>;
 
     /// Map of all the storage orders.
-    ///
-    /// TODO: use StorageNMap?
     #[pallet::storage]
     #[pallet::getter(fn orders)]
     pub(super) type Orders<T: Config> = StorageDoubleMap<
@@ -198,17 +217,51 @@ pub mod pallet {
         Option<DataInfo<T::Hashing>>,
     >;
 
+    /// FIXME: remove this once the offchain transaction data storage is done!
     /// Temeporary on-chain storage.
     #[pallet::storage]
     #[pallet::getter(fn perma_data)]
     pub(super) type PermaData<T: Config> =
         StorageMap<_, Blake2_128Concat, (T::BlockNumber, ExtrinsicIndex), Vec<u8>>;
 
+    /// Total byte size of data stored onto network until last block.
+    #[pallet::storage]
+    pub(super) type WeaveSize<T: Config> = StorageValue<_, u64>;
+
+    /// Total byte size of data stored in current building block.
+    #[pallet::storage]
+    #[pallet::getter(fn block_data_size)]
+    pub(super) type BlockDataSize<T: Config> = StorageValue<_, u64>;
+
     /// (block_number, extrinsic_index) => Option<chunk_root>
     #[pallet::storage]
     #[pallet::getter(fn chunk_root_index)]
     pub(super) type ChunkRootIndex<T: Config> =
         StorageMap<_, Twox64Concat, (T::BlockNumber, ExtrinsicIndex), T::Hash>;
+
+    /// FIXME: find a proper way to store these info.
+    ///
+    /// Temp solution for locating the recall block. An ever increasing array of global weave size.
+    #[pallet::storage]
+    #[pallet::getter(fn global_block_size_index)]
+    pub(super) type GlobalWeaveSizeList<T: Config> = StorageValue<_, Vec<u64>>;
+
+    /// FIXME: find a proper way to store these info.
+    ///
+    /// Temp solution for locating the recall block. An ever increasing array of global weave size.
+    #[pallet::storage]
+    #[pallet::getter(fn global_block_size)]
+    pub(super) type GlobalWeaveSize<T: Config> = StorageValue<_, u64>;
+
+    /// Temp solution for locating the recall block.
+    #[pallet::storage]
+    #[pallet::getter(fn global_block_number_index)]
+    pub(super) type GlobalBlockNumberIndex<T: Config> = StorageValue<_, Vec<T::BlockNumber>>;
+
+    #[pallet::storage]
+    #[pallet::getter(fn transaction_data_size)]
+    pub(super) type TransactionDataSize<T: Config> =
+        StorageMap<_, Twox64Concat, (T::BlockNumber, ExtrinsicIndex), u32>;
 
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config> {
@@ -256,8 +309,42 @@ impl<T: Config> Pallet<T> {
 
     fn refund_storage_fee(_who: &T::AccountId, _created_at: T::BlockNumber) {}
 
+    /// Returns the chunk root given `block_number` and `extrinsic_index`.
     pub fn chunk_root(block_number: T::BlockNumber, extrinsic_index: u32) -> Option<T::Hash> {
         <ChunkRootIndex<T>>::get((block_number, extrinsic_index))
+    }
+
+    /// Returns the block number in which the recall byte is included.
+    pub fn find_recall_block(recall_byte: u64) -> Option<T::BlockNumber> {
+        frame_support::log::debug!(
+            target: "runtime::permastore",
+            "weave_size_list: {:?}, block_number_index: {:?}",
+            <GlobalWeaveSizeList<T>>::get(),
+            <GlobalBlockNumberIndex<T>>::get(),
+        );
+        let weave_size_list = <GlobalWeaveSizeList<T>>::get()?;
+
+        let recall_block_number_index =
+            match weave_size_list.binary_search_by_key(&recall_byte, |&weave_size| weave_size) {
+                Ok(i) => i,
+                Err(i) => i,
+            };
+
+        frame_support::log::debug!(
+            target: "runtime::permastore",
+            "recall_block_number_index: {}",
+            recall_block_number_index,
+        );
+        <GlobalBlockNumberIndex<T>>::get().map(|index| index[recall_block_number_index])
+    }
+
+    /// Returns the data size of transaction given `block_number` and `extrinsic_index`.
+    pub fn data_size(block_number: T::BlockNumber, extrinsic_index: u32) -> u32 {
+        <TransactionDataSize<T>>::get((block_number, extrinsic_index)).unwrap_or_default()
+    }
+
+    pub fn weave_size() -> u64 {
+        <WeaveSize<T>>::get().unwrap_or_default()
     }
 }
 
@@ -316,5 +403,38 @@ where
         }
 
         Ok(Default::default())
+    }
+}
+
+impl<T: Config> ProvideInherent for Pallet<T> {
+    type Call = Call<T>;
+    type Error = MakeFatalError<()>;
+
+    const INHERENT_IDENTIFIER: InherentIdentifier =
+        canyon_primitives::PERMASTORE_INHERENT_IDENTIFIER;
+
+    fn create_inherent(data: &InherentData) -> Option<Self::Call> {
+        let weave_size: u64 = match data.get_data(&Self::INHERENT_IDENTIFIER) {
+            Ok(Some(d)) => d,
+            Ok(None) => return None,
+            Err(e) => {
+                frame_support::log::error!(target: "runtime::permastore", "failed to decode weave size: {:?}", e);
+                return None;
+            }
+        };
+
+        if weave_size > 0 {
+            <WeaveSize<T>>::put(weave_size);
+            <frame_system::Pallet<T>>::deposit_log(DigestItem::PreRuntime(
+                POA_ENGINE_ID,
+                weave_size.encode(),
+            ));
+        }
+
+        None
+    }
+
+    fn is_inherent(_call: &Self::Call) -> bool {
+        false
     }
 }

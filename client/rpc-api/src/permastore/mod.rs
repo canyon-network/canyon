@@ -20,7 +20,7 @@ pub mod error;
 
 use jsonrpc_derive::rpc;
 
-use sp_core::Bytes;
+use sp_core::{Bytes, H256};
 
 use self::error::Result;
 
@@ -29,9 +29,9 @@ pub use self::gen_client::Client as OffchainClient;
 /// Canyon perma storage RPC API.
 #[rpc]
 pub trait PermastoreApi {
-    /// Submit the transaction data under given key.
+    /// Submit the whole data of a transaction.
     #[rpc(name = "permastore_submit")]
-    fn submit(&self, key: Bytes, value: Bytes) -> Result<()>;
+    fn submit(&self, value: Bytes) -> Result<H256>;
 
     /// Fetch storage under given key.
     #[rpc(name = "permastore_retrieve")]

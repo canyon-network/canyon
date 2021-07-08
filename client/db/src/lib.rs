@@ -28,7 +28,7 @@ use sp_blockchain::HeaderBackend;
 use sp_runtime::{
     generic::BlockId,
     offchain::OffchainStorage,
-    traits::{Block as BlockT, Header as HeaderT},
+    traits::{Block as BlockT, NumberFor},
 };
 
 use cp_permastore::{PermaStorage, PermastoreApi};
@@ -64,7 +64,7 @@ where
     /// # Arguments
     ///
     /// * `key`: chunk_root of the transaction data.
-    /// * `value`: entire data of transaction.
+    /// * `value`: entire data of a transaction.
     fn submit(&mut self, key: &[u8], value: &[u8]) {
         self.offchain_storage
             .set(sp_offchain::STORAGE_PREFIX, key, value)
@@ -82,32 +82,39 @@ where
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error<Block: BlockT> {
-    #[error("chunk root not found for block `{0}` at extrinsic index `{1}`")]
-    ChunkRootNotFound(BlockId<Block>, u32),
+    #[error("block number not found given block id `{0}`")]
+    BlockNumberNotFound(BlockId<Block>),
+    #[error("chunk root is None at block: {0}, extrinsic index: {1}")]
+    ChunkRootIsNone(BlockId<Block>, u32),
     #[error(transparent)]
     Blockchain(#[from] sp_blockchain::Error),
     #[error(transparent)]
     ApiError(#[from] sp_api::ApiError),
 }
 
+/// Backend for storing a map of (block_number, extrinsic_index) to chunk_root.
+pub trait ChunkRootBackend<Block: BlockT> {
+    /// Returns chunk root given `block_number` and `extrinsic_index`.
+    ///
+    /// Usually fetched from the runtime.
+    fn chunk_root(
+        &self,
+        at: Option<BlockId<Block>>,
+        block_number: NumberFor<Block>,
+        extrinsic_index: u32,
+    ) -> Result<Option<Block::Hash>, Error<Block>>;
+}
+
 /// Permanent transaction data backend.
 ///
 /// High level API for accessing the transaction data.
-pub trait TransactionDataBackend<Block: BlockT>: PermaStorage {
+pub trait TransactionDataBackend<Block: BlockT>: PermaStorage + ChunkRootBackend<Block> {
     /// Get transaction data. Returns `None` if data is not found.
     fn transaction_data(
         &self,
         id: BlockId<Block>,
         extrinsic_index: u32,
     ) -> Result<Option<Vec<u8>>, Error<Block>>;
-
-    /// Returns chunk root given `block_number` and `extrinsic_index`.
-    fn chunk_root(
-        &self,
-        at: Option<BlockId<Block>>,
-        block_number: <<Block as BlockT>::Header as HeaderT>::Number,
-        extrinsic_index: u32,
-    ) -> Result<Option<<<Block as BlockT>::Header as HeaderT>::Hash>, Error<Block>>;
 }
 
 impl<Block, C, RA> TransactionDataBackend<Block> for PermanentStorage<C, RA>
@@ -115,35 +122,50 @@ where
     Block: BlockT,
     C: HeaderBackend<Block> + Send + Sync,
     RA: ProvideRuntimeApi<Block> + Send + Sync,
-    RA::Api: cp_permastore::PermastoreApi<
-        Block,
-        <<Block as BlockT>::Header as HeaderT>::Number,
-        u32,
-        <<Block as BlockT>::Header as HeaderT>::Hash,
-    >,
+    RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
 {
     fn transaction_data(
         &self,
         block_id: BlockId<Block>,
         extrinsic_index: u32,
     ) -> Result<Option<Vec<u8>>, Error<Block>> {
-        let chunk_root = self.chunk_root(
-            None,
-            self.client
-                .block_number_from_id(&block_id)?
-                .ok_or(Error::ChunkRootNotFound(block_id, extrinsic_index))?,
-            extrinsic_index,
-        )?;
-        Ok(self.retrieve(&chunk_root.encode()))
+        log::debug!(
+            target: "perma-db",
+            "Fetching chunk root at block_id: {}, extrinsic_index: {}",
+            block_id, extrinsic_index,
+        );
+        let chunk_root = self
+            .chunk_root(
+                None,
+                self.client
+                    .block_number_from_id(&block_id)?
+                    .ok_or(Error::BlockNumberNotFound(block_id))?,
+                extrinsic_index,
+            )?
+            .ok_or(Error::ChunkRootIsNone(block_id, extrinsic_index))?;
+        let key = chunk_root.encode();
+        log::debug!(
+            target: "perma-db",
+            "Fetched chunk root: {:?}, database key: {:?}",
+            chunk_root, key,
+        );
+        Ok(self.retrieve(&key))
     }
+}
 
-    /// Returns the chunk root at block `block_id` given `block_number` and `extrinsic_index`.
+impl<Block, C, RA> ChunkRootBackend<Block> for PermanentStorage<C, RA>
+where
+    Block: BlockT,
+    C: HeaderBackend<Block> + Send + Sync,
+    RA: ProvideRuntimeApi<Block> + Send + Sync,
+    RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
+{
     fn chunk_root(
         &self,
         at: Option<BlockId<Block>>,
-        block_number: <<Block as BlockT>::Header as HeaderT>::Number,
+        block_number: NumberFor<Block>,
         extrinsic_index: u32,
-    ) -> Result<Option<<<Block as BlockT>::Header as HeaderT>::Hash>, Error<Block>> {
+    ) -> Result<Option<Block::Hash>, Error<Block>> {
         let at = at.unwrap_or_else(|| BlockId::hash(self.client.info().best_hash));
         self.runtime_api
             .runtime_api()

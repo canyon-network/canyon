@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 codec = { package = "parity-scale-codec", version = "2.1", features = ["derive"] }
+log = "0.4"
 thiserror = "1.0"
 
 sp-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }

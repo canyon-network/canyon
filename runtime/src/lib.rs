@@ -1375,6 +1375,15 @@ impl_runtime_apis! {
         fn chunk_root(block_number: BlockNumber, extrinsic_index: u32) -> Option<Hash> {
             Permastore::chunk_root(block_number, extrinsic_index)
         }
+        fn find_recall_block(recall_byte: u64) -> Option<BlockNumber> {
+            Permastore::find_recall_block(recall_byte)
+        }
+        fn data_size(block_number: BlockNumber, extrinsic_index: u32) -> u32 {
+            Permastore::data_size(block_number, extrinsic_index)
+        }
+        fn weave_size() -> u64 {
+            Permastore::weave_size()
+        }
     }
 
     #[cfg(feature = "try-runtime")]

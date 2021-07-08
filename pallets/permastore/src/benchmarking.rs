@@ -4,31 +4,19 @@ use frame_system::RawOrigin;
 
 benchmarks! {
     // This will measure the execution time of `accumulate_dummy` for b in [1..1000] range.
-    accumulate_dummy {
-        let b in 1 .. 1000;
+    store {
+        let data_size in 1 .. 1000;
         let caller = account("caller", 0, 0);
-    }: _ (RawOrigin::Signed(caller), b.into())
+        let chunk_root = Default::default();
+        let data = Vec::new();
+    }: _ (RawOrigin::Signed(caller), data_size.into(), chunk_root, root)
 
     // This will measure the execution time of `set_dummy` for b in [1..1000] range.
-    set_dummy {
+    forget {
         let b in 1 .. 1000;
-    }: set_dummy (RawOrigin::Root, b.into())
-
-    // This will measure the execution time of `set_dummy` for b in [1..10] range.
-    another_set_dummy {
-        let b in 1 .. 10;
-    }: set_dummy (RawOrigin::Root, b.into())
-
-    // This will measure the execution time of sorting a vector.
-    sort_vector {
-        let x in 0 .. 10000;
-        let mut m = Vec::<u32>::new();
-        for i in (0..x).rev() {
-            m.push(i);
-        }
-    }: {
-        m.sort();
-    }
+        let block_number = 100;
+        let extrinsic_index = 3;
+    }: set_dummy (RawOrigin::Signed(caller), block_number, extrinsic_index)
 }
 
 impl_benchmark_test_suite!(Pallet, crate::mock::new_test_ext(), crate::mock::Test);

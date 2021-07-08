@@ -18,11 +18,7 @@
 
 use super::*;
 
-use frame_support::{
-    assert_ok, parameter_types,
-    traits::{OnFinalize, OnInitialize},
-    weights::{DispatchInfo, GetDispatchInfo},
-};
+use frame_support::{parameter_types, PalletId};
 use sp_core::H256;
 // The testing primitives are very useful for avoiding having to work with signatures
 // or public keys. `u64` is used as the `AccountId` and no `Signature`s are required.
@@ -32,7 +28,7 @@ use sp_runtime::{
     BuildStorage,
 };
 // Reexport crate as its pallet name for construct_runtime.
-use crate as pallet_poa;
+use crate as pallet_permastore;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -46,7 +42,7 @@ frame_support::construct_runtime!(
     {
         System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
         Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-        Poa: pallet_poa::{Pallet, Call, Storage, Config<T>, Event<T>},
+        Permastore: pallet_permastore::{Pallet, Call, Storage, Config<T>, Event<T>},
     }
 );
 
@@ -78,12 +74,17 @@ impl frame_system::Config for Test {
     type OnKilledAccount = ();
     type SystemWeightInfo = ();
     type SS58Prefix = ();
+    type OnSetCode = ();
 }
 parameter_types! {
     pub const ExistentialDeposit: u64 = 1;
+    pub const MaxLocks: u32 = 50;
+    pub const MaxReserves: u32 = 50;
 }
 impl pallet_balances::Config for Test {
-    type MaxLocks = ();
+    type MaxLocks = MaxLocks;
+    type MaxReserves = MaxReserves;
+    type ReserveIdentifier = [u8; 8];
     type Balance = u64;
     type DustRemoval = ();
     type Event = Event;
@@ -91,8 +92,15 @@ impl pallet_balances::Config for Test {
     type AccountStore = System;
     type WeightInfo = ();
 }
+parameter_types! {
+    pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
+    pub const MaxDataSize: u32 = 1024 * 1024 * 1024;
+}
 impl Config for Test {
     type Event = Event;
+    type Currency = Balances;
+    type TreasuryPalletId = TreasuryPalletId;
+    type MaxDataSize = MaxDataSize;
 }
 
 // This function basically just builds a genesis storage key/value store according to
@@ -100,14 +108,9 @@ impl Config for Test {
 pub fn new_test_ext() -> sp_io::TestExternalities {
     let t = GenesisConfig {
         // We use default for brevity, but you can configure as desired if needed.
-        frame_system: Default::default(),
-        pallet_balances: Default::default(),
-        pallet_poa: pallet_poa::GenesisConfig {
-            dummy: 42,
-            // we configure the map with (key, value) pairs.
-            bar: vec![(1, 2), (2, 3)],
-            foo: 24,
-        },
+        system: Default::default(),
+        balances: Default::default(),
+        permastore: Default::default(),
     }
     .build_storage()
     .unwrap();

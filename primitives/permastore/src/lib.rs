@@ -20,8 +20,6 @@
 
 use sp_std::vec::Vec;
 
-pub const POA_ENGINE_ID: [u8; 4] = *b"poa_";
-
 /// 256B per chunk.
 pub const CHUNK_SIZE: u32 = 256 * 1024;
 
@@ -60,5 +58,11 @@ sp_api::decl_runtime_apis! {
     {
         /// Get chunk root given the block number and extrinsic index.
         fn chunk_root(block_number: BlockNumber, extrinsic_index: ExtrinsicIndex) -> Option<Hash>;
+
+        fn find_recall_block(recall_byte: u64) -> Option<BlockNumber>;
+
+        fn data_size(block_number: BlockNumber, extrinsic_index: ExtrinsicIndex) -> u32;
+
+        fn weave_size() -> u64;
     }
 }

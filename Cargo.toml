@@ -13,7 +13,7 @@ resolver = "2"
 members = [
     "cli",
     "client/consensus/poa",
-    "client/poa-inherent",
+    "client/db",
     "client/rpc",
     "client/rpc-api",
     "executor",
@@ -21,10 +21,14 @@ members = [
     "pallets/permastore",
     "pallets/poa",
     "primitives",
+    "primitives/consensus/poa",
     "primitives/permastore",
     "rpc",
     "runtime",
 ]
+
+[profile.release]
+panic = "unwind"
 
 [[bin]]
 name = "canyon"

@@ -20,31 +20,40 @@
 //!
 //! TODO: verify PoA stored in the block header.
 
+use std::sync::Arc;
+
 use codec::{Decode, Encode};
 use thiserror::Error;
 
+use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
 use sp_runtime::{
     generic::BlockId,
-    traits::{Block as BlockT, DigestItemFor, Extrinsic, Header as HeaderT},
+    traits::{Block as BlockT, DigestItemFor, Header as HeaderT, NumberFor},
 };
 
 use sc_client_api::BlockBackend;
 
 use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
 use cc_client_db::TransactionDataBackend as TransactionDataBackendT;
-use cp_permastore::{CHUNK_SIZE, POA_ENGINE_ID};
+use cp_consensus_poa::POA_ENGINE_ID;
+use cp_permastore::{PermastoreApi, CHUNK_SIZE};
 
 mod chunk_proof;
+mod inherent;
 mod tx_proof;
 
-pub use self::chunk_proof::{verify_chunk_proof, ChunkProof, ChunkProofBuilder};
+pub use self::chunk_proof::{verify_chunk_proof, ChunkProofBuilder, ChunkProofVerifier};
+pub use self::inherent::InherentDataProvider;
 pub use self::tx_proof::{build_extrinsic_proof, verify_extrinsic_proof};
+pub use cp_consensus_poa::{ChunkProof, ProofOfAccess};
+
+const MIN_DEPTH: u32 = 1;
 
 /// The maximum depth of attempting to generate a valid PoA.
 ///
 /// TODO: make it configurable in Runtime?
-pub const MAX_DEPTH: u32 = 100;
+pub const MAX_DEPTH: u32 = 1_000;
 
 /// Maximum byte size of transaction merkle path.
 pub const MAX_TX_PATH: u32 = 256 * 1024;
@@ -60,8 +69,12 @@ pub enum Error<Block: BlockT> {
     Codec(#[from] codec::Error),
     #[error("blockchain error")]
     BlockchainError(#[from] sp_blockchain::Error),
+    #[error(transparent)]
+    ApiError(#[from] sp_api::ApiError),
     #[error("block {0} not found")]
     BlockNotFound(BlockId<Block>),
+    #[error("recall block not found given the recall byte {0}")]
+    RecallBlockNotFound(DataIndex),
     #[error("block header {0} not found")]
     HeaderNotFound(BlockId<Block>),
     #[error("the chunk in recall tx not found")]
@@ -74,20 +87,9 @@ pub enum Error<Block: BlockT> {
     Unknown,
 }
 
-/// Type for proving the data access.
-#[derive(Debug, Clone, Encode, Decode)]
-pub struct Poa {
-    ///
-    pub depth: Depth,
-    ///
-    pub tx_path: Vec<Vec<u8>>,
-    ///
-    pub chunk_proof: ChunkProof,
-}
-
 /// Applies the hashing on `seed` for `n` times
 fn multihash(seed: Randomness, n: Depth) -> [u8; 32] {
-    assert!(n > 0);
+    assert!(n > 0, "n can not be 0 when calculating multihash");
     let mut r = sp_io::hashing::blake2_256(&seed);
     for _ in 1..n {
         r = sp_io::hashing::blake2_256(&r);
@@ -103,7 +105,10 @@ fn make_bytes(h: [u8; 32]) -> [u8; 8] {
 
 /// Returns the position of recall byte in the entire weave.
 fn calculate_challenge_byte(seed: Randomness, weave_size: DataIndex, depth: Depth) -> DataIndex {
-    assert!(weave_size > 0, "weave size can not be 0");
+    assert!(
+        weave_size > 0,
+        "weave size can not be 0 when calculating the recall byte"
+    );
     DataIndex::from_le_bytes(make_bytes(multihash(seed, depth))) % weave_size
 }
 
@@ -119,10 +124,18 @@ fn find_recall_tx(
     recall_byte: DataIndex,
     sized_extrinsics: &[(ExtrinsicIndex, DataIndex)],
 ) -> (ExtrinsicIndex, DataIndex) {
+    log::debug!(
+        target: "poa",
+        "finding recall tx, recall_byte: {}, sized_extrinsics: {:?}",
+        recall_byte, sized_extrinsics
+    );
     binary_search(recall_byte, sized_extrinsics)
 }
 
-fn extract_weave_size<Block: BlockT>(header: &Block::Header) -> Result<DataIndex, Error<Block>> {
+/// Extracts the weave size from block header.
+pub fn extract_weave_size<Block: BlockT>(
+    header: &Block::Header,
+) -> Result<DataIndex, Error<Block>> {
     let opaque_weave_size = header.digest().logs.iter().find_map(|log| {
         if let DigestItemFor::<Block>::Consensus(POA_ENGINE_ID, opaque_data) = log {
             Some(opaque_data)
@@ -133,12 +146,7 @@ fn extract_weave_size<Block: BlockT>(header: &Block::Header) -> Result<DataIndex
 
     match opaque_weave_size {
         Some(weave_size) => Decode::decode(&mut weave_size.as_slice()).map_err(Error::Codec),
-        None => {
-            Ok(Default::default())
-
-            // FIXME: weave size should only be zero for genesis?
-            // Err(Error::EmptyWeaveSize),
-        }
+        None => Ok(Default::default()),
     }
 }
 
@@ -153,6 +161,7 @@ fn fetch_block<Block: BlockT, Client: BlockBackend<Block>>(
         .deconstruct())
 }
 
+#[allow(unused)]
 fn fetch_header<Block: BlockT, Client: HeaderBackend<Block>>(
     id: BlockId<Block>,
     client: &Client,
@@ -161,57 +170,100 @@ fn fetch_header<Block: BlockT, Client: HeaderBackend<Block>>(
 }
 
 /// Returns the block number of recall block.
-fn find_recall_block<Block: BlockT>(_recall_byte: DataIndex) -> BlockId<Block> {
-    todo!("find recall block number")
+fn find_recall_block<Block, RA>(
+    at: BlockId<Block>,
+    recall_byte: DataIndex,
+    runtime_api: Arc<RA>,
+) -> Result<NumberFor<Block>, Error<Block>>
+where
+    Block: BlockT,
+    RA: ProvideRuntimeApi<Block> + Send + Sync,
+    RA::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
+{
+    log::debug!(
+        target: "poa",
+        "calling into runtime to find the recall block, at: {:?}, recall_byte: {:?}",
+        at, recall_byte,
+    );
+    runtime_api
+        .runtime_api()
+        .find_recall_block(&at, recall_byte)?
+        .ok_or(Error::RecallBlockNotFound(recall_byte))
 }
 
-/// Constructs a valid PoA.
-pub fn construct_poa<
-    Block: BlockT<Hash = sp_core::H256> + 'static,
-    Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
-    TransactionDataBackend: TransactionDataBackendT<Block>,
->(
+/// Constructs a valid Proof of Access.
+pub fn construct_poa<Block, Client, TransactionDataBackend, RA>(
     client: &Client,
     parent: Block::Hash,
     transaction_data_backend: TransactionDataBackend,
-) -> Result<Option<Poa>, Error<Block>> {
-    let chain_head = fetch_header(BlockId::Hash(parent), client)?;
+    runtime_api: Arc<RA>,
+) -> Result<Option<ProofOfAccess>, Error<Block>>
+where
+    Block: BlockT<Hash = sp_core::H256> + 'static,
+    Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
+    TransactionDataBackend: TransactionDataBackendT<Block>,
+    RA: ProvideRuntimeApi<Block> + Send + Sync,
+    RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
+{
+    let parent_id = BlockId::Hash(parent);
 
-    let weave_size = extract_weave_size::<Block>(&chain_head)?;
+    let weave_size = runtime_api.runtime_api().weave_size(&parent_id)?;
 
-    for depth in 1..=MAX_DEPTH {
-        // Genesis block?
-        if weave_size == 0 {
-            return Ok(None);
-        }
+    if weave_size == 0 {
+        log::debug!(target: "poa", "Skip constructing poa as the weave size is 0");
+        return Ok(None);
+    }
 
-        let recall_byte = calculate_challenge_byte(chain_head.encode(), weave_size, depth);
-        let recall_block_id = find_recall_block(recall_byte);
+    for depth in MIN_DEPTH..=MAX_DEPTH {
+        log::debug!(target: "poa", "Attempting to generate poa at depth: {}", depth);
+        let recall_byte = calculate_challenge_byte(parent.encode(), weave_size, depth);
+        let recall_block_number = find_recall_block(parent_id, recall_byte, runtime_api.clone())?;
+        let recall_block_id = BlockId::number(recall_block_number);
+        log::debug!(
+            target: "poa", "Found recall block id: {} given the recall byte: {}",
+            recall_block_id,
+            recall_byte,
+        );
 
         let (header, extrinsics) = fetch_block(recall_block_id, client)?;
 
         let recall_parent_block_id = BlockId::Hash(*header.parent_hash());
-        let recall_parent_header = fetch_header(recall_parent_block_id, client)?;
 
-        let weave_base = extract_weave_size::<Block>(&recall_parent_header)?;
+        let recall_block_weave_base = runtime_api
+            .runtime_api()
+            .weave_size(&recall_parent_block_id)?;
 
         let mut sized_extrinsics = Vec::with_capacity(extrinsics.len());
 
         let mut acc = 0u64;
         for (index, extrinsic) in extrinsics.iter().enumerate() {
-            let tx_size = extrinsic.data_size();
+            log::trace!(target: "poa", "iterating index: {}, extrinsic: {:?}", index, extrinsic);
+            let tx_size = runtime_api.runtime_api().data_size(
+                &recall_block_id,
+                recall_block_number,
+                index as u32,
+            )? as u64;
             if tx_size > 0 {
-                sized_extrinsics.push((index as ExtrinsicIndex, weave_base + acc + tx_size));
+                sized_extrinsics.push((
+                    index as ExtrinsicIndex,
+                    recall_block_weave_base + acc + tx_size,
+                ));
                 acc += tx_size;
             }
         }
+
+        log::debug!(
+            target: "poa",
+            "Sized extrinsics in the recall block: {:?}",
+            sized_extrinsics,
+        );
 
         // No data store transactions in this block.
         if sized_extrinsics.is_empty() {
             continue;
         }
 
-        let (recall_extrinsic_index, recall_block_data_base) =
+        let (recall_extrinsic_index, _recall_block_data_ceil) =
             find_recall_tx(recall_byte, &sized_extrinsics);
 
         // Continue if the recall tx has been forgotten as the forgot
@@ -222,69 +274,75 @@ pub fn construct_poa<
         // continue;
         // }
 
-        if let Ok(Some(tx_data)) = transaction_data_backend
-            .transaction_data(recall_block_id, recall_extrinsic_index as u32)
-        {
-            let transaction_data_offset = recall_byte - recall_block_data_base;
+        let data_result = transaction_data_backend
+            .transaction_data(recall_block_id, recall_extrinsic_index as u32);
 
-            if let Ok(chunk_proof) =
-                ChunkProofBuilder::new(tx_data, CHUNK_SIZE, transaction_data_offset as u32).build()
-            {
-                if chunk_proof.size() > MAX_CHUNK_PATH as usize {
-                    continue;
-                }
+        match data_result {
+            Ok(Some(tx_data)) => {
+                let transaction_data_offset = match recall_byte.checked_sub(recall_block_weave_base)
+                {
+                    Some(o) => o,
+                    None => panic!(
+                        "Underflow happens! recall_byte: {}, recall_block_weave_base: {}",
+                        recall_byte, recall_block_weave_base
+                    ),
+                };
 
-                if let Ok(tx_proof) = build_extrinsic_proof::<Block>(
-                    recall_extrinsic_index,
-                    header.extrinsics_root().clone(),
-                    extrinsics,
-                ) {
-                    let tx_path_size: usize = tx_proof.iter().map(|t| t.len()).sum();
-                    if tx_path_size > MAX_TX_PATH as usize {
+                if let Ok(chunk_proof) =
+                    ChunkProofBuilder::new(tx_data, CHUNK_SIZE, transaction_data_offset as u32)
+                        .build()
+                {
+                    if chunk_proof.size() > MAX_CHUNK_PATH as usize {
+                        log::debug!(
+                            target: "poa",
+                            "Dropping the chunk proof as it's too large ({} > {})",
+                            chunk_proof.size(),
+                            MAX_CHUNK_PATH,
+                        );
                         continue;
                     }
-
-                    // find one proof!
-                    return Ok(Some(Poa {
-                        depth,
-                        tx_path: tx_proof,
-                        chunk_proof,
-                    }));
+                    if let Ok(tx_proof) = build_extrinsic_proof::<Block>(
+                        recall_extrinsic_index,
+                        *header.extrinsics_root(),
+                        extrinsics,
+                    ) {
+                        let tx_path_size: usize = tx_proof.iter().map(|t| t.len()).sum();
+                        if tx_path_size > MAX_TX_PATH as usize {
+                            log::debug!(
+                                target: "poa",
+                                "Dropping the tx proof as it's too large ({} > {})",
+                                tx_path_size,
+                                MAX_TX_PATH,
+                            );
+                            continue;
+                        }
+                        let poa = ProofOfAccess {
+                            depth,
+                            tx_path: tx_proof,
+                            chunk_proof,
+                        };
+                        log::debug!(target: "poa", "Generated poa proof: {:?}", poa);
+                        return Ok(Some(poa));
+                    }
                 }
             }
-        } else {
-            log::error!(
-                "transaction data not found given block {} and extrinsic index {}",
-                recall_block_id,
-                recall_extrinsic_index
-            );
+            Ok(None) => {
+                log::warn!(
+                    target: "poa",
+                    "transaction data not found given block {} and extrinsic index {}",
+                    recall_block_id,
+                    recall_extrinsic_index
+                );
+            }
+            Err(e) => {
+                log::error!(
+                    target: "poa",
+                    "error occurred when retrieving the transaction data: {:?}",
+                    e,
+                );
+            }
         }
     }
 
     Err(Error::MaxDepthReached(MAX_DEPTH))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use canyon_primitives::BlockNumber;
-
-    // struct GlobalBlockIndex(Vec<(BlockNumber, DataIndex)>);
-
-    // impl GlobalBlockIndex {
-    // pub fn find_challenge_block(&self, recall_byte: DataIndex) -> BlockNumber {
-    // binary_search(recall_byte, &self.0).0
-    // }
-    // }
-
-    // #[test]
-    // fn test_find_challenge_block() {
-    // let global_index = GlobalBlockIndex(vec![(0, 10), (3, 15), (5, 20), (6, 30), (7, 32)]);
-
-    // assert_eq!(0, global_index.find_callenge_block(5));
-    // assert_eq!(3, global_index.find_callenge_block(15));
-    // assert_eq!(5, global_index.find_callenge_block(16));
-    // assert_eq!(6, global_index.find_callenge_block(29));
-    // assert_eq!(7, global_index.find_callenge_block(31));
-    // }
 }

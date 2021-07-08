@@ -10,6 +10,7 @@ codec = { package = "parity-scale-codec", version = "2.1" }
 log = "0.4"
 thiserror = "1.0"
 
+sp-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-inherents = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
@@ -21,6 +22,7 @@ sc-client-api = { git = "https://github.com/canyon-network/substrate", branch = 
 
 canyon-primitives = { path = "../../../primitives" }
 cc-client-db = { path = "../../db" }
+cp-consensus-poa = { path = "../../../primitives/consensus/poa" }
 cp-permastore = { path = "../../../primitives/permastore" }
 
 [dev-dependencies]

@@ -18,34 +18,46 @@
 
 //! This crate creates the inherent data based on the Proof of Access consensus.
 
+use std::sync::Arc;
+
+use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
-use sp_core::H256;
-use sp_runtime::traits::Block as BlockT;
+use sp_runtime::traits::{Block as BlockT, NumberFor};
 
 use sc_client_api::BlockBackend;
 
 use cc_client_db::TransactionDataBackend as TransactionDataBackendT;
-use cc_consensus_poa::{construct_poa, Error};
+use cp_consensus_poa::ProofOfAccess;
 
 pub struct InherentDataProvider {
-    /// Depth
-    pub maybe_depth: Option<u32>,
+    /// Proof of Access.
+    pub maybe_poa: Option<ProofOfAccess>,
 }
 
 impl InherentDataProvider {
     /// Creates a new instance of `InherentDataProvider`.
-    pub fn create<
-        Block: BlockT<Hash = H256> + 'static,
-        Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
-        TransactionDataBackend: TransactionDataBackendT<Block>,
-    >(
+    pub fn create<Block, Client, TransactionDataBackend, RA>(
         client: &Client,
         parent: Block::Hash,
         transaction_data_backend: TransactionDataBackend,
-    ) -> Result<Self, Error<Block>> {
-        let maybe_depth =
-            construct_poa(client, parent, transaction_data_backend)?.map(|poa| poa.depth as u32);
-        Ok(Self { maybe_depth })
+        runtime_api: Arc<RA>,
+    ) -> Result<Self, crate::Error<Block>>
+    where
+        Block: BlockT<Hash = sp_core::H256> + 'static,
+        Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
+        TransactionDataBackend: TransactionDataBackendT<Block>,
+        RA: ProvideRuntimeApi<Block> + Send + Sync,
+        RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
+    {
+        let maybe_poa =
+            match crate::construct_poa(client, parent, transaction_data_backend, runtime_api) {
+                Ok(maybe_poa) => maybe_poa,
+                Err(e) => {
+                    log::error!(target: "poa", "Failed to construct poa: {:?}", e);
+                    return Err(e);
+                }
+            };
+        Ok(Self { maybe_poa })
     }
 }
 
@@ -55,10 +67,7 @@ impl sp_inherents::InherentDataProvider for InherentDataProvider {
         &self,
         inherent_data: &mut sp_inherents::InherentData,
     ) -> Result<(), sp_inherents::Error> {
-        inherent_data.put_data(
-            canyon_primitives::POA_INHERENT_IDENTIFIER,
-            &self.maybe_depth,
-        )
+        inherent_data.put_data(canyon_primitives::POA_INHERENT_IDENTIFIER, &self.maybe_poa)
     }
 
     async fn try_handle_error(

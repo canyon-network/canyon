@@ -21,32 +21,10 @@ use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
 
 benchmarks! {
-    // This will measure the execution time of `accumulate_dummy` for b in [1..1000] range.
-    accumulate_dummy {
+    // This will measure the execution time of `update_storage_capacity` for b in [1..1000] range.
+    update_storage_capacity {
         let b in 1 .. 1000;
-        let caller = account("caller", 0, 0);
-    }: _ (RawOrigin::Signed(caller), b.into())
-
-    // This will measure the execution time of `set_dummy` for b in [1..1000] range.
-    set_dummy {
-        let b in 1 .. 1000;
-    }: set_dummy (RawOrigin::Root, b.into())
-
-    // This will measure the execution time of `set_dummy` for b in [1..10] range.
-    another_set_dummy {
-        let b in 1 .. 10;
-    }: set_dummy (RawOrigin::Root, b.into())
-
-    // This will measure the execution time of sorting a vector.
-    sort_vector {
-        let x in 0 .. 10000;
-        let mut m = Vec::<u32>::new();
-        for i in (0..x).rev() {
-            m.push(i);
-        }
-    }: {
-        m.sort();
-    }
+    }: update_storage_capacity (RawOrigin::Root, b.into())
 }
 
 impl_benchmark_test_suite!(Pallet, crate::mock::new_test_ext(), crate::mock::Test);

@@ -21,13 +21,14 @@ use std::sync::Arc;
 
 use parking_lot::RwLock;
 
-use sp_core::Bytes;
+use sp_core::{Bytes, Encode, H256};
+use sp_runtime::traits::{BlakeTwo256, Hash};
 
 use cc_rpc_api::permastore::{
     error::{Error, InvalidCount, Result},
     PermastoreApi,
 };
-use cp_permastore::PermaStorage;
+use cp_permastore::{PermaStorage, CHUNK_SIZE};
 
 #[derive(Debug)]
 pub struct Permastore<T: PermaStorage> {
@@ -49,8 +50,8 @@ const MAX_UPLOAD_DATA_SIZE: u32 = 10 * 1024 * 1024;
 const MAX_DOWNLOAD_DATA_SIZE: u32 = 12 * 1024 * 1024;
 
 impl<T: PermaStorage + 'static> PermastoreApi for Permastore<T> {
-    /// Submit the transaction data under given key.
-    fn submit(&self, key: Bytes, value: Bytes) -> Result<()> {
+    // Can this be an attack as anyone can submit arbitrary data to the node?
+    fn submit(&self, value: Bytes) -> Result<H256> {
         let data_size = value.deref().len() as u32;
         if data_size > MAX_UPLOAD_DATA_SIZE {
             return Err(Error::DataTooLarge(InvalidCount::new(
@@ -58,12 +59,29 @@ impl<T: PermaStorage + 'static> PermastoreApi for Permastore<T> {
                 MAX_UPLOAD_DATA_SIZE,
             )));
         }
+
+        let chunks = value
+            .0
+            .chunks(CHUNK_SIZE as usize)
+            .map(|c| BlakeTwo256::hash(c).encode())
+            .collect();
+
+        let chunk_root = BlakeTwo256::ordered_trie_root(chunks);
+
+        let key = chunk_root.encode();
+
+        log::debug!(
+            target: "rpc::permastore",
+            "Submitted chunk_root: {:?}, stored key: {:?}",
+            chunk_root, key,
+        );
+
         // TODO: verify chunk_root matches the submitted data.
-        self.storage.write().submit(&*key, &*value);
-        Ok(())
+        self.storage.write().submit(key.as_slice(), &*value);
+
+        Ok(chunk_root)
     }
 
-    /// Fetch storage under given key.
     fn retrieve(&self, key: Bytes) -> Result<Option<Bytes>> {
         if let Some(value) = self.storage.read().retrieve(&*key) {
             let data_size = value.len() as u32;

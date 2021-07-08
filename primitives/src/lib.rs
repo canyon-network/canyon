@@ -81,6 +81,9 @@ pub type BlockId = generic::BlockId<Block>;
 /// Unique identifier for the poa Inherent
 pub const POA_INHERENT_IDENTIFIER: sp_inherents::InherentIdentifier = *b"poainher";
 
+/// Unique identifier for the permastore Inherent
+pub const PERMASTORE_INHERENT_IDENTIFIER: sp_inherents::InherentIdentifier = *b"permastr";
+
 /// App-specific crypto used for reporting equivocation/misbehavior in BABE and
 /// GRANDPA. Any rewards for misbehavior reporting will be paid out to this
 /// account.
