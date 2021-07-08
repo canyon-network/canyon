@@ -91,17 +91,10 @@ pub mod pallet {
     impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
         fn on_finalize(n: BlockNumberFor<T>) {
             let current_block_data_size = <BlockDataSize<T>>::take().unwrap_or_default();
-            let last_weave_size = <WeaveSize<T>>::get().unwrap_or_default();
-            let weave_size = last_weave_size + current_block_data_size;
             if current_block_data_size > 0 {
-                <GlobalWeaveSizeList<T>>::append(weave_size);
+                let latest_weave_size = <WeaveSize<T>>::get().unwrap_or_default();
+                <GlobalWeaveSizeList<T>>::append(latest_weave_size);
                 <GlobalBlockNumberIndex<T>>::append(n);
-            }
-            if weave_size > 0 {
-                <frame_system::Pallet<T>>::deposit_log(DigestItem::Consensus(
-                    POA_ENGINE_ID,
-                    weave_size.encode(),
-                ));
             }
         }
     }

@@ -48,6 +48,8 @@ pub use self::inherent::InherentDataProvider;
 pub use self::tx_proof::{build_extrinsic_proof, verify_extrinsic_proof};
 pub use cp_consensus_poa::{ChunkProof, ProofOfAccess};
 
+const MIN_DEPTH: u32 = 1;
+
 /// The maximum depth of attempting to generate a valid PoA.
 ///
 /// TODO: make it configurable in Runtime?
@@ -159,6 +161,7 @@ fn fetch_block<Block: BlockT, Client: BlockBackend<Block>>(
         .deconstruct())
 }
 
+#[allow(unused)]
 fn fetch_header<Block: BlockT, Client: HeaderBackend<Block>>(
     id: BlockId<Block>,
     client: &Client,
@@ -204,8 +207,6 @@ where
 {
     let parent_id = BlockId::Hash(parent);
 
-    let chain_head = fetch_header(parent_id, client)?;
-
     let weave_size = runtime_api.runtime_api().weave_size(&parent_id)?;
 
     if weave_size == 0 {
@@ -213,9 +214,9 @@ where
         return Ok(None);
     }
 
-    for depth in 1..=MAX_DEPTH {
+    for depth in MIN_DEPTH..=MAX_DEPTH {
         log::debug!(target: "poa", "Attempting to generate poa at depth: {}", depth);
-        let recall_byte = calculate_challenge_byte(chain_head.encode(), weave_size, depth);
+        let recall_byte = calculate_challenge_byte(parent.encode(), weave_size, depth);
         let recall_block_number = find_recall_block(parent_id, recall_byte, runtime_api.clone())?;
         let recall_block_id = BlockId::number(recall_block_number);
         log::debug!(
@@ -227,9 +228,13 @@ where
         let (header, extrinsics) = fetch_block(recall_block_id, client)?;
 
         let recall_parent_block_id = BlockId::Hash(*header.parent_hash());
-        let recall_parent_header = fetch_header(recall_parent_block_id, client)?;
+        // let recall_parent_header = fetch_header(recall_parent_block_id, client)?;
 
-        let weave_base = extract_weave_size::<Block>(&recall_parent_header)?;
+        // let weave_base = extract_weave_size::<Block>(&recall_parent_header)?;
+
+        let weave_base = runtime_api
+            .runtime_api()
+            .weave_size(&recall_parent_block_id)?;
 
         let mut sized_extrinsics = Vec::with_capacity(extrinsics.len());
 
@@ -260,8 +265,10 @@ where
             continue;
         }
 
-        let (recall_extrinsic_index, recall_block_data_base) =
+        let (recall_extrinsic_index, _recall_block_data_ceil) =
             find_recall_tx(recall_byte, &sized_extrinsics);
+
+        let recall_block_data_base = weave_base;
 
         // Continue if the recall tx has been forgotten as the forgot
         // txs can not participate in the consensus.
@@ -276,7 +283,14 @@ where
 
         match data_result {
             Ok(Some(tx_data)) => {
-                let transaction_data_offset = recall_byte - recall_block_data_base;
+                let transaction_data_offset = match recall_byte.checked_sub(recall_block_data_base)
+                {
+                    Some(o) => o,
+                    None => panic!(
+                        "Underflow happens! recall_byte: {}, recall_block_data_base: {}",
+                        recall_byte, recall_block_data_base
+                    ),
+                };
 
                 if let Ok(chunk_proof) =
                     ChunkProofBuilder::new(tx_data, CHUNK_SIZE, transaction_data_offset as u32)
