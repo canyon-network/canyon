@@ -87,9 +87,10 @@ pub mod pallet {
     #[pallet::hooks]
     impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
         fn on_finalize(n: BlockNumberFor<T>) {
-            let current_block_data_size = <BlockDataSize<T>>::take().unwrap_or_default();
+            // Clear the temp storage.
+            let current_block_data_size = <BlockDataSize<T>>::take();
             if current_block_data_size > 0 {
-                let latest_weave_size = <WeaveSize<T>>::get().unwrap_or_default();
+                let latest_weave_size = <WeaveSize<T>>::get();
                 <GlobalWeaveSizeList<T>>::append(latest_weave_size);
                 <GlobalBlockNumberIndex<T>>::append(n);
             }
@@ -128,20 +129,17 @@ pub mod pallet {
                 size: data_size as u64,
                 chunk_root,
             };
+
+            // FIXME: this storage is redundant?
             Orders::<T>::insert(&sender, (block_number, extrinsic_index), Some(data_info));
 
             // FIXME: Move to off-chain solution
             PermaData::<T>::insert((block_number, extrinsic_index), data);
 
-            TransactionDataSize::<T>::insert((block_number, extrinsic_index), data_size);
-
-            let current_data_size = <BlockDataSize<T>>::get().unwrap_or_default();
-            <BlockDataSize<T>>::put(current_data_size + data_size as u64);
-
-            let current_weave_size = <WeaveSize<T>>::get().unwrap_or_default();
-            <WeaveSize<T>>::put(current_weave_size + data_size as u64);
-
             ChunkRootIndex::<T>::insert((block_number, extrinsic_index), chunk_root);
+            TransactionDataSize::<T>::insert((block_number, extrinsic_index), data_size);
+            <BlockDataSize<T>>::mutate(|s| s.saturating_add(data_size as u64));
+            <WeaveSize<T>>::mutate(|s| s.saturating_add(data_size as u64));
 
             Self::deposit_event(Event::Stored(sender, chunk_root));
 
@@ -197,11 +195,6 @@ pub mod pallet {
         OrderDoesNotExist,
     }
 
-    /// Map from all storage client to the info regarding the perma storage.
-    #[pallet::storage]
-    #[pallet::getter(fn ledger)]
-    pub(super) type Ledger<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, BalanceOf<T>>;
-
     /// Map of all the storage orders.
     #[pallet::storage]
     #[pallet::getter(fn orders)]
@@ -214,27 +207,26 @@ pub mod pallet {
         Option<DataInfo<T::Hashing>>,
     >;
 
-    /// FIXME: remove this once the offchain transaction data storage is done!
-    /// Temeporary on-chain storage.
-    #[pallet::storage]
-    #[pallet::getter(fn perma_data)]
-    pub(super) type PermaData<T: Config> =
-        StorageMap<_, Blake2_128Concat, (T::BlockNumber, ExtrinsicIndex), Vec<u8>>;
-
     /// Total byte size of data stored onto the network.
     #[pallet::storage]
-    pub(super) type WeaveSize<T: Config> = StorageValue<_, u64>;
+    pub(super) type WeaveSize<T: Config> = StorageValue<_, u64, ValueQuery>;
 
     /// Total byte size of data stored in current building block.
     #[pallet::storage]
     #[pallet::getter(fn block_data_size)]
-    pub(super) type BlockDataSize<T: Config> = StorageValue<_, u64>;
+    pub(super) type BlockDataSize<T: Config> = StorageValue<_, u64, ValueQuery>;
 
     /// (block_number, extrinsic_index) => Option<chunk_root>
     #[pallet::storage]
     #[pallet::getter(fn chunk_root_index)]
     pub(super) type ChunkRootIndex<T: Config> =
         StorageMap<_, Twox64Concat, (T::BlockNumber, ExtrinsicIndex), T::Hash>;
+
+    /// (block_number, extrinsic_index) => transaction_data_size
+    #[pallet::storage]
+    #[pallet::getter(fn transaction_data_size)]
+    pub(super) type TransactionDataSize<T: Config> =
+        StorageMap<_, Twox64Concat, (T::BlockNumber, ExtrinsicIndex), u32, ValueQuery>;
 
     /// FIXME: find a proper way to store these info.
     ///
@@ -243,45 +235,17 @@ pub mod pallet {
     #[pallet::getter(fn global_block_size_index)]
     pub(super) type GlobalWeaveSizeList<T: Config> = StorageValue<_, Vec<u64>>;
 
-    /// FIXME: find a proper way to store these info.
-    ///
-    /// Temp solution for locating the recall block. An ever increasing array of global weave size.
-    #[pallet::storage]
-    #[pallet::getter(fn global_block_size)]
-    pub(super) type GlobalWeaveSize<T: Config> = StorageValue<_, u64>;
-
     /// Temp solution for locating the recall block.
     #[pallet::storage]
     #[pallet::getter(fn global_block_number_index)]
     pub(super) type GlobalBlockNumberIndex<T: Config> = StorageValue<_, Vec<T::BlockNumber>>;
 
+    /// FIXME: remove this once the offchain transaction data storage is done!
+    /// Temeporary on-chain storage.
     #[pallet::storage]
-    #[pallet::getter(fn transaction_data_size)]
-    pub(super) type TransactionDataSize<T: Config> =
-        StorageMap<_, Twox64Concat, (T::BlockNumber, ExtrinsicIndex), u32>;
-
-    #[pallet::genesis_config]
-    pub struct GenesisConfig<T: Config> {
-        pub ledger: Vec<(T::AccountId, BalanceOf<T>)>,
-    }
-
-    #[cfg(feature = "std")]
-    impl<T: Config> Default for GenesisConfig<T> {
-        fn default() -> Self {
-            Self {
-                ledger: Default::default(),
-            }
-        }
-    }
-
-    #[pallet::genesis_build]
-    impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
-        fn build(&self) {
-            for (a, b) in &self.ledger {
-                <Ledger<T>>::insert(a, b);
-            }
-        }
-    }
+    #[pallet::getter(fn perma_data)]
+    pub(super) type PermaData<T: Config> =
+        StorageMap<_, Blake2_128Concat, (T::BlockNumber, ExtrinsicIndex), Vec<u8>>;
 }
 
 impl<T: Config> Pallet<T> {
@@ -337,11 +301,11 @@ impl<T: Config> Pallet<T> {
 
     /// Returns the data size of transaction given `block_number` and `extrinsic_index`.
     pub fn data_size(block_number: T::BlockNumber, extrinsic_index: u32) -> u32 {
-        <TransactionDataSize<T>>::get((block_number, extrinsic_index)).unwrap_or_default()
+        <TransactionDataSize<T>>::get((block_number, extrinsic_index))
     }
 
     pub fn weave_size() -> u64 {
-        <WeaveSize<T>>::get().unwrap_or_default()
+        <WeaveSize<T>>::get()
     }
 }
 
