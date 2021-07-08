@@ -228,11 +228,8 @@ where
         let (header, extrinsics) = fetch_block(recall_block_id, client)?;
 
         let recall_parent_block_id = BlockId::Hash(*header.parent_hash());
-        // let recall_parent_header = fetch_header(recall_parent_block_id, client)?;
 
-        // let weave_base = extract_weave_size::<Block>(&recall_parent_header)?;
-
-        let weave_base = runtime_api
+        let recall_block_weave_base = runtime_api
             .runtime_api()
             .weave_size(&recall_parent_block_id)?;
 
@@ -241,15 +238,16 @@ where
         let mut acc = 0u64;
         for (index, extrinsic) in extrinsics.iter().enumerate() {
             log::trace!(target: "poa", "iterating index: {}, extrinsic: {:?}", index, extrinsic);
-            // FIXME: note extrinsic data size properly.
-            // let tx_size = extrinsic.data_size();
             let tx_size = runtime_api.runtime_api().data_size(
                 &recall_block_id,
                 recall_block_number,
                 index as u32,
             )? as u64;
             if tx_size > 0 {
-                sized_extrinsics.push((index as ExtrinsicIndex, weave_base + acc + tx_size));
+                sized_extrinsics.push((
+                    index as ExtrinsicIndex,
+                    recall_block_weave_base + acc + tx_size,
+                ));
                 acc += tx_size;
             }
         }
@@ -268,8 +266,6 @@ where
         let (recall_extrinsic_index, _recall_block_data_ceil) =
             find_recall_tx(recall_byte, &sized_extrinsics);
 
-        let recall_block_data_base = weave_base;
-
         // Continue if the recall tx has been forgotten as the forgot
         // txs can not participate in the consensus.
         //
@@ -283,12 +279,12 @@ where
 
         match data_result {
             Ok(Some(tx_data)) => {
-                let transaction_data_offset = match recall_byte.checked_sub(recall_block_data_base)
+                let transaction_data_offset = match recall_byte.checked_sub(recall_block_weave_base)
                 {
                     Some(o) => o,
                     None => panic!(
-                        "Underflow happens! recall_byte: {}, recall_block_data_base: {}",
-                        recall_byte, recall_block_data_base
+                        "Underflow happens! recall_byte: {}, recall_block_weave_base: {}",
+                        recall_byte, recall_block_weave_base
                     ),
                 };
 
@@ -349,29 +345,4 @@ where
     }
 
     Err(Error::MaxDepthReached(MAX_DEPTH))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use canyon_primitives::BlockNumber;
-
-    // struct GlobalBlockIndex(Vec<(BlockNumber, DataIndex)>);
-
-    // impl GlobalBlockIndex {
-    // pub fn find_challenge_block(&self, recall_byte: DataIndex) -> BlockNumber {
-    // binary_search(recall_byte, &self.0).0
-    // }
-    // }
-
-    // #[test]
-    // fn test_find_challenge_block() {
-    // let global_index = GlobalBlockIndex(vec![(0, 10), (3, 15), (5, 20), (6, 30), (7, 32)]);
-
-    // assert_eq!(0, global_index.find_callenge_block(5));
-    // assert_eq!(3, global_index.find_callenge_block(15));
-    // assert_eq!(5, global_index.find_callenge_block(16));
-    // assert_eq!(6, global_index.find_callenge_block(29));
-    // assert_eq!(7, global_index.find_callenge_block(31));
-    // }
 }
