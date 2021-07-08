@@ -786,7 +786,6 @@ dependencies = [
  "sp-consensus-babe",
  "sp-core",
  "sp-finality-grandpa",
- "sp-inherents",
  "sp-io",
  "sp-keyring",
  "sp-keystore",

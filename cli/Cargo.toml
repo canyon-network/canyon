@@ -33,7 +33,6 @@ sp-consensus = { git = "https://github.com/canyon-network/substrate", branch = "
 sp-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-finality-grandpa = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-inherents = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-io = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-keyring = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-keystore = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
