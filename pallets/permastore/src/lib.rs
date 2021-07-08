@@ -138,8 +138,8 @@ pub mod pallet {
 
             ChunkRootIndex::<T>::insert((block_number, extrinsic_index), chunk_root);
             TransactionDataSize::<T>::insert((block_number, extrinsic_index), data_size);
-            <BlockDataSize<T>>::mutate(|s| s.saturating_add(data_size as u64));
-            <WeaveSize<T>>::mutate(|s| s.saturating_add(data_size as u64));
+            <BlockDataSize<T>>::mutate(|s| *s += data_size as u64);
+            <WeaveSize<T>>::mutate(|s| *s += data_size as u64);
 
             Self::deposit_event(Event::Stored(sender, chunk_root));
 
