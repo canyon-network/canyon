@@ -223,12 +223,13 @@ pub mod pallet {
     /// Temp solution for locating the recall block. An ever increasing array of global weave size.
     #[pallet::storage]
     #[pallet::getter(fn global_block_size_index)]
-    pub(super) type GlobalWeaveSizeList<T: Config> = StorageValue<_, Vec<u64>>;
+    pub(super) type GlobalWeaveSizeList<T: Config> = StorageValue<_, Vec<u64>, ValueQuery>;
 
     /// Temp solution for locating the recall block.
     #[pallet::storage]
     #[pallet::getter(fn global_block_number_index)]
-    pub(super) type GlobalBlockNumberIndex<T: Config> = StorageValue<_, Vec<T::BlockNumber>>;
+    pub(super) type GlobalBlockNumberIndex<T: Config> =
+        StorageValue<_, Vec<T::BlockNumber>, ValueQuery>;
 }
 
 impl<T: Config> Pallet<T> {
@@ -266,11 +267,13 @@ impl<T: Config> Pallet<T> {
     pub fn find_recall_block(recall_byte: u64) -> Option<T::BlockNumber> {
         frame_support::log::debug!(
             target: "runtime::permastore",
-            "weave_size_list: {:?}, block_number_index: {:?}",
-            <GlobalWeaveSizeList<T>>::get(),
-            <GlobalBlockNumberIndex<T>>::get(),
+            "Global weave size list: {:?}",
+            <GlobalBlockNumberIndex<T>>::get()
+                .iter()
+                .zip(<GlobalWeaveSizeList<T>>::get().iter())
+                .collect::<Vec<_>>()
         );
-        let weave_size_list = <GlobalWeaveSizeList<T>>::get()?;
+        let weave_size_list = <GlobalWeaveSizeList<T>>::get();
 
         let recall_block_number_index =
             match weave_size_list.binary_search_by_key(&recall_byte, |&weave_size| weave_size) {
@@ -280,10 +283,13 @@ impl<T: Config> Pallet<T> {
 
         frame_support::log::debug!(
             target: "runtime::permastore",
-            "recall_block_number_index: {}",
+            "Found the index of recall block number: {}",
             recall_block_number_index,
         );
-        <GlobalBlockNumberIndex<T>>::get().map(|index| index[recall_block_number_index])
+
+        <GlobalBlockNumberIndex<T>>::get()
+            .get(recall_block_number_index)
+            .copied()
     }
 
     /// Returns the data size of transaction given `block_number` and `extrinsic_index`.
