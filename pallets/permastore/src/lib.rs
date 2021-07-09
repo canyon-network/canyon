@@ -89,7 +89,7 @@ pub mod pallet {
             let current_block_data_size = <BlockDataSize<T>>::take();
             if current_block_data_size > 0 {
                 let latest_weave_size = <WeaveSize<T>>::get();
-                <GlobalWeaveSizeList<T>>::append(latest_weave_size);
+                <GlobalWeaveSizeIndex<T>>::append(latest_weave_size);
                 <GlobalBlockNumberIndex<T>>::append(n);
             }
         }
@@ -223,7 +223,7 @@ pub mod pallet {
     /// Temp solution for locating the recall block. An ever increasing array of global weave size.
     #[pallet::storage]
     #[pallet::getter(fn global_block_size_index)]
-    pub(super) type GlobalWeaveSizeList<T: Config> = StorageValue<_, Vec<u64>, ValueQuery>;
+    pub(super) type GlobalWeaveSizeIndex<T: Config> = StorageValue<_, Vec<u64>, ValueQuery>;
 
     /// Temp solution for locating the recall block.
     #[pallet::storage]
@@ -270,10 +270,10 @@ impl<T: Config> Pallet<T> {
             "Global weave size list: {:?}",
             <GlobalBlockNumberIndex<T>>::get()
                 .iter()
-                .zip(<GlobalWeaveSizeList<T>>::get().iter())
+                .zip(<GlobalWeaveSizeIndex<T>>::get().iter())
                 .collect::<Vec<_>>()
         );
-        let weave_size_list = <GlobalWeaveSizeList<T>>::get();
+        let weave_size_list = <GlobalWeaveSizeIndex<T>>::get();
 
         let recall_block_number_index =
             match weave_size_list.binary_search_by_key(&recall_byte, |&weave_size| weave_size) {
