@@ -16,7 +16,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
-//! Permament storage backed by the persistent database.
+//! This crate provides the feature of persistent storage for the transaction data
+//! expected to exist indefinitely.
+//!
+//! Currently, it is implemented on the top of offchain storage, which is a persistent
+//! local storage of each node.
 
 use std::sync::Arc;
 
@@ -63,8 +67,11 @@ where
     ///
     /// # Arguments
     ///
-    /// * `key`: chunk_root of the transaction data.
+    /// * `key`: chunk root of the transaction data.
     /// * `value`: entire data of a transaction.
+    ///
+    /// NOTE: the maximum size of served value is 10MiB,
+    /// this limit should be enforced by the higher level API.
     fn submit(&mut self, key: &[u8], value: &[u8]) {
         self.offchain_storage
             .set(sp_offchain::STORAGE_PREFIX, key, value)
@@ -96,7 +103,7 @@ pub enum Error<Block: BlockT> {
 pub trait ChunkRootBackend<Block: BlockT> {
     /// Returns chunk root given `block_number` and `extrinsic_index`.
     ///
-    /// Usually fetched from the runtime.
+    /// It's fetched from the runtime now.
     fn chunk_root(
         &self,
         at: Option<BlockId<Block>>,
