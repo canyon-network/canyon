@@ -730,8 +730,8 @@ dependencies = [
  "canyon-primitives",
  "canyon-rpc",
  "canyon-runtime",
- "cc-client-db",
  "cc-consensus-poa",
+ "cc-database",
  "frame-benchmarking-cli",
  "frame-support",
  "frame-system",
@@ -1029,29 +1029,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "cc-client-db"
-version = "0.1.0"
-dependencies = [
- "canyon-primitives",
- "cp-permastore",
- "log",
- "parity-scale-codec",
- "sc-client-db",
- "sp-api",
- "sp-blockchain",
- "sp-core",
- "sp-offchain",
- "sp-runtime",
- "thiserror",
-]
-
-[[package]]
 name = "cc-consensus-poa"
 version = "0.1.0"
 dependencies = [
  "async-trait",
  "canyon-primitives",
- "cc-client-db",
+ "cc-database",
  "cp-consensus-poa",
  "cp-permastore",
  "criterion",
@@ -1071,6 +1054,23 @@ dependencies = [
  "sp-trie",
  "substrate-test-runtime",
  "substrate-test-runtime-client",
+ "thiserror",
+]
+
+[[package]]
+name = "cc-database"
+version = "0.1.0"
+dependencies = [
+ "canyon-primitives",
+ "cp-permastore",
+ "log",
+ "parity-scale-codec",
+ "sc-client-db",
+ "sp-api",
+ "sp-blockchain",
+ "sp-core",
+ "sp-offchain",
+ "sp-runtime",
  "thiserror",
 ]
 

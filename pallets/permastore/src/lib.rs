@@ -100,14 +100,10 @@ pub mod pallet {
         /// Stores the data permanently.
         ///
         /// The minimum data size is 1 bytes, the maximum is `MAX_DATA_SIZE`.
-        /// The digest of data will be recorded on chain, the actual data will
-        /// be stored off-chain.
+        /// The digest of data will be recorded on chain, the actual data has
+        /// to be stored off-chain before executing this extrinsic.
         #[pallet::weight(0)]
-        pub fn store(
-            origin: OriginFor<T>,
-            data_size: u32,
-            chunk_root: T::Hash,
-        ) -> DispatchResultWithPostInfo {
+        pub fn store(origin: OriginFor<T>, data_size: u32, chunk_root: T::Hash) -> DispatchResult {
             let sender = ensure_signed(origin)?;
 
             ensure!(
@@ -116,6 +112,8 @@ pub mod pallet {
             );
             ensure!(Self::stored_locally(&chunk_root), Error::<T>::NotStored);
 
+            // TODO: ensure the validity of stored data in the local DB?
+
             let storage_fee = Self::charge_storage_fee(&sender, data_size)?;
 
             let block_number = frame_system::Pallet::<T>::block_number();
@@ -123,23 +121,28 @@ pub mod pallet {
 
             Orders::<T>::insert(&sender, (block_number, extrinsic_index), storage_fee);
 
+            // FIXME: store these info in db directly.
             ChunkRootIndex::<T>::insert((block_number, extrinsic_index), chunk_root);
             TransactionDataSize::<T>::insert((block_number, extrinsic_index), data_size);
+
             <BlockDataSize<T>>::mutate(|s| *s += data_size as u64);
             <WeaveSize<T>>::mutate(|s| *s += data_size as u64);
 
             Self::deposit_event(Event::Stored(sender, chunk_root));
 
-            Ok(().into())
+            Ok(())
         }
 
         /// Forgets the data.
+        ///
+        /// By the mean of forgetting a data, this piece of data will be prevented from
+        /// being selected as the random data source in the PoA consensus.
         #[pallet::weight(0)]
         pub fn forget(
             origin: OriginFor<T>,
             block_number: T::BlockNumber,
             extrinsic_index: ExtrinsicIndex,
-        ) -> DispatchResultWithPostInfo {
+        ) -> DispatchResult {
             let sender = ensure_signed(origin)?;
 
             // Remove the order.
@@ -151,7 +154,7 @@ pub mod pallet {
 
             Self::deposit_event(Event::Forgot(block_number, extrinsic_index));
 
-            Ok(().into())
+            Ok(())
         }
     }
 
