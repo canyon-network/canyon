@@ -133,10 +133,12 @@ pub mod pallet {
             Ok(())
         }
 
-        /// Forgets the data.
+        /// _Delete_ the data from the network by removing the incentive
+        /// to keep storing them.
         ///
-        /// By the mean of forgetting a data, this piece of data will be prevented from
-        /// being selected as the random data source in the PoA consensus.
+        /// By the mean of forgetting a data, this piece of data will be
+        /// prevented from being selected as the random data source in the
+        /// PoA consensus.
         #[pallet::weight(0)]
         pub fn forget(
             origin: OriginFor<T>,
@@ -245,7 +247,8 @@ impl<T: Config> Pallet<T> {
 
     /// Charges the perpetual storage fee.
     ///
-    /// TODO: Currently all the fee is simply transfered to the treasury.
+    /// TODO: Currently all the fee is simply transfered to the treasury,
+    /// we might want a new destination for that.
     fn charge_storage_fee(
         who: &T::AccountId,
         data_size: u32,
@@ -297,6 +300,7 @@ impl<T: Config> Pallet<T> {
         <TransactionDataSize<T>>::get((block_number, extrinsic_index))
     }
 
+    /// Returns the total byte size of weave.
     pub fn weave_size() -> u64 {
         <WeaveSize<T>>::get()
     }
