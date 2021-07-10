@@ -23,7 +23,7 @@
 #![recursion_limit = "256"]
 #![allow(clippy::identity_op)]
 
-use codec::{Decode, Encode};
+use codec::{Decode, Encode, MaxEncodedLen};
 use static_assertions::const_assert;
 
 use sp_api::impl_runtime_apis;
@@ -54,8 +54,8 @@ use sp_version::RuntimeVersion;
 use frame_support::{
     construct_runtime, parameter_types,
     traits::{
-        Currency, Imbalance, InstanceFilter, KeyOwnerProofSystem, LockIdentifier, MaxEncodedLen,
-        OnUnbalanced, U128CurrencyToVote,
+        Currency, Imbalance, InstanceFilter, KeyOwnerProofSystem, LockIdentifier, OnUnbalanced,
+        U128CurrencyToVote,
     },
     weights::{
         constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
@@ -257,7 +257,7 @@ parameter_types! {
 #[derive(
     Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, RuntimeDebug, MaxEncodedLen,
 )]
-#[max_encoded_len_crate(frame_support::max_encoded_len)]
+#[max_encoded_len_mod(frame_support::max_encoded_len)]
 pub enum ProxyType {
     Any,
     NonTransfer,
@@ -1208,8 +1208,9 @@ impl_runtime_apis! {
         fn validate_transaction(
             source: TransactionSource,
             tx: <Block as BlockT>::Extrinsic,
+            block_hash: <Block as BlockT>::Hash,
         ) -> TransactionValidity {
-            Executive::validate_transaction(source, tx)
+            Executive::validate_transaction(source, tx, block_hash)
         }
     }
 
