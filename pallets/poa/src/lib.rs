@@ -47,10 +47,10 @@ use cp_consensus_poa::{PoaOutcome, ProofOfAccess, POA_ENGINE_ID, POA_INHERENT_ID
 
 // #[cfg(any(feature = "runtime-benchmarks", test))]
 // mod benchmarking;
-// #[cfg(all(feature = "std", test))]
-// mod mock;
-// #[cfg(all(feature = "std", test))]
-// mod tests;
+#[cfg(all(feature = "std", test))]
+mod mock;
+#[cfg(all(feature = "std", test))]
+mod tests;
 
 /// A type alias for the balance type from this pallet's point of view.
 type BalanceOf<T> = <T as pallet_balances::Config>::Balance;
@@ -154,7 +154,7 @@ impl<T: Config> ProvideInherent for Pallet<T> {
 
     fn create_inherent(data: &InherentData) -> Option<Self::Call> {
         let poa_outcome: PoaOutcome = match data.get_data(&Self::INHERENT_IDENTIFIER) {
-            Ok(Some(d)) => d,
+            Ok(Some(outcome)) => outcome,
             Ok(None) => return None,
             Err(e) => {
                 frame_support::log::error!(
