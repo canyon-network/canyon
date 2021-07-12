@@ -32,7 +32,7 @@ use sp_runtime::{
     BuildStorage,
 };
 // Reexport crate as its pallet name for construct_runtime.
-use crate as pallet_market;
+use crate as pallet_poa;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -46,7 +46,7 @@ frame_support::construct_runtime!(
     {
         System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
         Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-        Poa: pallet_market::{Pallet, Call, Storage, Config<T>, Event<T>},
+        Poa: pallet_poa::{Pallet, Call, Storage, Config<T>, Event<T>},
     }
 );
 
@@ -78,12 +78,17 @@ impl frame_system::Config for Test {
     type OnKilledAccount = ();
     type SystemWeightInfo = ();
     type SS58Prefix = ();
+    type OnSetCode = ();
 }
 parameter_types! {
     pub const ExistentialDeposit: u64 = 1;
+    pub const MaxLocks: u32 = 50;
+    pub const MaxReserves: u32 = 50;
 }
 impl pallet_balances::Config for Test {
-    type MaxLocks = ();
+    type MaxLocks = MaxLocks;
+    type MaxReserves = MaxReserves;
+    type ReserveIdentifier = [u8; 8];
     type Balance = u64;
     type DustRemoval = ();
     type Event = Event;
@@ -100,13 +105,10 @@ impl Config for Test {
 pub fn new_test_ext() -> sp_io::TestExternalities {
     let t = GenesisConfig {
         // We use default for brevity, but you can configure as desired if needed.
-        frame_system: Default::default(),
-        pallet_balances: Default::default(),
-        pallet_market: pallet_market::GenesisConfig {
-            dummy: 42,
-            // we configure the map with (key, value) pairs.
-            bar: vec![(1, 2), (2, 3)],
-            foo: 24,
+        system: Default::default(),
+        balances: Default::default(),
+        poa: pallet_poa::GenesisConfig {
+            validator_initial_capacity: Default::default(),
         },
     }
     .build_storage()
