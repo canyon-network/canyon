@@ -46,7 +46,7 @@ frame_support::construct_runtime!(
     {
         System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
         Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-        Poa: pallet_poa::{Pallet, Call, Storage, Config<T>, Event<T>},
+        Poa: pallet_poa::{Pallet, Call, Storage, Event<T>},
     }
 );
 
@@ -107,9 +107,6 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
         // We use default for brevity, but you can configure as desired if needed.
         system: Default::default(),
         balances: Default::default(),
-        poa: pallet_poa::GenesisConfig {
-            validator_initial_capacity: Default::default(),
-        },
     }
     .build_storage()
     .unwrap();

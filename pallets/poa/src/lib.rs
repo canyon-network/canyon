@@ -24,14 +24,15 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(unused)]
 
-use codec::Encode;
+use codec::{Decode, Encode};
 
 use sp_runtime::{
     generic::DigestItem,
-    traits::{Bounded, DispatchInfoOf, SaturatedConversion, SignedExtension},
+    traits::{AtLeast32BitUnsigned, Bounded, DispatchInfoOf, SaturatedConversion, SignedExtension},
     transaction_validity::{
         InvalidTransaction, TransactionValidity, TransactionValidityError, ValidTransaction,
     },
+    Percent,
 };
 use sp_std::{marker::PhantomData, prelude::*};
 
@@ -39,6 +40,7 @@ use frame_support::{
     inherent::{InherentData, InherentIdentifier, MakeFatalError, ProvideInherent},
     traits::IsSubType,
     weights::{ClassifyDispatch, DispatchClass, Pays, PaysFee, WeighData, Weight},
+    RuntimeDebug,
 };
 use frame_system::ensure_signed;
 
@@ -57,6 +59,50 @@ type BalanceOf<T> = <T as pallet_balances::Config>::Balance;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
+
+/// Historical info about the average value of depth.
+///
+/// This struct is used for calculating the historical average depth
+/// of a validator, which implies the storage capacity per validator.
+/// The greater the depth average, the less the local storage of node theoretically.
+#[derive(RuntimeDebug, Clone, Encode, Decode)]
+pub struct DepthInfo<BlockNumber> {
+    /// Sum of total depth so far.
+    pub total_depth: Depth,
+    /// Number of blocks authored by a validator since the weave is non-empty.
+    ///
+    /// The `blocks` here is not equal to the number of total blocks
+    /// authored by a validator since genesis block because the poa
+    /// contruction is skipped when the weave is empty, the blocks
+    /// authored in that period are not counted.
+    pub blocks: BlockNumber,
+}
+
+impl<BlockNumber: AtLeast32BitUnsigned + Copy> DepthInfo<BlockNumber> {
+    /// Adds a new depth to the historical depth info.
+    ///
+    /// # NOTE
+    ///
+    /// `depth` is ensured to be greater than 0 when creating inherent.
+    /// The smallest depth is 1, which means the block author located the
+    /// recall block at the first time.
+    pub fn add_depth(&mut self, depth: Depth) {
+        self.total_depth.saturating_add(depth);
+        self.blocks.saturating_add(1u32.into());
+    }
+
+    /// Returns the calculated storage capacity given historical depth info.
+    ///
+    /// ```text
+    ///    average_depth = self.total_depth / self.blocks
+    ///
+    /// storage_capacity = 1 / average_depth
+    ///                  = self.blocks / self.total_depth
+    /// ```
+    pub fn as_storage_capacity(&self) -> Percent {
+        Percent::from_rational(self.blocks, self.total_depth.saturated_into())
+    }
+}
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -89,7 +135,20 @@ pub mod pallet {
         ) -> DispatchResult {
             ensure_root(origin)?;
 
-            // TODO: record the block author's storage capacity.
+            let block_author = T::AccountId::default();
+
+            if let Some(mut old) = HistoryDepth::<T>::get(&block_author) {
+                old.add_depth(depth);
+                HistoryDepth::<T>::insert(&block_author, old);
+            } else {
+                HistoryDepth::<T>::insert(
+                    &block_author,
+                    DepthInfo {
+                        total_depth: depth,
+                        blocks: 1u32.into(),
+                    },
+                );
+            }
 
             Ok(())
         }
@@ -111,39 +170,15 @@ pub mod pallet {
         MandatoryInherentMissing,
     }
 
-    /// The estimate of the proportion of validator's local storage to
-    /// the entire network storage.
+    /// The probabilistic estimate of the proportion of each
+    /// validator's local storage to the entire network storage.
     ///
     /// Indicated by the average depth of poa generation of a validator.
-    /// The smaller the depth, the greater the capacity. The smallest depth
-    /// is 1, which means the validator stores the entire weave locally.
+    /// The smaller the depth, the greater the storage capacity.
     #[pallet::storage]
-    #[pallet::getter(fn capacity_estimation)]
-    pub(super) type CapacityEstimation<T: Config> =
-        StorageMap<_, Blake2_128Concat, T::AccountId, Depth>;
-
-    #[pallet::genesis_config]
-    pub struct GenesisConfig<T: Config> {
-        pub validator_initial_capacity: Vec<(T::AccountId, Depth)>,
-    }
-
-    #[cfg(feature = "std")]
-    impl<T: Config> Default for GenesisConfig<T> {
-        fn default() -> Self {
-            Self {
-                validator_initial_capacity: Default::default(),
-            }
-        }
-    }
-
-    #[pallet::genesis_build]
-    impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
-        fn build(&self) {
-            for (validator, depth) in &self.validator_initial_capacity {
-                <CapacityEstimation<T>>::insert(validator, depth);
-            }
-        }
-    }
+    #[pallet::getter(fn history_depth)]
+    pub(super) type HistoryDepth<T: Config> =
+        StorageMap<_, Blake2_128Concat, T::AccountId, DepthInfo<T::BlockNumber>>;
 }
 
 impl<T: Config> ProvideInherent for Pallet<T> {
@@ -169,6 +204,9 @@ impl<T: Config> ProvideInherent for Pallet<T> {
         match poa_outcome {
             PoaOutcome::Justification(poa) => {
                 let depth = poa.depth;
+
+                assert!(depth > 0, "depth must be greater than 0");
+
                 <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(
                     POA_ENGINE_ID,
                     poa.encode(),
