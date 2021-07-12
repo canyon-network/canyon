@@ -21,7 +21,7 @@ sp-trie = { git = "https://github.com/canyon-network/substrate", branch = "canyo
 sc-client-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 
 canyon-primitives = { path = "../../../primitives" }
-cc-database = { path = "../../database" }
+cc-datastore = { path = "../../datastore" }
 cp-consensus-poa = { path = "../../../primitives/consensus/poa" }
 cp-permastore = { path = "../../../primitives/permastore" }
 
