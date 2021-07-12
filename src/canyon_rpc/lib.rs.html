@@ -283,13 +283,13 @@
 <span class="kw">use</span> <span class="ident">sc_finality_grandpa_rpc</span>::<span class="ident">GrandpaRpcHandler</span>;
 <span class="kw">use</span> <span class="ident">sc_rpc</span>::<span class="ident">SubscriptionTaskExecutor</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sc_rpc_api</span>::<span class="ident">DenyUnsafe</span>;
+<span class="kw">use</span> <span class="ident">sc_transaction_pool_api</span>::<span class="ident">TransactionPool</span>;
 <span class="kw">use</span> <span class="ident">sp_api</span>::<span class="ident">ProvideRuntimeApi</span>;
 <span class="kw">use</span> <span class="ident">sp_block_builder</span>::<span class="ident">BlockBuilder</span>;
 <span class="kw">use</span> <span class="ident">sp_blockchain</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">BlockChainError</span>, <span class="ident">HeaderBackend</span>, <span class="ident">HeaderMetadata</span>};
 <span class="kw">use</span> <span class="ident">sp_consensus</span>::<span class="ident">SelectChain</span>;
 <span class="kw">use</span> <span class="ident">sp_consensus_babe</span>::<span class="ident">BabeApi</span>;
 <span class="kw">use</span> <span class="ident">sp_keystore</span>::<span class="ident">SyncCryptoStorePtr</span>;
-<span class="kw">use</span> <span class="ident">sp_transaction_pool</span>::<span class="ident">TransactionPool</span>;
 
 <span class="kw">use</span> <span class="ident">canyon_primitives</span>::{<span class="ident">AccountId</span>, <span class="ident">Balance</span>, <span class="ident">Block</span>, <span class="ident">BlockNumber</span>, <span class="ident">Hash</span>, <span class="ident">Index</span>};
 

@@ -366,9 +366,6 @@
 <span id="363">363</span>
 <span id="364">364</span>
 <span id="365">365</span>
-<span id="366">366</span>
-<span id="367">367</span>
-<span id="368">368</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -398,14 +395,12 @@
 <span class="kw">use</span> <span class="ident">codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
 
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{
-    <span class="ident">generic</span>::<span class="ident">DataInfo</span>,
     <span class="ident">traits</span>::{<span class="ident">AccountIdConversion</span>, <span class="ident">DispatchInfoOf</span>, <span class="ident">SaturatedConversion</span>, <span class="ident">SignedExtension</span>},
     <span class="ident">transaction_validity</span>::{<span class="ident">InvalidTransaction</span>, <span class="ident">TransactionValidity</span>, <span class="ident">TransactionValidityError</span>},
 };
 <span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">marker</span>::<span class="ident">PhantomData</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
 
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
-    <span class="ident">dispatch</span>::<span class="ident">DispatchResult</span>,
     <span class="ident">ensure</span>,
     <span class="ident">traits</span>::{<span class="ident">Currency</span>, <span class="ident">ExistenceRequirement</span>, <span class="ident">Get</span>, <span class="ident">IsSubType</span>},
 };
@@ -463,7 +458,7 @@
             <span class="kw">let</span> <span class="ident">current_block_data_size</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">BlockDataSize</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">take</span>();
             <span class="kw">if</span> <span class="ident">current_block_data_size</span> <span class="op">&gt;</span> <span class="number">0</span> {
                 <span class="kw">let</span> <span class="ident">latest_weave_size</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">WeaveSize</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
-                <span class="op">&lt;</span><span class="ident">GlobalWeaveSizeList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">append</span>(<span class="ident">latest_weave_size</span>);
+                <span class="op">&lt;</span><span class="ident">GlobalWeaveSizeIndex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">append</span>(<span class="ident">latest_weave_size</span>);
                 <span class="op">&lt;</span><span class="ident">GlobalBlockNumberIndex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">append</span>(<span class="ident">n</span>);
             }
         }
@@ -474,15 +469,10 @@
         <span class="doccomment">/// Stores the data permanently.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The minimum data size is 1 bytes, the maximum is `MAX_DATA_SIZE`.</span>
-        <span class="doccomment">/// The digest of data will be recorded on chain, the actual data will</span>
-        <span class="doccomment">/// be stored off-chain.</span>
+        <span class="doccomment">/// The digest of data will be recorded on chain, the actual data has</span>
+        <span class="doccomment">/// to be stored off-chain before executing this extrinsic.</span>
         <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">store</span>(
-            <span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-            <span class="ident">data_size</span>: <span class="ident">u32</span>,
-            <span class="ident">chunk_root</span>: <span class="ident">T</span>::<span class="ident">Hash</span>,
-            <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="comment">// TODO: remove this argument.</span>
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">store</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">data_size</span>: <span class="ident">u32</span>, <span class="ident">chunk_root</span>: <span class="ident">T</span>::<span class="ident">Hash</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
             <span class="kw">let</span> <span class="ident">sender</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 
             <span class="macro">ensure</span><span class="macro">!</span>(
@@ -491,44 +481,43 @@
             );
             <span class="macro">ensure</span><span class="macro">!</span>(<span class="self">Self</span>::<span class="ident">stored_locally</span>(<span class="kw-2">&amp;</span><span class="ident">chunk_root</span>), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NotStored</span>);
 
-            <span class="self">Self</span>::<span class="ident">charge_storage_fee</span>(<span class="kw-2">&amp;</span><span class="ident">sender</span>, <span class="ident">data_size</span>)<span class="question-mark">?</span>;
+            <span class="comment">// TODO: ensure the validity of stored data in the local DB?</span>
 
-            <span class="comment">// Notes who stores the data.</span>
-            <span class="comment">// who, (block_number, extrinsic_index) =&gt; data_info</span>
+            <span class="kw">let</span> <span class="ident">storage_fee</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">charge_storage_fee</span>(<span class="kw-2">&amp;</span><span class="ident">sender</span>, <span class="ident">data_size</span>)<span class="question-mark">?</span>;
+
             <span class="kw">let</span> <span class="ident">block_number</span> <span class="op">=</span> <span class="ident">frame_system</span>::<span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">block_number</span>();
             <span class="kw">let</span> <span class="ident">extrinsic_index</span> <span class="op">=</span> <span class="ident">frame_system</span>::<span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">extrinsic_index</span>().<span class="ident">unwrap_or_default</span>();
-            <span class="kw">let</span> <span class="ident">data_info</span> <span class="op">=</span> <span class="ident">DataInfo</span> {
-                <span class="ident">size</span>: <span class="ident">data_size</span> <span class="kw">as</span> <span class="ident">u64</span>,
-                <span class="ident">chunk_root</span>,
-            };
 
-            <span class="comment">// FIXME: this storage is redundant?</span>
-            <span class="ident">Orders</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="ident">sender</span>, (<span class="ident">block_number</span>, <span class="ident">extrinsic_index</span>), <span class="prelude-val">Some</span>(<span class="ident">data_info</span>));
+            <span class="ident">Orders</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="ident">sender</span>, (<span class="ident">block_number</span>, <span class="ident">extrinsic_index</span>), <span class="ident">storage_fee</span>);
 
-            <span class="comment">// FIXME: Move to off-chain solution</span>
-            <span class="ident">PermaData</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">insert</span>((<span class="ident">block_number</span>, <span class="ident">extrinsic_index</span>), <span class="ident">data</span>);
-
+            <span class="comment">// FIXME: store these info in db directly.</span>
             <span class="ident">ChunkRootIndex</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">insert</span>((<span class="ident">block_number</span>, <span class="ident">extrinsic_index</span>), <span class="ident">chunk_root</span>);
             <span class="ident">TransactionDataSize</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">insert</span>((<span class="ident">block_number</span>, <span class="ident">extrinsic_index</span>), <span class="ident">data_size</span>);
+
             <span class="op">&lt;</span><span class="ident">BlockDataSize</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">mutate</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">s</span> <span class="op">+</span><span class="op">=</span> <span class="ident">data_size</span> <span class="kw">as</span> <span class="ident">u64</span>);
             <span class="op">&lt;</span><span class="ident">WeaveSize</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">mutate</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">s</span> <span class="op">+</span><span class="op">=</span> <span class="ident">data_size</span> <span class="kw">as</span> <span class="ident">u64</span>);
 
             <span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">Stored</span>(<span class="ident">sender</span>, <span class="ident">chunk_root</span>));
 
-            <span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
+            <span class="prelude-val">Ok</span>(())
         }
 
-        <span class="doccomment">/// Forgets the data.</span>
+        <span class="doccomment">/// _Delete_ the data from the network by removing the incentive</span>
+        <span class="doccomment">/// to keep storing them.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// By the mean of forgetting a data, this piece of data will be</span>
+        <span class="doccomment">/// prevented from being selected as the random data source in the</span>
+        <span class="doccomment">/// PoA consensus.</span>
         <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">forget</span>(
             <span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
             <span class="ident">block_number</span>: <span class="ident">T</span>::<span class="ident">BlockNumber</span>,
             <span class="ident">extrinsic_index</span>: <span class="ident">ExtrinsicIndex</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
             <span class="kw">let</span> <span class="ident">sender</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// Remove the order.</span>
-            <span class="kw">let</span> <span class="ident">_data_info</span> <span class="op">=</span> <span class="ident">Orders</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">take</span>(<span class="kw-2">&amp;</span><span class="ident">sender</span>, (<span class="ident">block_number</span>, <span class="ident">extrinsic_index</span>))
+            <span class="kw">let</span> <span class="ident">_fee</span> <span class="op">=</span> <span class="ident">Orders</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">take</span>(<span class="kw-2">&amp;</span><span class="ident">sender</span>, (<span class="ident">block_number</span>, <span class="ident">extrinsic_index</span>))
                 .<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">OrderDoesNotExist</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// refund the remaining fee.</span>
@@ -536,7 +525,7 @@
 
             <span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">Forgot</span>(<span class="ident">block_number</span>, <span class="ident">extrinsic_index</span>));
 
-            <span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
+            <span class="prelude-val">Ok</span>(())
         }
     }
 
@@ -576,7 +565,7 @@
         <span class="ident">T</span>::<span class="ident">AccountId</span>,
         <span class="ident">Twox64Concat</span>,
         (<span class="ident">T</span>::<span class="ident">BlockNumber</span>, <span class="ident">ExtrinsicIndex</span>),
-        <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DataInfo</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">Hashing</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="op">&gt;</span>;
 
     <span class="doccomment">/// Total byte size of data stored onto the network.</span>
@@ -605,19 +594,13 @@
     <span class="doccomment">/// Temp solution for locating the recall block. An ever increasing array of global weave size.</span>
     <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">storage</span>]</span>
     <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">getter</span>(<span class="kw">fn</span> <span class="ident">global_block_size_index</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type</span> <span class="ident">GlobalWeaveSizeList</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type</span> <span class="ident">GlobalWeaveSizeIndex</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Temp solution for locating the recall block.</span>
     <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">storage</span>]</span>
     <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">getter</span>(<span class="kw">fn</span> <span class="ident">global_block_number_index</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type</span> <span class="ident">GlobalBlockNumberIndex</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BlockNumber</span><span class="op">&gt;</span><span class="op">&gt;</span>;
-
-    <span class="doccomment">/// FIXME: remove this once the offchain transaction data storage is done!</span>
-    <span class="doccomment">/// Temeporary on-chain storage.</span>
-    <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">storage</span>]</span>
-    <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">getter</span>(<span class="kw">fn</span> <span class="ident">perma_data</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type</span> <span class="ident">PermaData</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
-        <span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Blake2_128Concat</span>, (<span class="ident">T</span>::<span class="ident">BlockNumber</span>, <span class="ident">ExtrinsicIndex</span>), <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type</span> <span class="ident">GlobalBlockNumberIndex</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
+        <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BlockNumber</span><span class="op">&gt;</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
@@ -633,11 +616,16 @@
 
     <span class="doccomment">/// Charges the perpetual storage fee.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// TODO: Currently all the fee is simply transfered to the treasury.</span>
-    <span class="kw">fn</span> <span class="ident">charge_storage_fee</span>(<span class="ident">who</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>::<span class="ident">AccountId</span>, <span class="ident">data_size</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResult</span> {
+    <span class="doccomment">/// TODO: Currently all the fee is simply transfered to the treasury,</span>
+    <span class="doccomment">/// we might want a new destination for that.</span>
+    <span class="kw">fn</span> <span class="ident">charge_storage_fee</span>(
+        <span class="ident">who</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>::<span class="ident">AccountId</span>,
+        <span class="ident">data_size</span>: <span class="ident">u32</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">sp_runtime</span>::<span class="ident">DispatchError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">fee</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">calculate_storage_fee</span>(<span class="ident">data_size</span>);
         <span class="kw">let</span> <span class="ident">treasury_account</span>: <span class="ident">T</span>::<span class="ident">AccountId</span> <span class="op">=</span> <span class="ident">T</span>::<span class="ident">TreasuryPalletId</span>::<span class="ident">get</span>().<span class="ident">into_account</span>();
-        <span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">transfer</span>(<span class="ident">who</span>, <span class="kw-2">&amp;</span><span class="ident">treasury_account</span>, <span class="ident">fee</span>, <span class="ident">ExistenceRequirement</span>::<span class="ident">KeepAlive</span>)
+        <span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">transfer</span>(<span class="ident">who</span>, <span class="kw-2">&amp;</span><span class="ident">treasury_account</span>, <span class="ident">fee</span>, <span class="ident">ExistenceRequirement</span>::<span class="ident">KeepAlive</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">fee</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">refund_storage_fee</span>(<span class="ident">_who</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>::<span class="ident">AccountId</span>, <span class="ident">_created_at</span>: <span class="ident">T</span>::<span class="ident">BlockNumber</span>) {}
@@ -651,11 +639,13 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_recall_block</span>(<span class="ident">recall_byte</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BlockNumber</span><span class="op">&gt;</span> {
         <span class="ident">frame_support</span>::<span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
             <span class="ident">target</span>: <span class="string">&quot;runtime::permastore&quot;</span>,
-            <span class="string">&quot;weave_size_list: {:?}, block_number_index: {:?}&quot;</span>,
-            <span class="op">&lt;</span><span class="ident">GlobalWeaveSizeList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(),
-            <span class="op">&lt;</span><span class="ident">GlobalBlockNumberIndex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(),
+            <span class="string">&quot;Global weave size list: {:?}&quot;</span>,
+            <span class="op">&lt;</span><span class="ident">GlobalBlockNumberIndex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>()
+                .<span class="ident">iter</span>()
+                .<span class="ident">zip</span>(<span class="op">&lt;</span><span class="ident">GlobalWeaveSizeIndex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>().<span class="ident">iter</span>())
+                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
         );
-        <span class="kw">let</span> <span class="ident">weave_size_list</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">GlobalWeaveSizeList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">weave_size_list</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">GlobalWeaveSizeIndex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
 
         <span class="kw">let</span> <span class="ident">recall_block_number_index</span> <span class="op">=</span>
             <span class="kw">match</span> <span class="ident">weave_size_list</span>.<span class="ident">binary_search_by_key</span>(<span class="kw-2">&amp;</span><span class="ident">recall_byte</span>, <span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">weave_size</span><span class="op">|</span> <span class="ident">weave_size</span>) {
@@ -665,10 +655,13 @@
 
         <span class="ident">frame_support</span>::<span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
             <span class="ident">target</span>: <span class="string">&quot;runtime::permastore&quot;</span>,
-            <span class="string">&quot;recall_block_number_index: {}&quot;</span>,
+            <span class="string">&quot;Found the index of recall block number: {}&quot;</span>,
             <span class="ident">recall_block_number_index</span>,
         );
-        <span class="op">&lt;</span><span class="ident">GlobalBlockNumberIndex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">index</span><span class="op">|</span> <span class="ident">index</span>[<span class="ident">recall_block_number_index</span>])
+
+        <span class="op">&lt;</span><span class="ident">GlobalBlockNumberIndex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>()
+            .<span class="ident">get</span>(<span class="ident">recall_block_number_index</span>)
+            .<span class="ident">copied</span>()
     }
 
     <span class="doccomment">/// Returns the data size of transaction given `block_number` and `extrinsic_index`.</span>
@@ -676,6 +669,7 @@
         <span class="op">&lt;</span><span class="ident">TransactionDataSize</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>((<span class="ident">block_number</span>, <span class="ident">extrinsic_index</span>))
     }
 
+    <span class="doccomment">/// Returns the total byte size of weave.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">weave_size</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
         <span class="op">&lt;</span><span class="ident">WeaveSize</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>()
     }

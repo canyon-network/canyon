@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["cc_client_db"] = [];
+implementors["cc_database"] = [];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

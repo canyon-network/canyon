@@ -1482,6 +1482,7 @@
 <span id="1479">1479</span>
 <span id="1480">1480</span>
 <span id="1481">1481</span>
+<span id="1482">1482</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -1508,7 +1509,7 @@
 <span class="attribute">#![<span class="ident">recursion_limit</span> <span class="op">=</span> <span class="string">&quot;256&quot;</span>]</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">identity_op</span>)]</span>
 
-<span class="kw">use</span> <span class="ident">codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
+<span class="kw">use</span> <span class="ident">codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>, <span class="ident">MaxEncodedLen</span>};
 <span class="kw">use</span> <span class="ident">static_assertions</span>::<span class="ident">const_assert</span>;
 
 <span class="kw">use</span> <span class="ident">sp_api</span>::<span class="ident">impl_runtime_apis</span>;
@@ -1539,8 +1540,8 @@
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
     <span class="ident">construct_runtime</span>, <span class="ident">parameter_types</span>,
     <span class="ident">traits</span>::{
-        <span class="ident">Currency</span>, <span class="ident">Imbalance</span>, <span class="ident">InstanceFilter</span>, <span class="ident">KeyOwnerProofSystem</span>, <span class="ident">LockIdentifier</span>, <span class="ident">MaxEncodedLen</span>,
-        <span class="ident">OnUnbalanced</span>, <span class="ident">U128CurrencyToVote</span>,
+        <span class="ident">Currency</span>, <span class="ident">Imbalance</span>, <span class="ident">InstanceFilter</span>, <span class="ident">KeyOwnerProofSystem</span>, <span class="ident">LockIdentifier</span>, <span class="ident">OnUnbalanced</span>,
+        <span class="ident">U128CurrencyToVote</span>,
     },
     <span class="ident">weights</span>::{
         <span class="ident">constants</span>::{<span class="ident">BlockExecutionWeight</span>, <span class="ident">ExtrinsicBaseWeight</span>, <span class="ident">RocksDbWeight</span>, <span class="ident">WEIGHT_PER_SECOND</span>},
@@ -1742,7 +1743,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(
     <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">MaxEncodedLen</span>,
 )]</span>
-<span class="attribute">#[<span class="ident">max_encoded_len_crate</span>(<span class="ident">frame_support</span>::<span class="ident">max_encoded_len</span>)]</span>
+<span class="attribute">#[<span class="ident">max_encoded_len_mod</span>(<span class="ident">frame_support</span>::<span class="ident">max_encoded_len</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ProxyType</span> {
     <span class="ident">Any</span>,
     <span class="ident">NonTransfer</span>,
@@ -2693,8 +2694,9 @@
         <span class="kw">fn</span> <span class="ident">validate_transaction</span>(
             <span class="ident">source</span>: <span class="ident">TransactionSource</span>,
             <span class="ident">tx</span>: <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span>::<span class="ident">Extrinsic</span>,
+            <span class="ident">block_hash</span>: <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span>::<span class="ident">Hash</span>,
         ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TransactionValidity</span> {
-            <span class="ident">Executive</span>::<span class="ident">validate_transaction</span>(<span class="ident">source</span>, <span class="ident">tx</span>)
+            <span class="ident">Executive</span>::<span class="ident">validate_transaction</span>(<span class="ident">source</span>, <span class="ident">tx</span>, <span class="ident">block_hash</span>)
         }
     }
 
