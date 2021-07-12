@@ -184,7 +184,7 @@ where
     let weave_size = runtime_api.runtime_api().weave_size(&parent_id)?;
 
     if weave_size == 0 {
-        log::debug!(target: "poa", "Skip constructing poa as the weave size is 0");
+        log::debug!(target: "poa", "Skipping the poa construction as the weave size is 0");
         return Ok(PoaOutcome::Skipped);
     }
 
@@ -256,7 +256,7 @@ where
                 {
                     Some(offset) => offset,
                     None => panic!(
-                        "Underflow happens! recall_byte: {}, recall_block_weave_base: {}",
+                        "Underflow happened! recall_byte: {}, recall_block_weave_base: {}",
                         recall_byte, recall_block_weave_base
                     ),
                 };
@@ -294,7 +294,7 @@ where
                             tx_path: tx_proof,
                             chunk_proof,
                         };
-                        log::debug!(target: "poa", "Generated poa proof: {:?}", poa);
+                        log::debug!(target: "poa", "Generate the poa proof successfully: {:?}", poa);
                         return Ok(PoaOutcome::Justification(poa));
                     }
                 }
