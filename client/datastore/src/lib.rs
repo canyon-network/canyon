@@ -137,7 +137,7 @@ where
         extrinsic_index: u32,
     ) -> Result<Option<Vec<u8>>, Error<Block>> {
         log::debug!(
-            target: "perma-db",
+            target: "datastore",
             "Fetching chunk root at block_id: {}, extrinsic_index: {}",
             block_id, extrinsic_index,
         );
@@ -152,7 +152,7 @@ where
             .ok_or(Error::ChunkRootIsNone(block_id, extrinsic_index))?;
         let key = chunk_root.encode();
         log::debug!(
-            target: "perma-db",
+            target: "datastore",
             "Fetched chunk root: {:?}, database key: {:?}",
             chunk_root, key,
         );
