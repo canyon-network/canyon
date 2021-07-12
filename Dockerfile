@@ -1,3 +1,5 @@
+# Forked from https://github.com/paritytech/substrate/blob/efd54879ecbf8aac41fe809d31c7215ea3101241/.maintain/Dockerfile
+#
 # Note: We don't use Alpine and its packaged Rust/Cargo because they're too often out of date,
 # preventing them from being used to build canyon/Polkadot.
 
