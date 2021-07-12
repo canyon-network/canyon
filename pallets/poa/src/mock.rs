@@ -96,8 +96,18 @@ impl pallet_balances::Config for Test {
     type AccountStore = System;
     type WeightInfo = ();
 }
+
+pub struct DummyBlockAuthor;
+
+impl crate::BlockAuthor<u64> for DummyBlockAuthor {
+    fn block_author() -> u64 {
+        999
+    }
+}
+
 impl Config for Test {
     type Event = Event;
+    type BlockAuthor = DummyBlockAuthor;
 }
 
 // This function basically just builds a genesis storage key/value store according to
