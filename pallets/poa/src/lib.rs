@@ -38,7 +38,7 @@ use sp_std::{marker::PhantomData, prelude::*};
 
 use frame_support::{
     inherent::{InherentData, InherentIdentifier, MakeFatalError, ProvideInherent},
-    traits::IsSubType,
+    traits::{FindAuthor, IsSubType},
     weights::{ClassifyDispatch, DispatchClass, Pays, PaysFee, WeighData, Weight},
     RuntimeDebug,
 };
@@ -104,6 +104,12 @@ impl<BlockNumber: AtLeast32BitUnsigned + Copy> DepthInfo<BlockNumber> {
     }
 }
 
+/// Trait for providing the author of current block.
+pub trait BlockAuthor<AccountId> {
+    /// Returns the author of current building block.
+    fn block_author() -> AccountId;
+}
+
 #[frame_support::pallet]
 pub mod pallet {
     use super::*;
@@ -119,6 +125,9 @@ pub mod pallet {
     pub trait Config: frame_system::Config + pallet_balances::Config {
         /// The overarching event type.
         type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+
+        /// Find the author of current block.
+        type BlockAuthor: BlockAuthor<Self::AccountId>;
     }
 
     #[pallet::pallet]
@@ -135,7 +144,7 @@ pub mod pallet {
         ) -> DispatchResult {
             ensure_root(origin)?;
 
-            let block_author = T::AccountId::default();
+            let block_author = T::BlockAuthor::block_author();
 
             if let Some(mut old) = HistoryDepth::<T>::get(&block_author) {
                 old.add_depth(depth);
