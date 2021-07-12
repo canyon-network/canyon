@@ -80,7 +80,7 @@ canyon-primitives = { path = "../primitives" }
 canyon-rpc = { path = "../rpc" }
 canyon-runtime = { path = "../runtime" }
 
-cc-client-db = { path = "../client/db" }
+cc-database = { path = "../client/database" }
 cc-consensus-poa = { path = "../client/consensus/poa" }
 pallet-permastore = { path = "../pallets/permastore" }
 pallet-poa = { path = "../pallets/poa" }

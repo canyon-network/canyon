@@ -26,14 +26,12 @@
 use codec::{Decode, Encode};
 
 use sp_runtime::{
-    generic::DataInfo,
     traits::{AccountIdConversion, DispatchInfoOf, SaturatedConversion, SignedExtension},
     transaction_validity::{InvalidTransaction, TransactionValidity, TransactionValidityError},
 };
 use sp_std::{marker::PhantomData, prelude::*};
 
 use frame_support::{
-    dispatch::DispatchResult,
     ensure,
     traits::{Currency, ExistenceRequirement, Get, IsSubType},
 };
@@ -91,7 +89,7 @@ pub mod pallet {
             let current_block_data_size = <BlockDataSize<T>>::take();
             if current_block_data_size > 0 {
                 let latest_weave_size = <WeaveSize<T>>::get();
-                <GlobalWeaveSizeList<T>>::append(latest_weave_size);
+                <GlobalWeaveSizeIndex<T>>::append(latest_weave_size);
                 <GlobalBlockNumberIndex<T>>::append(n);
             }
         }
@@ -102,15 +100,10 @@ pub mod pallet {
         /// Stores the data permanently.
         ///
         /// The minimum data size is 1 bytes, the maximum is `MAX_DATA_SIZE`.
-        /// The digest of data will be recorded on chain, the actual data will
-        /// be stored off-chain.
+        /// The digest of data will be recorded on chain, the actual data has
+        /// to be stored off-chain before executing this extrinsic.
         #[pallet::weight(0)]
-        pub fn store(
-            origin: OriginFor<T>,
-            data_size: u32,
-            chunk_root: T::Hash,
-            data: Vec<u8>, // TODO: remove this argument.
-        ) -> DispatchResultWithPostInfo {
+        pub fn store(origin: OriginFor<T>, data_size: u32, chunk_root: T::Hash) -> DispatchResult {
             let sender = ensure_signed(origin)?;
 
             ensure!(
@@ -119,44 +112,43 @@ pub mod pallet {
             );
             ensure!(Self::stored_locally(&chunk_root), Error::<T>::NotStored);
 
-            Self::charge_storage_fee(&sender, data_size)?;
+            // TODO: ensure the validity of stored data in the local DB?
 
-            // Notes who stores the data.
-            // who, (block_number, extrinsic_index) => data_info
+            let storage_fee = Self::charge_storage_fee(&sender, data_size)?;
+
             let block_number = frame_system::Pallet::<T>::block_number();
             let extrinsic_index = frame_system::Pallet::<T>::extrinsic_index().unwrap_or_default();
-            let data_info = DataInfo {
-                size: data_size as u64,
-                chunk_root,
-            };
 
-            // FIXME: this storage is redundant?
-            Orders::<T>::insert(&sender, (block_number, extrinsic_index), Some(data_info));
+            Orders::<T>::insert(&sender, (block_number, extrinsic_index), storage_fee);
 
-            // FIXME: Move to off-chain solution
-            PermaData::<T>::insert((block_number, extrinsic_index), data);
-
+            // FIXME: store these info in db directly.
             ChunkRootIndex::<T>::insert((block_number, extrinsic_index), chunk_root);
             TransactionDataSize::<T>::insert((block_number, extrinsic_index), data_size);
+
             <BlockDataSize<T>>::mutate(|s| *s += data_size as u64);
             <WeaveSize<T>>::mutate(|s| *s += data_size as u64);
 
             Self::deposit_event(Event::Stored(sender, chunk_root));
 
-            Ok(().into())
+            Ok(())
         }
 
-        /// Forgets the data.
+        /// _Delete_ the data from the network by removing the incentive
+        /// to keep storing them.
+        ///
+        /// By the mean of forgetting a data, this piece of data will be
+        /// prevented from being selected as the random data source in the
+        /// PoA consensus.
         #[pallet::weight(0)]
         pub fn forget(
             origin: OriginFor<T>,
             block_number: T::BlockNumber,
             extrinsic_index: ExtrinsicIndex,
-        ) -> DispatchResultWithPostInfo {
+        ) -> DispatchResult {
             let sender = ensure_signed(origin)?;
 
             // Remove the order.
-            let _data_info = Orders::<T>::take(&sender, (block_number, extrinsic_index))
+            let _fee = Orders::<T>::take(&sender, (block_number, extrinsic_index))
                 .ok_or(Error::<T>::OrderDoesNotExist)?;
 
             // refund the remaining fee.
@@ -164,7 +156,7 @@ pub mod pallet {
 
             Self::deposit_event(Event::Forgot(block_number, extrinsic_index));
 
-            Ok(().into())
+            Ok(())
         }
     }
 
@@ -204,7 +196,7 @@ pub mod pallet {
         T::AccountId,
         Twox64Concat,
         (T::BlockNumber, ExtrinsicIndex),
-        Option<DataInfo<T::Hashing>>,
+        BalanceOf<T>,
     >;
 
     /// Total byte size of data stored onto the network.
@@ -233,19 +225,13 @@ pub mod pallet {
     /// Temp solution for locating the recall block. An ever increasing array of global weave size.
     #[pallet::storage]
     #[pallet::getter(fn global_block_size_index)]
-    pub(super) type GlobalWeaveSizeList<T: Config> = StorageValue<_, Vec<u64>>;
+    pub(super) type GlobalWeaveSizeIndex<T: Config> = StorageValue<_, Vec<u64>, ValueQuery>;
 
     /// Temp solution for locating the recall block.
     #[pallet::storage]
     #[pallet::getter(fn global_block_number_index)]
-    pub(super) type GlobalBlockNumberIndex<T: Config> = StorageValue<_, Vec<T::BlockNumber>>;
-
-    /// FIXME: remove this once the offchain transaction data storage is done!
-    /// Temeporary on-chain storage.
-    #[pallet::storage]
-    #[pallet::getter(fn perma_data)]
-    pub(super) type PermaData<T: Config> =
-        StorageMap<_, Blake2_128Concat, (T::BlockNumber, ExtrinsicIndex), Vec<u8>>;
+    pub(super) type GlobalBlockNumberIndex<T: Config> =
+        StorageValue<_, Vec<T::BlockNumber>, ValueQuery>;
 }
 
 impl<T: Config> Pallet<T> {
@@ -261,11 +247,16 @@ impl<T: Config> Pallet<T> {
 
     /// Charges the perpetual storage fee.
     ///
-    /// TODO: Currently all the fee is simply transfered to the treasury.
-    fn charge_storage_fee(who: &T::AccountId, data_size: u32) -> DispatchResult {
+    /// TODO: Currently all the fee is simply transfered to the treasury,
+    /// we might want a new destination for that.
+    fn charge_storage_fee(
+        who: &T::AccountId,
+        data_size: u32,
+    ) -> Result<BalanceOf<T>, sp_runtime::DispatchError> {
         let fee = Self::calculate_storage_fee(data_size);
         let treasury_account: T::AccountId = T::TreasuryPalletId::get().into_account();
-        T::Currency::transfer(who, &treasury_account, fee, ExistenceRequirement::KeepAlive)
+        T::Currency::transfer(who, &treasury_account, fee, ExistenceRequirement::KeepAlive)?;
+        Ok(fee)
     }
 
     fn refund_storage_fee(_who: &T::AccountId, _created_at: T::BlockNumber) {}
@@ -279,11 +270,13 @@ impl<T: Config> Pallet<T> {
     pub fn find_recall_block(recall_byte: u64) -> Option<T::BlockNumber> {
         frame_support::log::debug!(
             target: "runtime::permastore",
-            "weave_size_list: {:?}, block_number_index: {:?}",
-            <GlobalWeaveSizeList<T>>::get(),
-            <GlobalBlockNumberIndex<T>>::get(),
+            "Global weave size list: {:?}",
+            <GlobalBlockNumberIndex<T>>::get()
+                .iter()
+                .zip(<GlobalWeaveSizeIndex<T>>::get().iter())
+                .collect::<Vec<_>>()
         );
-        let weave_size_list = <GlobalWeaveSizeList<T>>::get()?;
+        let weave_size_list = <GlobalWeaveSizeIndex<T>>::get();
 
         let recall_block_number_index =
             match weave_size_list.binary_search_by_key(&recall_byte, |&weave_size| weave_size) {
@@ -293,10 +286,13 @@ impl<T: Config> Pallet<T> {
 
         frame_support::log::debug!(
             target: "runtime::permastore",
-            "recall_block_number_index: {}",
+            "Found the index of recall block number: {}",
             recall_block_number_index,
         );
-        <GlobalBlockNumberIndex<T>>::get().map(|index| index[recall_block_number_index])
+
+        <GlobalBlockNumberIndex<T>>::get()
+            .get(recall_block_number_index)
+            .copied()
     }
 
     /// Returns the data size of transaction given `block_number` and `extrinsic_index`.
@@ -304,6 +300,7 @@ impl<T: Config> Pallet<T> {
         <TransactionDataSize<T>>::get((block_number, extrinsic_index))
     }
 
+    /// Returns the total byte size of weave.
     pub fn weave_size() -> u64 {
         <WeaveSize<T>>::get()
     }

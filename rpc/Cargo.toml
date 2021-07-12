@@ -24,6 +24,7 @@ sc-keystore = { git = "https://github.com/canyon-network/substrate", branch = "c
 sc-rpc = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sc-rpc-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sc-sync-state-rpc = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-transaction-pool-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-block-builder = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
@@ -32,7 +33,6 @@ sp-keystore = { git = "https://github.com/canyon-network/substrate", branch = "c
 sp-consensus = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-transaction-pool = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 
 pallet-mmr-rpc = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 pallet-transaction-payment-rpc = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }

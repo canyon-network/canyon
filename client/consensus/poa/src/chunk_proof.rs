@@ -22,10 +22,11 @@ use sp_trie::TrieMut;
 use cp_consensus_poa::ChunkProof;
 use cp_permastore::{Hasher, TrieLayout, VerifyError};
 
-pub fn encode_index(input: u32) -> Vec<u8> {
+pub(crate) fn encode_index(input: u32) -> Vec<u8> {
     codec::Encode::encode(&codec::Compact(input))
 }
 
+/// Error type for chunk proof.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// Trie error.
@@ -33,6 +34,7 @@ pub enum Error {
     Trie(#[from] Box<dyn std::error::Error + Send + Sync>),
 }
 
+/// Helper struct to verify the chunk proof.
 #[derive(Debug, Clone)]
 pub struct ChunkProofVerifier(pub ChunkProof);
 
@@ -71,6 +73,7 @@ pub fn verify_chunk_proof(
     )
 }
 
+/// Utility for buliding a chunk proof from the raw transaction data.
 #[derive(Debug, Clone)]
 pub struct ChunkProofBuilder {
     /// Raw bytes of entire transaction data.
@@ -82,7 +85,7 @@ pub struct ChunkProofBuilder {
 }
 
 impl ChunkProofBuilder {
-    /// Constructs a `ChunkProofBuilder`.
+    /// Constructs an instance of [`ChunkProofBuilder`].
     pub fn new(data: Vec<u8>, chunk_size: u32, transaction_data_offset: u32) -> Self {
         debug_assert!(chunk_size > 0);
 
@@ -151,7 +154,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_chunk_proof_builder() {
+    fn test_chunk_proof_verify() {
         use std::str::FromStr;
 
         let data = b"hello".to_vec();
