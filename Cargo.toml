@@ -13,7 +13,7 @@ resolver = "2"
 members = [
     "cli",
     "client/consensus/poa",
-    "client/database",
+    "client/datastore",
     "client/rpc",
     "client/rpc-api",
     "executor",

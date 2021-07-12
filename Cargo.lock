@@ -731,7 +731,7 @@ dependencies = [
  "canyon-rpc",
  "canyon-runtime",
  "cc-consensus-poa",
- "cc-database",
+ "cc-datastore",
  "frame-benchmarking-cli",
  "frame-support",
  "frame-system",
@@ -1034,7 +1034,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "canyon-primitives",
- "cc-database",
+ "cc-datastore",
  "cp-consensus-poa",
  "cp-permastore",
  "criterion",
@@ -1058,7 +1058,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "cc-database"
+name = "cc-datastore"
 version = "0.1.0"
 dependencies = [
  "canyon-primitives",
