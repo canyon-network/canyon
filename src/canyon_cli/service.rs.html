@@ -807,7 +807,7 @@
                     <span class="ident">subscription_executor</span>,
                     <span class="ident">finality_provider</span>: <span class="ident">finality_proof_provider</span>.<span class="ident">clone</span>(),
                 },
-                <span class="ident">perma_storage</span>: <span class="ident">cc_database</span>::<span class="ident">PermanentStorage</span>::<span class="ident">new</span>(
+                <span class="ident">perma_storage</span>: <span class="ident">cc_datastore</span>::<span class="ident">PermanentStorage</span>::<span class="ident">new</span>(
                     <span class="ident">offchain_storage</span>.<span class="ident">clone</span>(),
                     <span class="ident">client</span>.<span class="ident">clone</span>(),
                     <span class="ident">client</span>.<span class="ident">clone</span>(),
@@ -971,7 +971,7 @@
                     <span class="kw">let</span> <span class="ident">poa</span> <span class="op">=</span> <span class="ident">cc_consensus_poa</span>::<span class="ident">InherentDataProvider</span>::<span class="ident">create</span>(
                         <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">client_clone2</span>,
                         <span class="ident">parent</span>,
-                        <span class="ident">cc_database</span>::<span class="ident">PermanentStorage</span>::<span class="ident">new</span>(
+                        <span class="ident">cc_datastore</span>::<span class="ident">PermanentStorage</span>::<span class="ident">new</span>(
                             <span class="ident">offchain_storage_clone</span>,
                             <span class="ident">client_clone3</span>,
                             <span class="ident">runtime_api</span>,
