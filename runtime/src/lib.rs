@@ -824,7 +824,7 @@ impl pallet_permastore::Config for Runtime {
 }
 
 impl pallet_poa::BlockAuthor<AccountId> for Runtime {
-    fn block_author() -> AccountId {
+    fn author() -> AccountId {
         Authorship::author()
     }
 }

@@ -38,7 +38,7 @@ use sp_std::{marker::PhantomData, prelude::*};
 
 use frame_support::{
     inherent::{InherentData, InherentIdentifier, MakeFatalError, ProvideInherent},
-    traits::{FindAuthor, IsSubType},
+    traits::IsSubType,
     weights::{ClassifyDispatch, DispatchClass, Pays, PaysFee, WeighData, Weight},
     RuntimeDebug,
 };
@@ -133,12 +133,9 @@ pub mod pallet {
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
-        /// Update the SLA of validator.
+        /// Updates the historical depth info of block author.
         #[pallet::weight(0)]
-        pub fn update_storage_capacity(
-            origin: OriginFor<T>,
-            #[pallet::compact] depth: Depth,
-        ) -> DispatchResult {
+        pub fn note_depth(origin: OriginFor<T>, #[pallet::compact] depth: Depth) -> DispatchResult {
             ensure_root(origin)?;
 
             let block_author = T::BlockAuthor::author();
@@ -176,6 +173,8 @@ pub mod pallet {
         MandatoryInherentMissing,
     }
 
+    /// Historical depth info for each validator.
+    ///
     /// The probabilistic estimate of the proportion of each
     /// validator's local storage to the entire network storage.
     ///
@@ -222,7 +221,7 @@ impl<T: Config> ProvideInherent for Pallet<T> {
                     POA_ENGINE_ID,
                     poa.encode(),
                 ));
-                Some(Call::update_storage_capacity(depth))
+                Some(Call::note_depth(depth))
             }
             PoaOutcome::MaxDepthReached => {
                 // Decrease the storage capacity?
@@ -236,7 +235,7 @@ impl<T: Config> ProvideInherent for Pallet<T> {
     }
 
     fn is_inherent(call: &Self::Call) -> bool {
-        matches!(call, Call::update_storage_capacity(..))
+        matches!(call, Call::note_depth(..))
     }
 
     fn is_inherent_required(data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
