@@ -32,7 +32,7 @@ use sp_runtime::{
     transaction_validity::{
         InvalidTransaction, TransactionValidity, TransactionValidityError, ValidTransaction,
     },
-    Percent,
+    Permill,
 };
 use sp_std::{marker::PhantomData, prelude::*};
 
@@ -96,8 +96,8 @@ impl<BlockNumber: AtLeast32BitUnsigned + Copy> DepthInfo<BlockNumber> {
     /// storage_capacity = 1 / average_depth
     ///                  = self.blocks / self.total_depth
     /// ```
-    pub fn as_storage_capacity(&self) -> Percent {
-        Percent::from_rational(self.blocks, self.total_depth.saturated_into())
+    pub fn as_storage_capacity(&self) -> Permill {
+        Permill::from_rational(self.blocks, self.total_depth.saturated_into())
     }
 }
 
