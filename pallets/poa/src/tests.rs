@@ -16,39 +16,55 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
+use codec::Encode;
+
 use frame_support::{
     assert_ok,
     pallet_prelude::PhantomData,
     traits::{OnFinalize, OnInitialize},
     weights::{DispatchInfo, GetDispatchInfo},
 };
-use sp_runtime::{traits::SignedExtension, transaction_validity::InvalidTransaction};
+use sp_core::H256;
+use sp_runtime::{
+    testing::{DigestItem, Header},
+    traits::{Header as HeaderT, SignedExtension},
+    transaction_validity::InvalidTransaction,
+};
 
-use crate as pallet_poa;
-
-use crate::mock::{new_test_ext, Origin, Poa, Test};
+use crate::{self as pallet_poa, DepthInfo, TestAuthor, HistoryDepth};
+use crate::mock::{new_test_ext, Origin, Poa, System, Test};
 
 #[test]
-fn it_works_for_optional_value() {
-    new_test_ext().execute_with(|| {});
-}
-
-#[test]
-fn signed_ext_watch_dummy_works() {
+fn update_storage_capacity_should_work() {
     new_test_ext().execute_with(|| {
-        // let call = <pallet_poa::Call<Test>>::set_dummy(10).into();
-        // let info = DispatchInfo::default();
+        TestAuthor::<Test>::put(6);
+        assert_ok!(Poa::update_storage_capacity(Origin::root(), 10));
+        assert_eq!(
+            HistoryDepth::<Test>::get(&6).unwrap(),
+            DepthInfo {
+                total_depth: 10,
+                blocks: 1
+            }
+        );
 
-        // assert_eq!(
-        // WatchDummy::<Test>(PhantomData)
-        // .validate(&1, &call, &info, 150)
-        // .unwrap()
-        // .priority,
-        // u64::max_value(),
-        // );
-        // assert_eq!(
-        // WatchDummy::<Test>(PhantomData).validate(&1, &call, &info, 250),
-        // InvalidTransaction::ExhaustsResources.into(),
-        // );
-    })
+        TestAuthor::<Test>::put(8);
+        assert_ok!(Poa::update_storage_capacity(Origin::root(), 1));
+        assert_eq!(
+            HistoryDepth::<Test>::get(&8).unwrap(),
+            DepthInfo {
+                total_depth: 1,
+                blocks: 1
+            }
+        );
+
+        TestAuthor::<Test>::put(6);
+        assert_ok!(Poa::update_storage_capacity(Origin::root(), 1));
+        assert_eq!(
+            HistoryDepth::<Test>::get(&6).unwrap(),
+            DepthInfo {
+                total_depth: 11,
+                blocks: 2
+            }
+        );
+    });
 }

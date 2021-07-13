@@ -29,7 +29,7 @@ use sp_core::H256;
 use sp_runtime::{
     testing::Header,
     traits::{BlakeTwo256, IdentityLookup},
-    BuildStorage,
+    BuildStorage, ConsensusEngineId,
 };
 // Reexport crate as its pallet name for construct_runtime.
 use crate as pallet_poa;
@@ -80,11 +80,13 @@ impl frame_system::Config for Test {
     type SS58Prefix = ();
     type OnSetCode = ();
 }
+
 parameter_types! {
     pub const ExistentialDeposit: u64 = 1;
     pub const MaxLocks: u32 = 50;
     pub const MaxReserves: u32 = 50;
 }
+
 impl pallet_balances::Config for Test {
     type MaxLocks = MaxLocks;
     type MaxReserves = MaxReserves;
@@ -97,17 +99,15 @@ impl pallet_balances::Config for Test {
     type WeightInfo = ();
 }
 
-pub struct DummyBlockAuthor;
-
-impl crate::BlockAuthor<u64> for DummyBlockAuthor {
-    fn block_author() -> u64 {
-        999
+impl BlockAuthor<u64> for Test {
+    fn author() -> u64 {
+        TestAuthor::<Test>::get()
     }
 }
 
 impl Config for Test {
     type Event = Event;
-    type BlockAuthor = DummyBlockAuthor;
+    type BlockAuthor = Self;
 }
 
 // This function basically just builds a genesis storage key/value store according to

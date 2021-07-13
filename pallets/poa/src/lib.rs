@@ -62,7 +62,7 @@ pub use pallet::*;
 /// This struct is used for calculating the historical average depth
 /// of a validator, which implies the storage capacity per validator.
 /// The greater the depth average, the less the local storage of node theoretically.
-#[derive(RuntimeDebug, Clone, Encode, Decode)]
+#[derive(RuntimeDebug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct DepthInfo<BlockNumber> {
     /// Sum of total depth so far.
     pub total_depth: Depth,
@@ -84,8 +84,8 @@ impl<BlockNumber: AtLeast32BitUnsigned + Copy> DepthInfo<BlockNumber> {
     /// The smallest depth is 1, which means the block author located the
     /// recall block at the first time.
     pub fn add_depth(&mut self, depth: Depth) {
-        self.total_depth.saturating_add(depth);
-        self.blocks.saturating_add(1u32.into());
+        self.total_depth += depth;
+        self.blocks += 1u32.into();
     }
 
     /// Returns the calculated storage capacity given historical depth info.
@@ -104,7 +104,7 @@ impl<BlockNumber: AtLeast32BitUnsigned + Copy> DepthInfo<BlockNumber> {
 /// Trait for providing the author of current block.
 pub trait BlockAuthor<AccountId> {
     /// Returns the author of current building block.
-    fn block_author() -> AccountId;
+    fn author() -> AccountId;
 }
 
 #[frame_support::pallet]
@@ -141,7 +141,7 @@ pub mod pallet {
         ) -> DispatchResult {
             ensure_root(origin)?;
 
-            let block_author = T::BlockAuthor::block_author();
+            let block_author = T::BlockAuthor::author();
 
             if let Some(mut old) = HistoryDepth::<T>::get(&block_author) {
                 old.add_depth(depth);
@@ -185,6 +185,11 @@ pub mod pallet {
     #[pallet::getter(fn history_depth)]
     pub(super) type HistoryDepth<T: Config> =
         StorageMap<_, Blake2_128Concat, T::AccountId, DepthInfo<T::BlockNumber>>;
+
+    /// Helper storage item of current block author for easier testing.
+    #[cfg(test)]
+    #[pallet::storage]
+    pub(super) type TestAuthor<T: Config> = StorageValue<_, T::AccountId, ValueQuery>;
 }
 
 impl<T: Config> ProvideInherent for Pallet<T> {

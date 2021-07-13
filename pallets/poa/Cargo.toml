@@ -18,13 +18,13 @@ sp-std = { git = "https://github.com/canyon-network/substrate", branch = "canyon
 frame-benchmarking = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false, optional = true }
 frame-support = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 frame-system = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-balances = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 
 canyon-primitives = { path = "../../primitives/", default-features = false }
 cp-consensus-poa = { path = "../../primitives/consensus/poa", default-features = false }
 
 [dev-dependencies]
-sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+pallet-balances = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 
 [features]
 default = ["std"]
@@ -37,7 +37,6 @@ std = [
 	"frame-benchmarking/std",
 	"frame-support/std",
 	"frame-system/std",
-	"pallet-balances/std",
 	"canyon-primitives/std",
 	"cp-consensus-poa/std",
 ]
