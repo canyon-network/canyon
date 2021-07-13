@@ -16,9 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
-//! Proof of Access consensus.
+//! This pallet is used to record the storage capacity of each validator
+//! on chain.
 //!
-//! Records the storage capacity of each validator on chain.
+//! TODO: docs
 
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -61,7 +62,8 @@ pub use pallet::*;
 ///
 /// This struct is used for calculating the historical average depth
 /// of a validator, which implies the storage capacity per validator.
-/// The greater the depth average, the less the local storage of node theoretically.
+/// In theory, the greater the historical depth average, the less the
+/// storage of node stored locally.
 #[derive(RuntimeDebug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct DepthInfo<BlockNumber> {
     /// Sum of total depth so far.
