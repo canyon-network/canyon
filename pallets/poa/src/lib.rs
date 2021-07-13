@@ -36,30 +36,23 @@
 
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
-#![allow(unused)]
 
 use codec::{Decode, Encode};
 
 use sp_runtime::{
     generic::DigestItem,
-    traits::{AtLeast32BitUnsigned, Bounded, DispatchInfoOf, SaturatedConversion, SignedExtension},
-    transaction_validity::{
-        InvalidTransaction, TransactionValidity, TransactionValidityError, ValidTransaction,
-    },
+    traits::{AtLeast32BitUnsigned, SaturatedConversion},
     Permill,
 };
-use sp_std::{marker::PhantomData, prelude::*};
+use sp_std::prelude::*;
 
 use frame_support::{
     inherent::{InherentData, InherentIdentifier, MakeFatalError, ProvideInherent},
-    traits::IsSubType,
-    weights::{ClassifyDispatch, DispatchClass, Pays, PaysFee, WeighData, Weight},
     RuntimeDebug,
 };
-use frame_system::ensure_signed;
 
 use canyon_primitives::Depth;
-use cp_consensus_poa::{PoaOutcome, ProofOfAccess, POA_ENGINE_ID, POA_INHERENT_IDENTIFIER};
+use cp_consensus_poa::{PoaOutcome, POA_ENGINE_ID, POA_INHERENT_IDENTIFIER};
 
 // #[cfg(any(feature = "runtime-benchmarks", test))]
 // mod benchmarking;
@@ -176,7 +169,6 @@ pub mod pallet {
     /// Event for the poa pallet.
     #[pallet::event]
     #[pallet::metadata(T::AccountId = "AccountId")]
-    #[pallet::generate_deposit(pub(super) fn deposit_event)]
     pub enum Event<T: Config> {
         /// Dummy event, just here so there's a generic type that's used.
         NewDepth(T::AccountId, Depth),
@@ -185,8 +177,8 @@ pub mod pallet {
     /// Error for the poa pallet.
     #[pallet::error]
     pub enum Error<T> {
-        /// poa inherent is required on each valid block.
-        MandatoryInherentMissing,
+        /// Poa inherent is required but there is no one.
+        PoaInherentMissing,
     }
 
     /// Historical depth info for each validator.
