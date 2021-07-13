@@ -54,9 +54,6 @@ mod mock;
 #[cfg(all(feature = "std", test))]
 mod tests;
 
-/// A type alias for the balance type from this pallet's point of view.
-type BalanceOf<T> = <T as pallet_balances::Config>::Balance;
-
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
 
@@ -122,7 +119,7 @@ pub mod pallet {
     ///
     /// `frame_system::Config` should always be included.
     #[pallet::config]
-    pub trait Config: frame_system::Config + pallet_balances::Config {
+    pub trait Config: frame_system::Config {
         /// The overarching event type.
         type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
@@ -165,7 +162,7 @@ pub mod pallet {
 
     /// Event for the poa pallet.
     #[pallet::event]
-    #[pallet::metadata(T::AccountId = "AccountId", BalanceOf<T> = "Balance")]
+    #[pallet::metadata(T::AccountId = "AccountId")]
     #[pallet::generate_deposit(pub(super) fn deposit_event)]
     pub enum Event<T: Config> {
         /// Dummy event, just here so there's a generic type that's used.
