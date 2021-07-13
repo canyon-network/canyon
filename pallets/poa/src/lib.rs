@@ -62,8 +62,6 @@ pub use pallet::*;
 ///
 /// This struct is used for calculating the historical average depth
 /// of a validator, which implies the storage capacity per validator.
-/// In theory, the greater the historical depth average, the less the
-/// storage of node stored locally.
 #[derive(RuntimeDebug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct DepthInfo<BlockNumber> {
     /// Sum of total depth so far.
@@ -82,7 +80,7 @@ impl<BlockNumber: AtLeast32BitUnsigned + Copy> DepthInfo<BlockNumber> {
     ///
     /// # NOTE
     ///
-    /// `depth` is ensured to be greater than 0 when creating inherent.
+    /// `depth` has been ensured to be greater than 0 when creating inherent.
     /// The smallest depth is 1, which means the block author located the
     /// recall block at the first time.
     pub fn add_depth(&mut self, depth: Depth) {
@@ -91,6 +89,9 @@ impl<BlockNumber: AtLeast32BitUnsigned + Copy> DepthInfo<BlockNumber> {
     }
 
     /// Returns the calculated storage capacity given historical depth info.
+    ///
+    /// In theory, the greater the historical average depth, the less the
+    /// storage of node stored locally.
     ///
     /// ```text
     ///    average_depth = self.total_depth / self.blocks
