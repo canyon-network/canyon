@@ -16,10 +16,23 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
-//! This pallet is used to record the storage capacity of each validator
-//! on chain.
+//! # Poa Pallet
 //!
-//! TODO: docs
+//! The Poa pallet provides the feature of recording the overall depth
+//! info from the PoA consensus engine of validators on chain, which
+//! is used to estimate the actual storage capacity of a validator.
+//!
+//! we can say a validator stores 100% of the network data locally if
+//! it has produced N blocks with a total depth of N. Furthermore, the
+//! estimated result becomes increasingly accurate and reliable with
+//! more and more blocks being authored by that validator.
+//!
+//! ## Interface
+//!
+//! ### Inherent Extrinsics
+//!
+//! The Poa pallet creates the [`note_depth`] inherent when the data for
+//! [`POA_INHERENT_IDENTIFIER`] is Some(_) and decodable.
 
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -224,6 +237,7 @@ impl<T: Config> ProvideInherent for Pallet<T> {
                     POA_ENGINE_ID,
                     poa.encode(),
                 ));
+
                 Some(Call::note_depth(depth))
             }
             PoaOutcome::MaxDepthReached => {
