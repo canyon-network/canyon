@@ -38,7 +38,7 @@ use crate::{self as pallet_poa, DepthInfo, HistoryDepth, TestAuthor};
 fn update_storage_capacity_should_work() {
     new_test_ext().execute_with(|| {
         TestAuthor::<Test>::put(6);
-        assert_ok!(Poa::update_storage_capacity(Origin::root(), 10));
+        assert_ok!(Poa::note_depth(Origin::root(), 10));
         assert_eq!(
             HistoryDepth::<Test>::get(&6).unwrap(),
             DepthInfo {
@@ -48,7 +48,7 @@ fn update_storage_capacity_should_work() {
         );
 
         TestAuthor::<Test>::put(8);
-        assert_ok!(Poa::update_storage_capacity(Origin::root(), 1));
+        assert_ok!(Poa::note_depth(Origin::root(), 1));
         assert_eq!(
             HistoryDepth::<Test>::get(&8).unwrap(),
             DepthInfo {
@@ -58,7 +58,7 @@ fn update_storage_capacity_should_work() {
         );
 
         TestAuthor::<Test>::put(6);
-        assert_ok!(Poa::update_storage_capacity(Origin::root(), 1));
+        assert_ok!(Poa::note_depth(Origin::root(), 1));
         assert_eq!(
             HistoryDepth::<Test>::get(&6).unwrap(),
             DepthInfo {
