@@ -344,7 +344,6 @@ pub fn testnet_genesis(
         treasury: Default::default(),
         vesting: Default::default(),
         gilt: Default::default(),
-        poa: Default::default(),
     }
 }
 

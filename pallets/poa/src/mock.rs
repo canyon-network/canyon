@@ -29,7 +29,7 @@ use sp_core::H256;
 use sp_runtime::{
     testing::Header,
     traits::{BlakeTwo256, IdentityLookup},
-    BuildStorage,
+    BuildStorage, ConsensusEngineId,
 };
 // Reexport crate as its pallet name for construct_runtime.
 use crate as pallet_poa;
@@ -46,7 +46,7 @@ frame_support::construct_runtime!(
     {
         System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
         Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-        Poa: pallet_poa::{Pallet, Call, Storage, Config<T>, Event<T>},
+        Poa: pallet_poa::{Pallet, Call, Storage, Event<T>},
     }
 );
 
@@ -80,11 +80,13 @@ impl frame_system::Config for Test {
     type SS58Prefix = ();
     type OnSetCode = ();
 }
+
 parameter_types! {
     pub const ExistentialDeposit: u64 = 1;
     pub const MaxLocks: u32 = 50;
     pub const MaxReserves: u32 = 50;
 }
+
 impl pallet_balances::Config for Test {
     type MaxLocks = MaxLocks;
     type MaxReserves = MaxReserves;
@@ -96,8 +98,16 @@ impl pallet_balances::Config for Test {
     type AccountStore = System;
     type WeightInfo = ();
 }
+
+impl BlockAuthor<u64> for Test {
+    fn author() -> u64 {
+        TestAuthor::<Test>::get()
+    }
+}
+
 impl Config for Test {
     type Event = Event;
+    type BlockAuthor = Self;
 }
 
 // This function basically just builds a genesis storage key/value store according to
@@ -107,9 +117,6 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
         // We use default for brevity, but you can configure as desired if needed.
         system: Default::default(),
         balances: Default::default(),
-        poa: pallet_poa::GenesisConfig {
-            validator_initial_capacity: Default::default(),
-        },
     }
     .build_storage()
     .unwrap();

@@ -823,8 +823,15 @@ impl pallet_permastore::Config for Runtime {
     type MaxDataSize = MaxDataSize;
 }
 
+impl pallet_poa::BlockAuthor<AccountId> for Runtime {
+    fn author() -> AccountId {
+        Authorship::author()
+    }
+}
+
 impl pallet_poa::Config for Runtime {
     type Event = Event;
+    type BlockAuthor = Self;
 }
 
 parameter_types! {
@@ -1111,7 +1118,7 @@ construct_runtime!(
         Gilt: pallet_gilt::{Pallet, Call, Storage, Event<T>, Config},
 
         Permastore: pallet_permastore::{Pallet, Call, Storage, Event<T>},
-        Poa: pallet_poa::{Pallet, Call, Storage, Event<T>, Config<T>},
+        Poa: pallet_poa::{Pallet, Call, Storage, Event<T>},
     }
 );
 
