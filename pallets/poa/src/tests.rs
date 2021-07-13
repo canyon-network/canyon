@@ -31,8 +31,8 @@ use sp_runtime::{
     transaction_validity::InvalidTransaction,
 };
 
-use crate::{self as pallet_poa, DepthInfo, TestAuthor, HistoryDepth};
 use crate::mock::{new_test_ext, Origin, Poa, System, Test};
+use crate::{self as pallet_poa, DepthInfo, HistoryDepth, TestAuthor};
 
 #[test]
 fn update_storage_capacity_should_work() {
