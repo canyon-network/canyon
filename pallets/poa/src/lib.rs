@@ -18,8 +18,8 @@
 
 //! # Poa Pallet
 //!
-//! The Poa pallet provides the feature of recording the overall depth
-//! info from the PoA consensus engine of validators on chain, which
+//! The Poa pallet provides the feature of recording the validators'
+//! depth info from PoA consensus engine of validators on chain, which
 //! is used to estimate the actual storage capacity of a validator.
 //!
 //! we can say a validator stores 100% of the network data locally if
