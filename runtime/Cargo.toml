@@ -58,7 +58,6 @@ pallet-indices = { git = "https://github.com/canyon-network/substrate", branch =
 pallet-identity = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 pallet-lottery = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 pallet-membership = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-mmr = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 pallet-multisig = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 pallet-offences = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
 pallet-offences-benchmarking = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false, optional = true }
@@ -126,7 +125,6 @@ std = [
 	"pallet-indices/std",
 	"pallet-lottery/std",
 	"pallet-membership/std",
-	"pallet-mmr/std",
 	"pallet-multisig/std",
 	"pallet-identity/std",
 	"pallet-scheduler/std",
@@ -177,7 +175,6 @@ runtime-benchmarks = [
 	"pallet-im-online/runtime-benchmarks",
 	"pallet-indices/runtime-benchmarks",
 	"pallet-lottery/runtime-benchmarks",
-	"pallet-mmr/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-proxy/runtime-benchmarks",
 	"pallet-scheduler/runtime-benchmarks",
@@ -211,7 +208,6 @@ try-runtime = [
 	"pallet-indices/try-runtime",
 	"pallet-lottery/try-runtime",
 	"pallet-membership/try-runtime",
-	"pallet-mmr/try-runtime",
 	"pallet-multisig/try-runtime",
 	"pallet-identity/try-runtime",
 	"pallet-scheduler/try-runtime",

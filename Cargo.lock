@@ -873,7 +873,6 @@ dependencies = [
  "cc-rpc-api",
  "cp-permastore",
  "jsonrpc-core",
- "pallet-mmr-rpc",
  "pallet-transaction-payment-rpc",
  "sc-chain-spec",
  "sc-client-api",
@@ -931,7 +930,6 @@ dependencies = [
  "pallet-indices",
  "pallet-lottery",
  "pallet-membership",
- "pallet-mmr",
  "pallet-multisig",
  "pallet-offences",
  "pallet-offences-benchmarking",
@@ -1175,15 +1173,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "12f8e7987cbd042a63249497f41aed09f8e65add917ea6566effbc56578d6801"
 dependencies = [
  "generic-array 0.14.4",
-]
-
-[[package]]
-name = "ckb-merkle-mountain-range"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e486fe53bb9f2ca0f58cb60e8679a5354fd6687a839942ef0a75967250289ca6"
-dependencies = [
- "cfg-if 0.1.10",
 ]
 
 [[package]]
@@ -4785,57 +4774,6 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
-]
-
-[[package]]
-name = "pallet-mmr"
-version = "3.0.0"
-source = "git+https://github.com/canyon-network/substrate?branch=canyon#754516e53a8176fa1c9648ba2cc901207cd207af"
-dependencies = [
- "ckb-merkle-mountain-range",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "pallet-mmr-primitives",
- "parity-scale-codec",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-mmr-primitives"
-version = "3.0.0"
-source = "git+https://github.com/canyon-network/substrate?branch=canyon#754516e53a8176fa1c9648ba2cc901207cd207af"
-dependencies = [
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "serde",
- "sp-api",
- "sp-core",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-mmr-rpc"
-version = "3.0.0"
-source = "git+https://github.com/canyon-network/substrate?branch=canyon#754516e53a8176fa1c9648ba2cc901207cd207af"
-dependencies = [
- "jsonrpc-core",
- "jsonrpc-core-client",
- "jsonrpc-derive",
- "pallet-mmr-primitives",
- "parity-scale-codec",
- "serde",
- "sp-api",
- "sp-blockchain",
- "sp-core",
- "sp-rpc",
- "sp-runtime",
 ]
 
 [[package]]
