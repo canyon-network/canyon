@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Author",""]]});
+initSidebarItems({"struct":[["Author",""],["DealWithFees",""]]});

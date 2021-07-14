@@ -399,98 +399,6 @@
 <span id="396">396</span>
 <span id="397">397</span>
 <span id="398">398</span>
-<span id="399">399</span>
-<span id="400">400</span>
-<span id="401">401</span>
-<span id="402">402</span>
-<span id="403">403</span>
-<span id="404">404</span>
-<span id="405">405</span>
-<span id="406">406</span>
-<span id="407">407</span>
-<span id="408">408</span>
-<span id="409">409</span>
-<span id="410">410</span>
-<span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
-<span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
-<span id="459">459</span>
-<span id="460">460</span>
-<span id="461">461</span>
-<span id="462">462</span>
-<span id="463">463</span>
-<span id="464">464</span>
-<span id="465">465</span>
-<span id="466">466</span>
-<span id="467">467</span>
-<span id="468">468</span>
-<span id="469">469</span>
-<span id="470">470</span>
-<span id="471">471</span>
-<span id="472">472</span>
-<span id="473">473</span>
-<span id="474">474</span>
-<span id="475">475</span>
-<span id="476">476</span>
-<span id="477">477</span>
-<span id="478">478</span>
-<span id="479">479</span>
-<span id="480">480</span>
-<span id="481">481</span>
-<span id="482">482</span>
-<span id="483">483</span>
-<span id="484">484</span>
-<span id="485">485</span>
-<span id="486">486</span>
-<span id="487">487</span>
-<span id="488">488</span>
-<span id="489">489</span>
-<span id="490">490</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -533,8 +441,9 @@
 <span class="kw">use</span> <span class="ident">canyon_runtime</span>::<span class="ident">Block</span>;
 <span class="kw">use</span> <span class="ident">canyon_runtime</span>::{
     <span class="ident">wasm_binary_unwrap</span>, <span class="ident">AuthorityDiscoveryConfig</span>, <span class="ident">BabeConfig</span>, <span class="ident">BalancesConfig</span>, <span class="ident">CouncilConfig</span>,
-    <span class="ident">DemocracyConfig</span>, <span class="ident">ElectionsConfig</span>, <span class="ident">GrandpaConfig</span>, <span class="ident">ImOnlineConfig</span>, <span class="ident">IndicesConfig</span>, <span class="ident">SessionConfig</span>,
-    <span class="ident">SessionKeys</span>, <span class="ident">StakerStatus</span>, <span class="ident">StakingConfig</span>, <span class="ident">SudoConfig</span>, <span class="ident">SystemConfig</span>, <span class="ident">TechnicalCommitteeConfig</span>,
+    <span class="ident">DemocracyConfig</span>, <span class="ident">GrandpaConfig</span>, <span class="ident">ImOnlineConfig</span>, <span class="ident">IndicesConfig</span>, <span class="ident">PhragmenElectionConfig</span>,
+    <span class="ident">SessionConfig</span>, <span class="ident">SessionKeys</span>, <span class="ident">StakerStatus</span>, <span class="ident">StakingConfig</span>, <span class="ident">SudoConfig</span>, <span class="ident">SystemConfig</span>,
+    <span class="ident">TechnicalCommitteeConfig</span>,
 };
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">canyon_primitives</span>::{<span class="ident">AccountId</span>, <span class="ident">Balance</span>, <span class="ident">Signature</span>};
@@ -807,7 +716,7 @@
             ..<span class="ident">Default</span>::<span class="ident">default</span>()
         },
         <span class="ident">democracy</span>: <span class="ident">DemocracyConfig</span>::<span class="ident">default</span>(),
-        <span class="ident">elections</span>: <span class="ident">ElectionsConfig</span> {
+        <span class="ident">phragmen_election</span>: <span class="ident">PhragmenElectionConfig</span> {
             <span class="ident">members</span>: <span class="ident">endowed_accounts</span>
                 .<span class="ident">iter</span>()
                 .<span class="ident">take</span>((<span class="ident">num_endowed_accounts</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">2</span>)
@@ -888,99 +797,6 @@
         <span class="prelude-val">None</span>,
         <span class="ident">Default</span>::<span class="ident">default</span>(),
     )
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">service</span>::{<span class="ident">new_full_base</span>, <span class="ident">new_light_base</span>, <span class="ident">NewFullBase</span>};
-    <span class="kw">use</span> <span class="ident">sc_service_test</span>;
-    <span class="kw">use</span> <span class="ident">sp_runtime</span>::<span class="ident">BuildStorage</span>;
-
-    <span class="kw">fn</span> <span class="ident">local_testnet_genesis_instant_single</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GenesisConfig</span> {
-        <span class="ident">testnet_genesis</span>(
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">authority_keys_from_seed</span>(<span class="string">&quot;Alice&quot;</span>)],
-            <span class="ident">get_account_id_from_seed</span>::<span class="op">&lt;</span><span class="ident">sr25519</span>::<span class="ident">Public</span><span class="op">&gt;</span>(<span class="string">&quot;Alice&quot;</span>),
-            <span class="prelude-val">None</span>,
-        )
-    }
-
-    <span class="doccomment">/// Local testnet config (single validator - Alice)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">integration_test_config_with_single_authority</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ChainSpec</span> {
-        <span class="ident">ChainSpec</span>::<span class="ident">from_genesis</span>(
-            <span class="string">&quot;Integration Test&quot;</span>,
-            <span class="string">&quot;test&quot;</span>,
-            <span class="ident">ChainType</span>::<span class="ident">Development</span>,
-            <span class="ident">local_testnet_genesis_instant_single</span>,
-            <span class="macro">vec</span><span class="macro">!</span>[],
-            <span class="prelude-val">None</span>,
-            <span class="prelude-val">None</span>,
-            <span class="prelude-val">None</span>,
-            <span class="ident">Default</span>::<span class="ident">default</span>(),
-        )
-    }
-
-    <span class="doccomment">/// Local testnet config (multivalidator Alice + Bob)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">integration_test_config_with_two_authorities</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ChainSpec</span> {
-        <span class="ident">ChainSpec</span>::<span class="ident">from_genesis</span>(
-            <span class="string">&quot;Integration Test&quot;</span>,
-            <span class="string">&quot;test&quot;</span>,
-            <span class="ident">ChainType</span>::<span class="ident">Development</span>,
-            <span class="ident">local_testnet_genesis</span>,
-            <span class="macro">vec</span><span class="macro">!</span>[],
-            <span class="prelude-val">None</span>,
-            <span class="prelude-val">None</span>,
-            <span class="prelude-val">None</span>,
-            <span class="ident">Default</span>::<span class="ident">default</span>(),
-        )
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">ignore</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_connectivity</span>() {
-        <span class="ident">sc_service_test</span>::<span class="ident">connectivity</span>(
-            <span class="ident">integration_test_config_with_two_authorities</span>(),
-            <span class="op">|</span><span class="ident">config</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">NewFullBase</span> {
-                    <span class="ident">task_manager</span>,
-                    <span class="ident">client</span>,
-                    <span class="ident">network</span>,
-                    <span class="ident">transaction_pool</span>,
-                    ..
-                } <span class="op">=</span> <span class="ident">new_full_base</span>(<span class="ident">config</span>, <span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> ())<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident">sc_service_test</span>::<span class="ident">TestNetComponents</span>::<span class="ident">new</span>(
-                    <span class="ident">task_manager</span>,
-                    <span class="ident">client</span>,
-                    <span class="ident">network</span>,
-                    <span class="ident">transaction_pool</span>,
-                ))
-            },
-            <span class="op">|</span><span class="ident">config</span><span class="op">|</span> {
-                <span class="kw">let</span> (<span class="ident">keep_alive</span>, <span class="kw">_</span>, <span class="ident">client</span>, <span class="ident">network</span>, <span class="ident">transaction_pool</span>) <span class="op">=</span> <span class="ident">new_light_base</span>(<span class="ident">config</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident">sc_service_test</span>::<span class="ident">TestNetComponents</span>::<span class="ident">new</span>(
-                    <span class="ident">keep_alive</span>,
-                    <span class="ident">client</span>,
-                    <span class="ident">network</span>,
-                    <span class="ident">transaction_pool</span>,
-                ))
-            },
-        );
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_create_development_chain_spec</span>() {
-        <span class="ident">development_config</span>().<span class="ident">build_storage</span>().<span class="ident">unwrap</span>();
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_create_local_testnet_chain_spec</span>() {
-        <span class="ident">local_testnet_config</span>().<span class="ident">build_storage</span>().<span class="ident">unwrap</span>();
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_staging_test_net_chain_spec</span>() {
-        <span class="ident">staging_testnet_config</span>().<span class="ident">build_storage</span>().<span class="ident">unwrap</span>();
-    }
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="canyon_cli"></div>
