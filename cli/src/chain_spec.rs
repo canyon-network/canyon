@@ -39,8 +39,9 @@ use canyon_runtime::constants::currency::*;
 use canyon_runtime::Block;
 use canyon_runtime::{
     wasm_binary_unwrap, AuthorityDiscoveryConfig, BabeConfig, BalancesConfig, CouncilConfig,
-    DemocracyConfig, PhragmenElectionConfig, GrandpaConfig, ImOnlineConfig, IndicesConfig, SessionConfig,
-    SessionKeys, StakerStatus, StakingConfig, SudoConfig, SystemConfig, TechnicalCommitteeConfig,
+    DemocracyConfig, GrandpaConfig, ImOnlineConfig, IndicesConfig, PhragmenElectionConfig,
+    SessionConfig, SessionKeys, StakerStatus, StakingConfig, SudoConfig, SystemConfig,
+    TechnicalCommitteeConfig,
 };
 
 pub use canyon_primitives::{AccountId, Balance, Signature};
