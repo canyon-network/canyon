@@ -29,12 +29,12 @@ use sc_client_api::BlockBackend;
 use cc_datastore::TransactionDataBackend as TransactionDataBackendT;
 use cp_consensus_poa::{PoaOutcome, POA_INHERENT_IDENTIFIER};
 
-pub struct InherentDataProvider {
+pub struct PoaInherentDataProvider {
     /// Outcome of creating a proof of access
     pub poa_outcome: PoaOutcome,
 }
 
-impl InherentDataProvider {
+impl PoaInherentDataProvider {
     /// Creates a new instance of `InherentDataProvider`.
     pub fn create<Block, Client, TransactionDataBackend, RA>(
         client: &Client,
@@ -62,7 +62,7 @@ impl InherentDataProvider {
 }
 
 #[async_trait::async_trait]
-impl sp_inherents::InherentDataProvider for InherentDataProvider {
+impl sp_inherents::InherentDataProvider for PoaInherentDataProvider {
     fn provide_inherent_data(
         &self,
         inherent_data: &mut sp_inherents::InherentData,

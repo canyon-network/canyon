@@ -20,19 +20,26 @@
 //!
 //! TODO: verify PoA stored in the block header.
 
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use codec::Encode;
 use thiserror::Error;
 
 use sp_api::ProvideRuntimeApi;
-use sp_blockchain::HeaderBackend;
+use sp_block_builder::BlockBuilder as BlockBuilderApi;
+use sp_blockchain::{well_known_cache_keys::Id as CacheKeyId, HeaderBackend, ProvideCache};
+use sp_consensus::{
+    BlockCheckParams, BlockImport, BlockImportParams, CanAuthorWith, Error as ConsensusError,
+    ImportResult, SelectChain,
+};
+use sp_inherents::{CreateInherentDataProviders, InherentDataProvider};
 use sp_runtime::{
     generic::BlockId,
     traits::{Block as BlockT, Header as HeaderT, NumberFor},
 };
 
-use sc_client_api::BlockBackend;
+use sc_client_api::{backend::AuxStore, BlockBackend, BlockOf, BlockchainEvents};
 
 use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
 use cc_datastore::TransactionDataBackend as TransactionDataBackendT;
@@ -44,7 +51,7 @@ mod inherent;
 mod tx_proof;
 
 pub use self::chunk_proof::{verify_chunk_proof, ChunkProofBuilder, ChunkProofVerifier};
-pub use self::inherent::InherentDataProvider;
+pub use self::inherent::PoaInherentDataProvider;
 pub use self::tx_proof::{build_extrinsic_proof, verify_extrinsic_proof};
 pub use cp_consensus_poa::{ChunkProof, ProofOfAccess};
 
@@ -65,6 +72,8 @@ type Randomness = Vec<u8>;
 
 #[derive(Error, Debug)]
 pub enum Error<Block: BlockT> {
+    #[error("client error: {0}")]
+    Client(sp_blockchain::Error),
     #[error("codec error")]
     Codec(#[from] codec::Error),
     #[error("blockchain error")]
@@ -77,6 +86,12 @@ pub enum Error<Block: BlockT> {
     RecallBlockNotFound(DataIndex),
     #[error("block header {0} not found")]
     HeaderNotFound(BlockId<Block>),
+    #[error("Creating inherents failed: {0}")]
+    CreateInherents(sp_inherents::Error),
+    #[error("Checking inherents failed: {0}")]
+    CheckInherents(sp_inherents::Error),
+    #[error("Checking inherents unknown error for identifier: {0:?}")]
+    CheckInherentsUnknownError(sp_inherents::InherentIdentifier),
     #[error("the chunk in recall tx not found")]
     InvalidChunk,
     #[error("weave size not found in the header digests")]
@@ -85,6 +100,12 @@ pub enum Error<Block: BlockT> {
     MaxDepthReached(Depth),
     #[error("unknown poa error")]
     Unknown,
+}
+
+impl<B: BlockT> std::convert::From<Error<B>> for ConsensusError {
+    fn from(error: Error<B>) -> ConsensusError {
+        ConsensusError::ClientImport(error.to_string())
+    }
 }
 
 /// Applies the hashing on `seed` for `n` times
@@ -319,4 +340,164 @@ where
 
     log::warn!(target: "poa", "Reaching the max depth: {}", MAX_DEPTH);
     Ok(PoaOutcome::MaxDepthReached)
+}
+
+/// A block importer for PoA.
+pub struct PoaBlockImport<B: BlockT, I, C, S, CAW, CIDP> {
+    inner: I,
+    select_chain: S,
+    client: Arc<C>,
+    create_inherent_data_providers: Arc<CIDP>,
+    check_inherents_after: <<B as BlockT>::Header as HeaderT>::Number,
+    can_author_with: CAW,
+}
+
+impl<B: BlockT, I: Clone, C, S: Clone, CAW: Clone, CIDP> Clone
+    for PoaBlockImport<B, I, C, S, CAW, CIDP>
+{
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+            select_chain: self.select_chain.clone(),
+            client: self.client.clone(),
+            create_inherent_data_providers: self.create_inherent_data_providers.clone(),
+            check_inherents_after: self.check_inherents_after.clone(),
+            can_author_with: self.can_author_with.clone(),
+        }
+    }
+}
+
+impl<B, I, C, S, CAW, CIDP> PoaBlockImport<B, I, C, S, CAW, CIDP>
+where
+    B: BlockT,
+    I: BlockImport<B, Transaction = sp_api::TransactionFor<C, B>> + Send + Sync,
+    I::Error: Into<ConsensusError>,
+    C: ProvideRuntimeApi<B> + Send + Sync + HeaderBackend<B> + AuxStore + ProvideCache<B> + BlockOf,
+    C::Api: BlockBuilderApi<B>,
+    CAW: CanAuthorWith<B>,
+    CIDP: CreateInherentDataProviders<B, ()>,
+{
+    /// Create a new block import suitable to be used in PoW
+    pub fn new(
+        inner: I,
+        client: Arc<C>,
+        check_inherents_after: <<B as BlockT>::Header as HeaderT>::Number,
+        select_chain: S,
+        create_inherent_data_providers: CIDP,
+        can_author_with: CAW,
+    ) -> Self {
+        Self {
+            inner,
+            client,
+            check_inherents_after,
+            select_chain,
+            create_inherent_data_providers: Arc::new(create_inherent_data_providers),
+            can_author_with,
+        }
+    }
+
+    async fn check_inherents(
+        &self,
+        block: B,
+        block_id: BlockId<B>,
+        inherent_data_providers: CIDP::InherentDataProviders,
+    ) -> Result<(), Error<B>> {
+        if *block.header().number() < self.check_inherents_after {
+            return Ok(());
+        }
+
+        if let Err(e) = self.can_author_with.can_author_with(&block_id) {
+            log::debug!(
+                target: "pow",
+                "Skipping `check_inherents` as authoring version is not compatible: {}",
+                e,
+            );
+
+            return Ok(());
+        }
+
+        let inherent_data = inherent_data_providers
+            .create_inherent_data()
+            .map_err(|e| Error::CreateInherents(e))?;
+
+        let inherent_res = self
+            .client
+            .runtime_api()
+            .check_inherents(&block_id, block, inherent_data)
+            .map_err(|e| Error::Client(e.into()))?;
+
+        if !inherent_res.ok() {
+            for (identifier, error) in inherent_res.into_errors() {
+                match inherent_data_providers
+                    .try_handle_error(&identifier, &error)
+                    .await
+                {
+                    Some(res) => res.map_err(Error::CheckInherents)?,
+                    None => return Err(Error::CheckInherentsUnknownError(identifier)),
+                }
+            }
+        }
+
+        Ok(())
+    }
+}
+
+#[async_trait::async_trait]
+impl<B, I, C, S, CAW, CIDP> BlockImport<B> for PoaBlockImport<B, I, C, S, CAW, CIDP>
+where
+    B: BlockT,
+    I: BlockImport<B, Transaction = sp_api::TransactionFor<C, B>> + Send + Sync,
+    I::Error: Into<ConsensusError>,
+    S: SelectChain<B>,
+    C: ProvideRuntimeApi<B> + Send + Sync + HeaderBackend<B> + AuxStore + ProvideCache<B> + BlockOf,
+    C::Api: BlockBuilderApi<B>,
+    CAW: CanAuthorWith<B> + Send + Sync,
+    CIDP: CreateInherentDataProviders<B, ()> + Send + Sync,
+{
+    type Error = ConsensusError;
+    type Transaction = sp_api::TransactionFor<C, B>;
+
+    async fn check_block(
+        &mut self,
+        block: BlockCheckParams<B>,
+    ) -> Result<ImportResult, Self::Error> {
+        self.inner.check_block(block).await.map_err(Into::into)
+    }
+
+    async fn import_block(
+        &mut self,
+        mut block: BlockImportParams<B, Self::Transaction>,
+        new_cache: HashMap<CacheKeyId, Vec<u8>>,
+    ) -> Result<ImportResult, Self::Error> {
+        let best_header = self
+            .select_chain
+            .best_chain()
+            .await
+            .map_err(|e| format!("Fetch best chain failed via select chain: {:?}", e))?;
+        let best_hash = best_header.hash();
+
+        let parent_hash = *block.header.parent_hash();
+
+        if let Some(inner_body) = block.body.take() {
+            let check_block = B::new(block.header.clone(), inner_body);
+
+            self.check_inherents(
+                check_block.clone(),
+                BlockId::Hash(parent_hash),
+                self.create_inherent_data_providers
+                    .create_inherent_data_providers(parent_hash, ())
+                    .await?,
+            )
+            .await?;
+
+            block.body = Some(check_block.deconstruct().1);
+        }
+
+        todo!("Check poa related");
+
+        self.inner
+            .import_block(block, new_cache)
+            .await
+            .map_err(Into::into)
+    }
 }
