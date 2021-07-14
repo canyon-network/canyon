@@ -11,7 +11,7 @@
 
 Canyon network aims to be a permanent storage layer for Web3.0 built on Substrate framework, focusing on lightweight storage consensus as well as the high usability of data retrieval. Find more in the [white paper](https://canyon-network.io/canyon-white-paper/canyon_network.pdf).
 
-Please be aware of that the project is now at a fairly early stage, feel free to reach out if you have any ideas about our design and vision.
+Please be aware of that the project is now at a fairly early stage and nothing is production ready.
 
 ## Build
 
@@ -21,6 +21,10 @@ $ cd canyon
 # The built release binary can be found in target/release/canyon.
 $ cargo build --release
 ```
+
+## Contribution
+
+We highly appreciate any kind of contributions, feel free to reach out if you have any ideas about our design and are interested in our vision.
 
 ## License
 
