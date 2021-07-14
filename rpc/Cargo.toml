@@ -34,7 +34,6 @@ sp-consensus = { git = "https://github.com/canyon-network/substrate", branch = "
 sp-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 
-pallet-mmr-rpc = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 pallet-transaction-payment-rpc = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 substrate-frame-rpc-system = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 
