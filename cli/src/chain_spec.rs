@@ -39,7 +39,7 @@ use canyon_runtime::constants::currency::*;
 use canyon_runtime::Block;
 use canyon_runtime::{
     wasm_binary_unwrap, AuthorityDiscoveryConfig, BabeConfig, BalancesConfig, CouncilConfig,
-    DemocracyConfig, ElectionsConfig, GrandpaConfig, ImOnlineConfig, IndicesConfig, SessionConfig,
+    DemocracyConfig, PhragmenElectionConfig, GrandpaConfig, ImOnlineConfig, IndicesConfig, SessionConfig,
     SessionKeys, StakerStatus, StakingConfig, SudoConfig, SystemConfig, TechnicalCommitteeConfig,
 };
 
@@ -313,7 +313,7 @@ pub fn testnet_genesis(
             ..Default::default()
         },
         democracy: DemocracyConfig::default(),
-        elections: ElectionsConfig {
+        phragmen_election: PhragmenElectionConfig {
             members: endowed_accounts
                 .iter()
                 .take((num_endowed_accounts + 1) / 2)
