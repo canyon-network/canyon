@@ -18,8 +18,8 @@
 
 //! Some configurable implementations as associated type for the substrate runtime.
 
-use crate::{Author, Authorship, Balances, Treasury};
-use frame_support::traits::{Currency, OnUnbalanced};
+use crate::{AccountId, Authorship, Balances, Treasury};
+use frame_support::traits::{Currency, Imbalance, OnUnbalanced};
 
 type NegativeImbalance = <Balances as Currency<AccountId>>::NegativeImbalance;
 

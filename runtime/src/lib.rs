@@ -54,10 +54,7 @@ use sp_version::RuntimeVersion;
 
 use frame_support::{
     construct_runtime, parameter_types,
-    traits::{
-        Currency, Imbalance, InstanceFilter, KeyOwnerProofSystem, LockIdentifier, OnUnbalanced,
-        U128CurrencyToVote,
-    },
+    traits::{InstanceFilter, KeyOwnerProofSystem, LockIdentifier, U128CurrencyToVote},
     weights::{
         constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
         DispatchClass, IdentityFee, Weight,
@@ -91,7 +88,7 @@ pub use sp_runtime::BuildStorage;
 
 /// Implementations of some helper traits passed into runtime modules as associated types.
 pub mod impls;
-use impls::{Author, DealWithFees};
+use impls::DealWithFees;
 
 /// Constant values used within the runtime.
 pub mod constants;
