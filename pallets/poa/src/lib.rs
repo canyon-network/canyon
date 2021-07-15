@@ -144,11 +144,10 @@ pub mod pallet {
     #[pallet::hooks]
     impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
         fn on_finalize(_n: BlockNumberFor<T>) {
-                    frame_support::log::debug!(
-                        target: "runtime::poa",
-                        "on_finalize system digest: {:?}", frame_system::Pallet::<T>::digest()
-                    );
-
+            frame_support::log::debug!(
+                target: "runtime::poa",
+                "on_finalize system digest: {:?}", frame_system::Pallet::<T>::digest()
+            );
 
             // frame_support::log::debug!(target: "runtime::poa", "on_finalize poa: {:?}", <PoaProof<T>>::get());
             // if let Some(poa) = <PoaProof<T>>::take() {
