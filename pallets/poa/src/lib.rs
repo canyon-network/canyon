@@ -166,6 +166,68 @@ pub mod pallet {
         }
     }
 
+    #[pallet::inherent]
+    impl<T: Config> ProvideInherent for Pallet<T> {
+        type Call = Call<T>;
+        type Error = MakeFatalError<()>;
+
+        const INHERENT_IDENTIFIER: InherentIdentifier = POA_INHERENT_IDENTIFIER;
+
+        fn create_inherent(data: &InherentData) -> Option<Self::Call> {
+            frame_support::log::debug!(
+                target: "runtime::poa",
+                "data: {:?}", data.get_data::<PoaOutcome>(&Self::INHERENT_IDENTIFIER)
+            );
+            let poa_outcome: PoaOutcome = match data.get_data(&Self::INHERENT_IDENTIFIER) {
+                Ok(Some(outcome)) => outcome,
+                Ok(None) => return None,
+                Err(e) => {
+                    frame_support::log::error!(
+                        target: "runtime::poa",
+                        "Error occurred when getting the inherent data of poa: {:?}",
+                        e,
+                    );
+                    return None;
+                }
+            };
+
+            match poa_outcome {
+                PoaOutcome::Justification(poa) => {
+                    let depth = poa.depth;
+
+                    assert!(depth > 0, "depth must be greater than 0");
+
+                    frame_support::log::debug!(target: "runtime::poa", "========= Depositing poa Seal");
+                    <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(
+                        POA_ENGINE_ID,
+                        poa.encode(),
+                    ));
+
+                    Some(Call::note_depth(depth))
+                }
+                PoaOutcome::MaxDepthReached => {
+                    // Decrease the storage capacity?
+                    // Need to update outcome.require_inherent() too.
+                    //
+                    // TODO: slash the block author when SLA is too low?
+                    None
+                }
+                PoaOutcome::Skipped => None,
+            }
+        }
+
+        fn is_inherent(call: &Self::Call) -> bool {
+            matches!(call, Call::note_depth(..))
+        }
+
+        fn is_inherent_required(data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
+            match data.get_data::<PoaOutcome>(&Self::INHERENT_IDENTIFIER) {
+                Ok(Some(outcome)) if outcome.require_inherent() => Ok(Some(().into())),
+                _ => Ok(None),
+            }
+        }
+    }
+
     /// Event for the poa pallet.
     #[pallet::event]
     #[pallet::metadata(T::AccountId = "AccountId")]
@@ -197,60 +259,4 @@ pub mod pallet {
     #[cfg(test)]
     #[pallet::storage]
     pub(super) type TestAuthor<T: Config> = StorageValue<_, T::AccountId, ValueQuery>;
-}
-
-impl<T: Config> ProvideInherent for Pallet<T> {
-    type Call = Call<T>;
-    type Error = MakeFatalError<()>;
-
-    const INHERENT_IDENTIFIER: InherentIdentifier = POA_INHERENT_IDENTIFIER;
-
-    fn create_inherent(data: &InherentData) -> Option<Self::Call> {
-        let poa_outcome: PoaOutcome = match data.get_data(&Self::INHERENT_IDENTIFIER) {
-            Ok(Some(outcome)) => outcome,
-            Ok(None) => return None,
-            Err(e) => {
-                frame_support::log::error!(
-                    target: "runtime::poa",
-                    "Error occurred when getting the inherent data of poa: {:?}",
-                    e,
-                );
-                return None;
-            }
-        };
-
-        match poa_outcome {
-            PoaOutcome::Justification(poa) => {
-                let depth = poa.depth;
-
-                assert!(depth > 0, "depth must be greater than 0");
-
-                <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(
-                    POA_ENGINE_ID,
-                    poa.encode(),
-                ));
-
-                Some(Call::note_depth(depth))
-            }
-            PoaOutcome::MaxDepthReached => {
-                // Decrease the storage capacity?
-                // Need to update outcome.require_inherent() too.
-                //
-                // TODO: slash the block author when SLA is too low?
-                None
-            }
-            PoaOutcome::Skipped => None,
-        }
-    }
-
-    fn is_inherent(call: &Self::Call) -> bool {
-        matches!(call, Call::note_depth(..))
-    }
-
-    fn is_inherent_required(data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
-        match data.get_data::<PoaOutcome>(&Self::INHERENT_IDENTIFIER) {
-            Ok(Some(outcome)) if outcome.require_inherent() => Ok(Some(().into())),
-            _ => Ok(None),
-        }
-    }
 }

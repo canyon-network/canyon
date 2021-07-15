@@ -1088,7 +1088,7 @@ construct_runtime!(
         Gilt: pallet_gilt::{Pallet, Call, Storage, Event<T>, Config} = 32,
 
         Permastore: pallet_permastore::{Pallet, Call, Storage, Event<T>} = 33,
-        Poa: pallet_poa::{Pallet, Call, Storage, Event<T>} = 34,
+        Poa: pallet_poa::{Pallet, Call, Storage, Inherent, Event<T>} = 34,
 
         Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 35,
     }
@@ -1319,6 +1319,9 @@ impl_runtime_apis! {
         }
         fn data_size(block_number: BlockNumber, extrinsic_index: u32) -> u32 {
             Permastore::data_size(block_number, extrinsic_index)
+        }
+        fn block_size() -> u64 {
+            Permastore::block_size()
         }
         fn weave_size() -> u64 {
             Permastore::weave_size()

@@ -76,23 +76,23 @@ type Randomness = Vec<u8>;
 pub enum Error<Block: BlockT> {
     #[error("Header uses the wrong engine {0:?}")]
     WrongEngine(ConsensusEngineId),
-    #[error("Header {0:?} is unsealed")]
+    #[error("Header {0:?} has no PoA seal")]
     HeaderUnsealed(Block::Hash),
     #[error("Header {0:?} has multiple PoA seals")]
     HeaderMultiSealed(Block::Hash),
-    #[error("client error: {0}")]
+    #[error("Client error: {0}")]
     Client(sp_blockchain::Error),
-    #[error("codec error")]
+    #[error("Codec error")]
     Codec(#[from] codec::Error),
-    #[error("blockchain error")]
+    #[error("Blockchain error")]
     BlockchainError(#[from] sp_blockchain::Error),
     #[error(transparent)]
     ApiError(#[from] sp_api::ApiError),
-    #[error("block {0} not found")]
+    #[error("Block {0} not found")]
     BlockNotFound(BlockId<Block>),
-    #[error("recall block not found given the recall byte {0}")]
+    #[error("Recall block not found given the recall byte {0}")]
     RecallBlockNotFound(DataIndex),
-    #[error("block header {0} not found")]
+    #[error("Header {0} not found")]
     HeaderNotFound(BlockId<Block>),
     #[error("Creating inherents failed: {0}")]
     CreateInherents(sp_inherents::Error),
@@ -102,12 +102,8 @@ pub enum Error<Block: BlockT> {
     CheckInherentsUnknownError(sp_inherents::InherentIdentifier),
     #[error("the chunk in recall tx not found")]
     InvalidChunk,
-    #[error("weave size not found in the header digests")]
-    EmptyWeaveSize,
-    #[error("the maximum allowed depth {0} reached")]
+    #[error("Reaching the maximum allowed depth {0}")]
     MaxDepthReached(Depth),
-    #[error("unknown poa error")]
-    Unknown,
 }
 
 impl<B: BlockT> std::convert::From<Error<B>> for ConsensusError {
@@ -185,7 +181,7 @@ where
 {
     log::debug!(
         target: "poa",
-        "Calling into runtime to find the recall block, at: {:?}, recall_byte: {:?}",
+        "Finding the recall block at: {:?}, recall_byte: {:?}",
         at, recall_byte,
     );
     runtime_api
@@ -356,9 +352,7 @@ fn fetch_seal<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<Vec<u8>, Er
         .digest()
         .logs()
         .iter()
-        .filter(
-            |digest_item| matches!(digest_item, DigestItem::Seal(id, _seal) if id == &POA_ENGINE_ID),
-        )
+        .filter(|digest_item| matches!(digest_item, DigestItem::Seal(id, _seal) if id == &POA_ENGINE_ID))
         .collect::<Vec<_>>();
 
     match poa_seal.len() {
@@ -504,15 +498,21 @@ where
         */
 
         // Check if the block has data transactions.
+        let block_size = self
+            .client
+            .runtime_api()
+            .block_size(&BlockId::Hash(best_hash))
+            .map_err(|e| Error::<B>::ApiError(e))?;
+
         let weave_size = self
             .client
             .runtime_api()
             .weave_size(&BlockId::Hash(best_hash))
             .map_err(|e| Error::<B>::ApiError(e))?;
 
-        log::debug!(target: "poa", "weave_size is {} at block {}", weave_size, best_hash);
+        log::debug!(target: "poa", "block_size is {} at block {}", block_size, best_hash);
 
-        if weave_size > 0 {
+        if block_size > 0 || weave_size > 0 {
             let poa_seal = fetch_seal::<B>(best_header, best_hash)?;
             // verify_seal
             log::debug!(target: "poa", "TODO: verify PoA seal: {:?}", poa_seal);
