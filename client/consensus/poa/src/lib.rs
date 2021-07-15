@@ -21,9 +21,11 @@
 //! TODO: verify PoA stored in the block header.
 
 use std::collections::HashMap;
+use std::marker::PhantomData;
 use std::sync::Arc;
 
 use codec::Encode;
+use sp_runtime::{ConsensusEngineId, DigestItem};
 use thiserror::Error;
 
 use sp_api::ProvideRuntimeApi;
@@ -39,11 +41,11 @@ use sp_runtime::{
     traits::{Block as BlockT, Header as HeaderT, NumberFor},
 };
 
-use sc_client_api::{backend::AuxStore, BlockBackend, BlockOf, BlockchainEvents};
+use sc_client_api::{backend::AuxStore, BlockBackend, BlockOf};
 
 use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
 use cc_datastore::TransactionDataBackend as TransactionDataBackendT;
-use cp_consensus_poa::PoaOutcome;
+use cp_consensus_poa::{PoaOutcome, POA_ENGINE_ID};
 use cp_permastore::{PermastoreApi, CHUNK_SIZE};
 
 mod chunk_proof;
@@ -72,6 +74,12 @@ type Randomness = Vec<u8>;
 
 #[derive(Error, Debug)]
 pub enum Error<Block: BlockT> {
+    #[error("Header uses the wrong engine {0:?}")]
+    WrongEngine(ConsensusEngineId),
+    #[error("Header {0:?} is unsealed")]
+    HeaderUnsealed(Block::Hash),
+    #[error("Header {0:?} has multiple PoA seals")]
+    HeaderMultiSealed(Block::Hash),
     #[error("client error: {0}")]
     Client(sp_blockchain::Error),
     #[error("codec error")]
@@ -198,7 +206,7 @@ where
     Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
     TransactionDataBackend: TransactionDataBackendT<Block>,
     RA: ProvideRuntimeApi<Block> + Send + Sync,
-    RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
+    RA::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
 {
     let parent_id = BlockId::Hash(parent);
 
@@ -342,66 +350,66 @@ where
     Ok(PoaOutcome::MaxDepthReached)
 }
 
+/// Fetch PoA seal.
+fn fetch_seal<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<Vec<u8>, Error<B>> {
+    let poa_seal = header
+        .digest()
+        .logs()
+        .iter()
+        .filter(
+            |digest_item| matches!(digest_item, DigestItem::Seal(id, _seal) if id == &POA_ENGINE_ID),
+        )
+        .collect::<Vec<_>>();
+
+    match poa_seal.len() {
+        0 => Err(Error::<B>::HeaderUnsealed(hash).into()),
+        1 => match poa_seal[0] {
+            DigestItem::Seal(_id, seal) => Ok(seal.clone()),
+            _ => unreachable!("Only Seal with poa engine id has been filtered"),
+        },
+        _ => Err(Error::<B>::HeaderMultiSealed(hash).into()),
+    }
+}
+
 /// A block importer for PoA.
-pub struct PoaBlockImport<B: BlockT, I, C, S, CAW, CIDP> {
+pub struct PoaBlockImport<B, I, C, S> {
     inner: I,
     select_chain: S,
     client: Arc<C>,
-    create_inherent_data_providers: Arc<CIDP>,
-    check_inherents_after: <<B as BlockT>::Header as HeaderT>::Number,
-    can_author_with: CAW,
+    phatom: PhantomData<B>,
 }
 
-impl<B: BlockT, I: Clone, C, S: Clone, CAW: Clone, CIDP> Clone
-    for PoaBlockImport<B, I, C, S, CAW, CIDP>
-{
+impl<B: Clone, I: Clone, C, S: Clone> Clone for PoaBlockImport<B, I, C, S> {
     fn clone(&self) -> Self {
         Self {
             inner: self.inner.clone(),
             select_chain: self.select_chain.clone(),
             client: self.client.clone(),
-            create_inherent_data_providers: self.create_inherent_data_providers.clone(),
-            check_inherents_after: self.check_inherents_after.clone(),
-            can_author_with: self.can_author_with.clone(),
+            phatom: self.phatom.clone(),
         }
     }
 }
 
-impl<B, I, C, S, CAW, CIDP> PoaBlockImport<B, I, C, S, CAW, CIDP>
+impl<B, I, C, S> PoaBlockImport<B, I, C, S>
 where
     B: BlockT,
     I: BlockImport<B, Transaction = sp_api::TransactionFor<C, B>> + Send + Sync,
     I::Error: Into<ConsensusError>,
     C: ProvideRuntimeApi<B> + Send + Sync + HeaderBackend<B> + AuxStore + ProvideCache<B> + BlockOf,
     C::Api: BlockBuilderApi<B>,
-    CAW: CanAuthorWith<B>,
-    CIDP: CreateInherentDataProviders<B, ()>,
 {
     /// Create a new block import suitable to be used in PoW
-    pub fn new(
-        inner: I,
-        client: Arc<C>,
-        check_inherents_after: <<B as BlockT>::Header as HeaderT>::Number,
-        select_chain: S,
-        create_inherent_data_providers: CIDP,
-        can_author_with: CAW,
-    ) -> Self {
+    pub fn new(inner: I, client: Arc<C>, select_chain: S) -> Self {
         Self {
             inner,
             client,
-            check_inherents_after,
             select_chain,
-            create_inherent_data_providers: Arc::new(create_inherent_data_providers),
-            can_author_with,
+            phatom: PhantomData::<B>,
         }
     }
 
-    async fn check_inherents(
-        &self,
-        block: B,
-        block_id: BlockId<B>,
-        inherent_data_providers: CIDP::InherentDataProviders,
-    ) -> Result<(), Error<B>> {
+    async fn check_inherents(&self, block: B, block_id: BlockId<B>) -> Result<(), Error<B>> {
+        /*
         if *block.header().number() < self.check_inherents_after {
             return Ok(());
         }
@@ -437,22 +445,21 @@ where
                 }
             }
         }
+        */
 
         Ok(())
     }
 }
 
 #[async_trait::async_trait]
-impl<B, I, C, S, CAW, CIDP> BlockImport<B> for PoaBlockImport<B, I, C, S, CAW, CIDP>
+impl<B, I, C, S> BlockImport<B> for PoaBlockImport<B, I, C, S>
 where
     B: BlockT,
     I: BlockImport<B, Transaction = sp_api::TransactionFor<C, B>> + Send + Sync,
     I::Error: Into<ConsensusError>,
     S: SelectChain<B>,
     C: ProvideRuntimeApi<B> + Send + Sync + HeaderBackend<B> + AuxStore + ProvideCache<B> + BlockOf,
-    C::Api: BlockBuilderApi<B>,
-    CAW: CanAuthorWith<B> + Send + Sync,
-    CIDP: CreateInherentDataProviders<B, ()> + Send + Sync,
+    C::Api: BlockBuilderApi<B> + PermastoreApi<B, NumberFor<B>, u32, B::Hash>,
 {
     type Error = ConsensusError;
     type Transaction = sp_api::TransactionFor<C, B>;
@@ -474,10 +481,12 @@ where
             .best_chain()
             .await
             .map_err(|e| format!("Fetch best chain failed via select chain: {:?}", e))?;
+
         let best_hash = best_header.hash();
 
         let parent_hash = *block.header.parent_hash();
 
+        /*
         if let Some(inner_body) = block.body.take() {
             let check_block = B::new(block.header.clone(), inner_body);
 
@@ -492,8 +501,22 @@ where
 
             block.body = Some(check_block.deconstruct().1);
         }
+        */
 
-        todo!("Check poa related");
+        // Check if the block has data transactions.
+        let weave_size = self
+            .client
+            .runtime_api()
+            .weave_size(&BlockId::Hash(best_hash))
+            .map_err(|e| Error::<B>::ApiError(e))?;
+
+        log::debug!(target: "poa", "weave_size is {} at block {}", weave_size, best_hash);
+
+        if weave_size > 0 {
+            let poa_seal = fetch_seal::<B>(best_header, best_hash)?;
+            // verify_seal
+            log::debug!(target: "poa", "TODO: verify PoA seal: {:?}", poa_seal);
+        }
 
         self.inner
             .import_block(block, new_cache)

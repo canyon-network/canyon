@@ -42,6 +42,9 @@ type FullGrandpaBlockImport =
     grandpa::GrandpaBlockImport<FullBackend, Block, FullClient, FullSelectChain>;
 type LightClient = sc_service::TLightClient<Block, RuntimeApi, Executor>;
 
+type FullPoaBlockImport =
+    cc_consensus_poa::PoaBlockImport<Block, FullGrandpaBlockImport, FullClient, FullSelectChain>;
+
 pub fn new_partial(
     config: &Configuration,
 ) -> Result<
@@ -54,7 +57,7 @@ pub fn new_partial(
         (
             impl Fn(canyon_rpc::DenyUnsafe, sc_rpc::SubscriptionTaskExecutor) -> canyon_rpc::IoHandler,
             (
-                sc_consensus_babe::BabeBlockImport<Block, FullClient, FullGrandpaBlockImport>,
+                sc_consensus_babe::BabeBlockImport<Block, FullClient, FullPoaBlockImport>,
                 grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
                 sc_consensus_babe::BabeLink<Block>,
             ),
@@ -105,9 +108,15 @@ pub fn new_partial(
     )?;
     let justification_import = grandpa_block_import.clone();
 
+    let poa_block_import = cc_consensus_poa::PoaBlockImport::new(
+        grandpa_block_import,
+        client.clone(),
+        select_chain.clone(),
+    );
+
     let (block_import, babe_link) = sc_consensus_babe::block_import(
         sc_consensus_babe::Config::get_or_compute(&*client)?,
-        grandpa_block_import,
+        poa_block_import,
         client.clone(),
     )?;
 
@@ -221,7 +230,7 @@ pub struct NewFullBase {
 pub fn new_full_base(
     mut config: Configuration,
     with_startup_data: impl FnOnce(
-        &sc_consensus_babe::BabeBlockImport<Block, FullClient, FullGrandpaBlockImport>,
+        &sc_consensus_babe::BabeBlockImport<Block, FullClient, FullPoaBlockImport>,
         &sc_consensus_babe::BabeLink<Block>,
     ),
 ) -> Result<NewFullBase, ServiceError> {
