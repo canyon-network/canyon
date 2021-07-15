@@ -31,7 +31,7 @@ pub const POA_INHERENT_IDENTIFIER: InherentIdentifier = *b"poaproof";
 pub const POA_ENGINE_ID: ConsensusEngineId = *b"poa_";
 
 /// This struct includes the raw bytes of recall chunk as well as the chunk proof stuffs.
-#[derive(Debug, Clone, Encode, Decode)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct ChunkProof {
     /// Random data chunk that is proved to exist.
     pub chunk: Vec<u8>,
@@ -53,7 +53,7 @@ impl ChunkProof {
 }
 
 /// This struct is used to prove the random historical data access of block author.
-#[derive(Debug, Clone, Encode, Decode)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct ProofOfAccess {
     /// Number of trials when a valid `ProofOfAccess` created.
     pub depth: u32,
@@ -64,7 +64,7 @@ pub struct ProofOfAccess {
 }
 
 /// Outcome of generating the inherent data of [`ProofOfAccess`].
-#[derive(Debug, Clone, Encode, Decode)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub enum PoaOutcome {
     /// Not required for this block.
     Skipped,

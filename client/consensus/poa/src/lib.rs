@@ -348,11 +348,18 @@ where
 
 /// Fetch PoA seal.
 fn fetch_seal<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<Vec<u8>, Error<B>> {
+    log::debug!(
+        target: "poa",
+        "---- header digest: {:?}", header.digest()
+    );
     let poa_seal = header
         .digest()
         .logs()
         .iter()
-        .filter(|digest_item| matches!(digest_item, DigestItem::Seal(id, _seal) if id == &POA_ENGINE_ID))
+        .filter(|digest_item| {
+            log::debug!(target: "poa", "digest_item: {:?}", digest_item);
+            matches!(digest_item, DigestItem::Seal(id, _seal) if id == &POA_ENGINE_ID)
+        })
         .collect::<Vec<_>>();
 
     match poa_seal.len() {

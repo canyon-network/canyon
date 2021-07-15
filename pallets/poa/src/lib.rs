@@ -119,6 +119,7 @@ pub trait BlockAuthor<AccountId> {
 #[frame_support::pallet]
 pub mod pallet {
     use super::*;
+    use cp_consensus_poa::ProofOfAccess;
     use frame_support::pallet_prelude::*;
     use frame_system::pallet_prelude::*;
 
@@ -140,26 +141,82 @@ pub mod pallet {
     #[pallet::generate_store(pub(super) trait Store)]
     pub struct Pallet<T>(_);
 
+    #[pallet::hooks]
+    impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+        fn on_finalize(_n: BlockNumberFor<T>) {
+                    frame_support::log::debug!(
+                        target: "runtime::poa",
+                        "on_finalize system digest: {:?}", frame_system::Pallet::<T>::digest()
+                    );
+
+
+            // frame_support::log::debug!(target: "runtime::poa", "on_finalize poa: {:?}", <PoaProof<T>>::get());
+            // if let Some(poa) = <PoaProof<T>>::take() {
+            // frame_support::log::debug!(
+            // target: "runtime::poa",
+            // "Depositing poa seal: {:?}", DigestItem::<T::Hash>::Seal(POA_ENGINE_ID,poa.encode())
+            // );
+            // <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(
+            // POA_ENGINE_ID,
+            // poa.encode(),
+            // ));
+            // } else {
+            // frame_support::log::debug!(target: "runtime::poa", "PoaProof is None");
+            // }
+        }
+    }
+
     #[pallet::call]
     impl<T: Config> Pallet<T> {
         /// Updates the historical depth info of block author.
         #[pallet::weight(0)]
         pub fn note_depth(origin: OriginFor<T>, #[pallet::compact] depth: Depth) -> DispatchResult {
-            ensure_root(origin)?;
+            ensure_none(origin)?;
 
-            let block_author = T::BlockAuthor::author();
+            Ok(())
+        }
 
-            if let Some(mut old) = HistoryDepth::<T>::get(&block_author) {
-                old.add_depth(depth);
-                HistoryDepth::<T>::insert(&block_author, old);
-            } else {
-                HistoryDepth::<T>::insert(
-                    &block_author,
-                    DepthInfo {
-                        total_depth: depth,
-                        blocks: 1u32.into(),
-                    },
-                );
+        #[pallet::weight(0)]
+        pub fn process_poa_outcome(
+            origin: OriginFor<T>,
+            poa_outcome: PoaOutcome,
+        ) -> DispatchResult {
+            ensure_none(origin)?;
+
+            match poa_outcome {
+                PoaOutcome::Justification(poa) => {
+                    let depth = poa.depth;
+
+                    assert!(depth > 0, "depth must be greater than 0");
+
+                    // <PoaProof<T>>::put(poa);
+                    // frame_support::log::debug!(target: "runtime::poa", "After putting poa: {:?}", <PoaProof<T>>::get());
+
+                    frame_support::log::debug!(
+                        target: "runtime::poa",
+                        "Depositing poa seal: {:?}", DigestItem::<T::Hash>::Seal(POA_ENGINE_ID,poa.encode())
+                    );
+
+                    <frame_system::Pallet<T>>::deposit_log(
+                        DigestItem::Seal(POA_ENGINE_ID, poa.encode()).into(),
+                    );
+
+                    frame_support::log::debug!(
+                        target: "runtime::poa",
+                        "After system digest: {:?}", frame_system::Pallet::<T>::digest()
+                    );
+
+                    Self::impl_note_depth(depth);
+                }
+                PoaOutcome::MaxDepthReached => {
+                    // Decrease the storage capacity?
+                    // Need to update outcome.require_inherent() too.
+                    //
+                    // TODO: slash the block author when SLA is too low?
+                    // None
+                }
+                // PoaOutcome::Skipped => None,
+                PoaOutcome::Skipped => (),
             }
 
             Ok(())
@@ -191,29 +248,7 @@ pub mod pallet {
                 }
             };
 
-            match poa_outcome {
-                PoaOutcome::Justification(poa) => {
-                    let depth = poa.depth;
-
-                    assert!(depth > 0, "depth must be greater than 0");
-
-                    frame_support::log::debug!(target: "runtime::poa", "========= Depositing poa Seal");
-                    <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(
-                        POA_ENGINE_ID,
-                        poa.encode(),
-                    ));
-
-                    Some(Call::note_depth(depth))
-                }
-                PoaOutcome::MaxDepthReached => {
-                    // Decrease the storage capacity?
-                    // Need to update outcome.require_inherent() too.
-                    //
-                    // TODO: slash the block author when SLA is too low?
-                    None
-                }
-                PoaOutcome::Skipped => None,
-            }
+            Some(Call::process_poa_outcome(poa_outcome))
         }
 
         fn is_inherent(call: &Self::Call) -> bool {
@@ -255,8 +290,30 @@ pub mod pallet {
     pub(super) type HistoryDepth<T: Config> =
         StorageMap<_, Blake2_128Concat, T::AccountId, DepthInfo<T::BlockNumber>>;
 
+    #[pallet::storage]
+    pub(super) type PoaProof<T: Config> = StorageValue<_, ProofOfAccess>;
+
     /// Helper storage item of current block author for easier testing.
     #[cfg(test)]
     #[pallet::storage]
     pub(super) type TestAuthor<T: Config> = StorageValue<_, T::AccountId, ValueQuery>;
+
+    impl<T: Config> Pallet<T> {
+        pub fn impl_note_depth(depth: Depth) {
+            let block_author = T::BlockAuthor::author();
+
+            if let Some(mut old) = HistoryDepth::<T>::get(&block_author) {
+                old.add_depth(depth);
+                HistoryDepth::<T>::insert(&block_author, old);
+            } else {
+                HistoryDepth::<T>::insert(
+                    &block_author,
+                    DepthInfo {
+                        total_depth: depth,
+                        blocks: 1u32.into(),
+                    },
+                );
+            }
+        }
+    }
 }
