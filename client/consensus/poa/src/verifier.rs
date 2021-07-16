@@ -23,5 +23,5 @@ pub fn verify(poa: ProofOfAccess) -> Result<(), Error> {
         return Err(Error::InvalidDepth(depth));
     }
 
-    todo!()
+    Ok(())
 }
