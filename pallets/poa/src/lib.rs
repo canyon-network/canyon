@@ -143,38 +143,11 @@ pub mod pallet {
 
     #[pallet::hooks]
     impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-        fn on_finalize(_n: BlockNumberFor<T>) {
-            frame_support::log::debug!(
-                target: "runtime::poa",
-                "on_finalize system digest: {:?}", frame_system::Pallet::<T>::digest()
-            );
-
-            // frame_support::log::debug!(target: "runtime::poa", "on_finalize poa: {:?}", <PoaProof<T>>::get());
-            // if let Some(poa) = <PoaProof<T>>::take() {
-            // frame_support::log::debug!(
-            // target: "runtime::poa",
-            // "Depositing poa seal: {:?}", DigestItem::<T::Hash>::Seal(POA_ENGINE_ID,poa.encode())
-            // );
-            // <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(
-            // POA_ENGINE_ID,
-            // poa.encode(),
-            // ));
-            // } else {
-            // frame_support::log::debug!(target: "runtime::poa", "PoaProof is None");
-            // }
-        }
+        fn on_finalize(_n: BlockNumberFor<T>) {}
     }
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
-        /// Updates the historical depth info of block author.
-        #[pallet::weight(0)]
-        pub fn note_depth(origin: OriginFor<T>, #[pallet::compact] depth: Depth) -> DispatchResult {
-            ensure_none(origin)?;
-
-            Ok(())
-        }
-
         #[pallet::weight(0)]
         pub fn process_poa_outcome(
             origin: OriginFor<T>,
@@ -188,24 +161,11 @@ pub mod pallet {
 
                     assert!(depth > 0, "depth must be greater than 0");
 
-                    // <PoaProof<T>>::put(poa);
-                    // frame_support::log::debug!(target: "runtime::poa", "After putting poa: {:?}", <PoaProof<T>>::get());
-
-                    frame_support::log::debug!(
-                        target: "runtime::poa",
-                        "Depositing poa seal: {:?}", DigestItem::<T::Hash>::Seal(POA_ENGINE_ID,poa.encode())
-                    );
-
                     <frame_system::Pallet<T>>::deposit_log(
                         DigestItem::Seal(POA_ENGINE_ID, poa.encode()).into(),
                     );
 
-                    frame_support::log::debug!(
-                        target: "runtime::poa",
-                        "After system digest: {:?}", frame_system::Pallet::<T>::digest()
-                    );
-
-                    Self::impl_note_depth(depth);
+                    Self::note_depth(depth);
                 }
                 PoaOutcome::MaxDepthReached => {
                     // Decrease the storage capacity?
@@ -230,10 +190,6 @@ pub mod pallet {
         const INHERENT_IDENTIFIER: InherentIdentifier = POA_INHERENT_IDENTIFIER;
 
         fn create_inherent(data: &InherentData) -> Option<Self::Call> {
-            frame_support::log::debug!(
-                target: "runtime::poa",
-                "data: {:?}", data.get_data::<PoaOutcome>(&Self::INHERENT_IDENTIFIER)
-            );
             let poa_outcome: PoaOutcome = match data.get_data(&Self::INHERENT_IDENTIFIER) {
                 Ok(Some(outcome)) => outcome,
                 Ok(None) => return None,
@@ -251,7 +207,7 @@ pub mod pallet {
         }
 
         fn is_inherent(call: &Self::Call) -> bool {
-            matches!(call, Call::note_depth(..))
+            matches!(call, Call::process_poa_outcome(..))
         }
 
         fn is_inherent_required(data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
@@ -298,7 +254,8 @@ pub mod pallet {
     pub(super) type TestAuthor<T: Config> = StorageValue<_, T::AccountId, ValueQuery>;
 
     impl<T: Config> Pallet<T> {
-        pub fn impl_note_depth(depth: Depth) {
+        /// Updates the historical depth info of block author.
+        pub(crate) fn note_depth(depth: Depth) {
             let block_author = T::BlockAuthor::author();
 
             if let Some(mut old) = HistoryDepth::<T>::get(&block_author) {

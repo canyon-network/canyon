@@ -479,13 +479,6 @@ where
             .await
             .map_err(|e| format!("Fetch best chain failed via select chain: {:?}", e))?;
 
-        log::debug!(
-            target: "poa",
-            "[cc_consensus_poa::import_block] ,,  best_hash: {:?}, parent_hash: {:?}",
-            best_header.hash(),
-            *block.header.parent_hash(),
-        );
-
         let best_hash = best_header.hash();
 
         let parent_hash = *block.header.parent_hash();
@@ -519,6 +512,15 @@ where
             .runtime_api()
             .weave_size(&BlockId::Hash(best_hash))
             .map_err(|e| Error::<B>::ApiError(e))?;
+
+        log::debug!(
+            target: "poa",
+            "[cc_consensus_poa::import_block] block_size at best_hash({:?}) is {}, weave_size at best_hash is {}, parent_hash: {:?}",
+            best_hash,
+            block_size,
+            weave_size,
+            *block.header.parent_hash(),
+        );
 
         log::debug!(target: "poa", "[cc_consensus_poa::import_block] block_size is {} at block {}", block_size, best_hash);
 

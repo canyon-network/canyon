@@ -35,10 +35,10 @@ use crate::mock::{new_test_ext, Origin, Poa, System, Test};
 use crate::{self as pallet_poa, DepthInfo, HistoryDepth, TestAuthor};
 
 #[test]
-fn update_storage_capacity_should_work() {
+fn note_depth_should_work() {
     new_test_ext().execute_with(|| {
         TestAuthor::<Test>::put(6);
-        assert_ok!(Poa::note_depth(Origin::root(), 10));
+        assert_ok!(Poa::note_depth(10));
         assert_eq!(
             HistoryDepth::<Test>::get(&6).unwrap(),
             DepthInfo {
@@ -48,7 +48,7 @@ fn update_storage_capacity_should_work() {
         );
 
         TestAuthor::<Test>::put(8);
-        assert_ok!(Poa::note_depth(Origin::root(), 1));
+        assert_ok!(Poa::note_depth(1));
         assert_eq!(
             HistoryDepth::<Test>::get(&8).unwrap(),
             DepthInfo {
@@ -58,7 +58,7 @@ fn update_storage_capacity_should_work() {
         );
 
         TestAuthor::<Test>::put(6);
-        assert_ok!(Poa::note_depth(Origin::root(), 1));
+        assert_ok!(Poa::note_depth(1));
         assert_eq!(
             HistoryDepth::<Test>::get(&6).unwrap(),
             DepthInfo {
