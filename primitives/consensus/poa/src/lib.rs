@@ -63,6 +63,16 @@ pub struct ProofOfAccess {
     pub chunk_proof: ChunkProof,
 }
 
+impl ProofOfAccess {
+    pub fn new(depth: u32, tx_path: Vec<Vec<u8>>, chunk_proof: ChunkProof) -> Self {
+        Self {
+            depth,
+            tx_path,
+            chunk_proof,
+        }
+    }
+}
+
 /// Outcome of generating the inherent data of [`ProofOfAccess`].
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub enum PoaOutcome {
