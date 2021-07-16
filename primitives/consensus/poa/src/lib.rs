@@ -28,7 +28,7 @@ use sp_std::vec::Vec;
 pub const POA_INHERENT_IDENTIFIER: InherentIdentifier = *b"poaproof";
 
 /// The engine id for the Proof of Access consensus.
-pub const POA_ENGINE_ID: ConsensusEngineId = *b"poa_";
+pub const POA_ENGINE_ID: ConsensusEngineId = *b"POA:";
 
 /// This struct includes the raw bytes of recall chunk as well as the chunk proof stuffs.
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]

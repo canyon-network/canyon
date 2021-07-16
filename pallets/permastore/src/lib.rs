@@ -306,6 +306,11 @@ impl<T: Config> Pallet<T> {
         <TransactionDataSize<T>>::get((block_number, extrinsic_index))
     }
 
+    /// Returns true if poa proof should be included and verified.
+    pub fn require_proof_of_access() -> bool {
+        <BlockDataSize<T>>::get() > 0 || <WeaveSize<T>>::get() > 0
+    }
+
     /// Returns the data size of current block.
     pub fn block_size() -> u64 {
         <BlockDataSize<T>>::get()

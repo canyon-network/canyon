@@ -1320,6 +1320,9 @@ impl_runtime_apis! {
         fn data_size(block_number: BlockNumber, extrinsic_index: u32) -> u32 {
             Permastore::data_size(block_number, extrinsic_index)
         }
+        fn require_proof_of_access() -> bool {
+            Permastore::require_proof_of_access()
+        }
         fn block_size() -> u64 {
             Permastore::block_size()
         }

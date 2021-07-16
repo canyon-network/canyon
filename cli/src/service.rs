@@ -42,8 +42,12 @@ type FullGrandpaBlockImport =
     grandpa::GrandpaBlockImport<FullBackend, Block, FullClient, FullSelectChain>;
 type LightClient = sc_service::TLightClient<Block, RuntimeApi, Executor>;
 
-type FullPoaBlockImport =
-    cc_consensus_poa::PoaBlockImport<Block, FullGrandpaBlockImport, FullClient, FullSelectChain>;
+type FullPoaBlockImport = cc_consensus_poa::PurePoaBlockImport<
+    Block,
+    FullGrandpaBlockImport,
+    FullClient,
+    FullSelectChain,
+>;
 
 pub fn new_partial(
     config: &Configuration,
@@ -108,7 +112,7 @@ pub fn new_partial(
     )?;
     let justification_import = grandpa_block_import.clone();
 
-    let poa_block_import = cc_consensus_poa::PoaBlockImport::new(
+    let poa_block_import = cc_consensus_poa::PurePoaBlockImport::new(
         grandpa_block_import,
         client.clone(),
         select_chain.clone(),

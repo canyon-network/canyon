@@ -346,37 +346,40 @@ where
     Ok(PoaOutcome::MaxDepthReached)
 }
 
-/// Fetch PoA seal.
+/// Fetch PoA seal from the header including a poa proof.
+///
+/// The header should have one and only one [`DigestItem::Seal(id, seal)`] regarding to
+/// [`POA_ENGINE_ID`].
 fn fetch_seal<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<Vec<u8>, Error<B>> {
     let poa_seal = header
         .digest()
         .logs()
         .iter()
-        .filter(|digest_item| {
-            log::debug!(target: "poa", "[fetch_seal] digest_item: {:?}", digest_item);
-            matches!(digest_item, DigestItem::Seal(id, _seal) if id == &POA_ENGINE_ID)
-        })
+        .filter(|digest_item| matches!(digest_item, DigestItem::Seal(id, _seal) if id == &POA_ENGINE_ID))
         .collect::<Vec<_>>();
 
     match poa_seal.len() {
         0 => Err(Error::<B>::HeaderUnsealed(hash).into()),
         1 => match poa_seal[0] {
             DigestItem::Seal(_id, seal) => Ok(seal.clone()),
-            _ => unreachable!("Only Seal with poa engine id has been filtered"),
+            _ => unreachable!("Only items sealed using POA_ENGINE_ID has been filtered; qed"),
         },
         _ => Err(Error::<B>::HeaderMultiSealed(hash).into()),
     }
 }
 
 /// A block importer for PoA.
-pub struct PoaBlockImport<B, I, C, S> {
+///
+/// This importer has to be used with other mature importer togather, e.g., grandpa block import,
+/// for it implements only the PoA verification and nothing else.
+pub struct PurePoaBlockImport<B, I, C, S> {
     inner: I,
     select_chain: S,
     client: Arc<C>,
     phatom: PhantomData<B>,
 }
 
-impl<B: Clone, I: Clone, C, S: Clone> Clone for PoaBlockImport<B, I, C, S> {
+impl<B: Clone, I: Clone, C, S: Clone> Clone for PurePoaBlockImport<B, I, C, S> {
     fn clone(&self) -> Self {
         Self {
             inner: self.inner.clone(),
@@ -387,7 +390,7 @@ impl<B: Clone, I: Clone, C, S: Clone> Clone for PoaBlockImport<B, I, C, S> {
     }
 }
 
-impl<B, I, C, S> PoaBlockImport<B, I, C, S>
+impl<B, I, C, S> PurePoaBlockImport<B, I, C, S>
 where
     B: BlockT,
     I: BlockImport<B, Transaction = sp_api::TransactionFor<C, B>> + Send + Sync,
@@ -395,7 +398,7 @@ where
     C: ProvideRuntimeApi<B> + Send + Sync + HeaderBackend<B> + AuxStore + ProvideCache<B> + BlockOf,
     C::Api: BlockBuilderApi<B>,
 {
-    /// Create a new block import suitable to be used in PoW
+    /// Create a new block import suitable to be used in PoA.
     pub fn new(inner: I, client: Arc<C>, select_chain: S) -> Self {
         Self {
             inner,
@@ -404,52 +407,10 @@ where
             phatom: PhantomData::<B>,
         }
     }
-
-    async fn check_inherents(&self, block: B, block_id: BlockId<B>) -> Result<(), Error<B>> {
-        /*
-        if *block.header().number() < self.check_inherents_after {
-            return Ok(());
-        }
-
-        if let Err(e) = self.can_author_with.can_author_with(&block_id) {
-            log::debug!(
-                target: "pow",
-                "Skipping `check_inherents` as authoring version is not compatible: {}",
-                e,
-            );
-
-            return Ok(());
-        }
-
-        let inherent_data = inherent_data_providers
-            .create_inherent_data()
-            .map_err(|e| Error::CreateInherents(e))?;
-
-        let inherent_res = self
-            .client
-            .runtime_api()
-            .check_inherents(&block_id, block, inherent_data)
-            .map_err(|e| Error::Client(e.into()))?;
-
-        if !inherent_res.ok() {
-            for (identifier, error) in inherent_res.into_errors() {
-                match inherent_data_providers
-                    .try_handle_error(&identifier, &error)
-                    .await
-                {
-                    Some(res) => res.map_err(Error::CheckInherents)?,
-                    None => return Err(Error::CheckInherentsUnknownError(identifier)),
-                }
-            }
-        }
-        */
-
-        Ok(())
-    }
 }
 
 #[async_trait::async_trait]
-impl<B, I, C, S> BlockImport<B> for PoaBlockImport<B, I, C, S>
+impl<B, I, C, S> BlockImport<B> for PurePoaBlockImport<B, I, C, S>
 where
     B: BlockT,
     I: BlockImport<B, Transaction = sp_api::TransactionFor<C, B>> + Send + Sync,
@@ -470,7 +431,7 @@ where
 
     async fn import_block(
         &mut self,
-        mut block: BlockImportParams<B, Self::Transaction>,
+        block: BlockImportParams<B, Self::Transaction>,
         new_cache: HashMap<CacheKeyId, Vec<u8>>,
     ) -> Result<ImportResult, Self::Error> {
         let best_header = self
@@ -481,50 +442,14 @@ where
 
         let best_hash = best_header.hash();
 
-        let parent_hash = *block.header.parent_hash();
+        // TODO: let poa can also work as an indepdent consensus?
 
-        /*
-        if let Some(inner_body) = block.body.take() {
-            let check_block = B::new(block.header.clone(), inner_body);
-
-            self.check_inherents(
-                check_block.clone(),
-                BlockId::Hash(parent_hash),
-                self.create_inherent_data_providers
-                    .create_inherent_data_providers(parent_hash, ())
-                    .await?,
-            )
-            .await?;
-
-            block.body = Some(check_block.deconstruct().1);
-        }
-        */
-
-        // Check if the block has data transactions.
-        let block_size = self
+        if self
             .client
             .runtime_api()
-            .block_size(&BlockId::Hash(best_hash))
-            .map_err(|e| Error::<B>::ApiError(e))?;
-
-        let weave_size = self
-            .client
-            .runtime_api()
-            .weave_size(&BlockId::Hash(best_hash))
-            .map_err(|e| Error::<B>::ApiError(e))?;
-
-        log::debug!(
-            target: "poa",
-            "[cc_consensus_poa::import_block] block_size at best_hash({:?}) is {}, weave_size at best_hash is {}, parent_hash: {:?}",
-            best_hash,
-            block_size,
-            weave_size,
-            *block.header.parent_hash(),
-        );
-
-        log::debug!(target: "poa", "[cc_consensus_poa::import_block] block_size is {} at block {}", block_size, best_hash);
-
-        if block_size > 0 || weave_size > 0 {
+            .require_proof_of_access(&BlockId::Hash(best_hash))
+            .map_err(|e| Error::<B>::ApiError(e))?
+        {
             let header = block.post_header();
             let poa_seal = fetch_seal::<B>(header, best_hash)?;
             // verify_seal
