@@ -348,16 +348,12 @@ where
 
 /// Fetch PoA seal.
 fn fetch_seal<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<Vec<u8>, Error<B>> {
-    log::debug!(
-        target: "poa",
-        "---- header digest: {:?}", header.digest()
-    );
     let poa_seal = header
         .digest()
         .logs()
         .iter()
         .filter(|digest_item| {
-            log::debug!(target: "poa", "digest_item: {:?}", digest_item);
+            log::debug!(target: "poa", "[fetch_seal] digest_item: {:?}", digest_item);
             matches!(digest_item, DigestItem::Seal(id, _seal) if id == &POA_ENGINE_ID)
         })
         .collect::<Vec<_>>();
@@ -483,6 +479,13 @@ where
             .await
             .map_err(|e| format!("Fetch best chain failed via select chain: {:?}", e))?;
 
+        log::debug!(
+            target: "poa",
+            "[cc_consensus_poa::import_block] ,,  best_hash: {:?}, parent_hash: {:?}",
+            best_header.hash(),
+            *block.header.parent_hash(),
+        );
+
         let best_hash = best_header.hash();
 
         let parent_hash = *block.header.parent_hash();
@@ -517,10 +520,11 @@ where
             .weave_size(&BlockId::Hash(best_hash))
             .map_err(|e| Error::<B>::ApiError(e))?;
 
-        log::debug!(target: "poa", "block_size is {} at block {}", block_size, best_hash);
+        log::debug!(target: "poa", "[cc_consensus_poa::import_block] block_size is {} at block {}", block_size, best_hash);
 
         if block_size > 0 || weave_size > 0 {
-            let poa_seal = fetch_seal::<B>(best_header, best_hash)?;
+            let header = block.post_header();
+            let poa_seal = fetch_seal::<B>(header, best_hash)?;
             // verify_seal
             log::debug!(target: "poa", "TODO: verify PoA seal: {:?}", poa_seal);
         }
