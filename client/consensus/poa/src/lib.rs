@@ -95,6 +95,8 @@ pub enum Error<Block: BlockT> {
     BlockNotFound(BlockId<Block>),
     #[error("Recall block not found given the recall byte {0}")]
     RecallBlockNotFound(DataIndex),
+    #[error("Recall extrinsic index not found given the recall byte {0}")]
+    RecallExtrinsicNotFound(DataIndex),
     #[error("Header {0} not found")]
     HeaderNotFound(BlockId<Block>),
     #[error("Creating inherents failed: {0}")]
@@ -160,6 +162,67 @@ fn find_recall_tx(
     binary_search(recall_byte, sized_extrinsics)
 }
 
+#[derive(Debug, Clone)]
+pub struct RecallBlockInfo<B: BlockT> {
+    extrinsics_root: B::Hash,
+    extrinsics: Vec<B::Extrinsic>,
+    weave_base: DataIndex,
+}
+
+pub struct RecallBlockBody<B: BlockT> {
+    extrinsics: Vec<B::Extrinsic>,
+}
+
+impl<Block: BlockT> RecallBlockBody<Block> {
+    pub fn find_recall_extrinsic_index<RA>(
+        &self,
+        recall_byte: DataIndex,
+        recall_block_number: NumberFor<Block>,
+        recall_block_weave_base: DataIndex,
+        runtime_api: Arc<RA>,
+    ) -> Result<ExtrinsicIndex, Error<Block>>
+    where
+        RA: ProvideRuntimeApi<Block> + Send + Sync,
+        RA::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
+    {
+        let recall_block_id = BlockId::Number(recall_block_number);
+
+        let mut sized_extrinsics = Vec::with_capacity(self.extrinsics.len());
+
+        let mut acc = 0u64;
+        for (index, _extrinsic) in self.extrinsics.iter().enumerate() {
+            let tx_size = runtime_api.runtime_api().data_size(
+                &recall_block_id,
+                recall_block_number,
+                index as ExtrinsicIndex,
+            )? as u64;
+            if tx_size > 0 {
+                sized_extrinsics.push((
+                    index as ExtrinsicIndex,
+                    recall_block_weave_base + acc + tx_size,
+                ));
+                acc += tx_size;
+            }
+        }
+
+        log::debug!(
+            target: "poa",
+            "Sized extrinsics in the recall block: {:?}",
+            sized_extrinsics,
+        );
+
+        // No data store transactions in this block.
+        if sized_extrinsics.is_empty() {
+            return Err(Error::<Block>::RecallExtrinsicNotFound(recall_byte));
+        }
+
+        let (recall_extrinsic_index, _recall_block_data_ceil) =
+            find_recall_tx(recall_byte, &sized_extrinsics);
+
+        Ok(recall_extrinsic_index)
+    }
+}
+
 pub struct PoaCreator<'a, Block, Client, TransactionDataBackend, RA> {
     client: &'a Client,
     transaction_data_backend: TransactionDataBackend,
@@ -189,6 +252,7 @@ where
         }
     }
 
+    /// Returns the header and body of block `id`.
     fn fetch_block(
         &self,
         id: BlockId<Block>,
@@ -218,6 +282,27 @@ where
             .ok_or(Error::RecallBlockNotFound(recall_byte))
     }
 
+    fn fetch_recall_block_info(
+        &self,
+        recall_block_number: NumberFor<Block>,
+    ) -> Result<RecallBlockInfo<Block>, Error<Block>> {
+        let recall_block_id = BlockId::number(recall_block_number);
+        let (header, extrinsics) = self.fetch_block(recall_block_id)?;
+
+        let recall_parent_block_id = BlockId::Hash(*header.parent_hash());
+
+        let weave_base = self
+            .runtime_api
+            .runtime_api()
+            .weave_size(&recall_parent_block_id)?;
+
+        Ok(RecallBlockInfo {
+            weave_base,
+            extrinsics,
+            extrinsics_root: *header.extrinsics_root(),
+        })
+    }
+
     pub fn create(&self, parent: Block::Hash) -> Result<PoaOutcome, Error<Block>> {
         let parent_id = BlockId::Hash(parent);
 
@@ -232,53 +317,34 @@ where
             log::debug!(target: "poa", "Attempting to generate poa at depth: {}", depth);
             let recall_byte = calculate_challenge_byte(parent.encode(), weave_size, depth);
             let recall_block_number = self.find_recall_block(parent_id, recall_byte)?;
-            let recall_block_id = BlockId::number(recall_block_number);
+
             log::debug!(
-                target: "poa", "Recall block: {} was found given the recall byte: {}",
-                recall_block_id,
+                target: "poa", "Recall block number: {} was found given the recall byte: {}",
+                recall_block_number,
                 recall_byte,
             );
 
-            let (header, extrinsics) = self.fetch_block(recall_block_id)?;
+            let RecallBlockInfo {
+                weave_base,
+                extrinsics,
+                extrinsics_root,
+            } = self.fetch_recall_block_info(recall_block_number)?;
 
-            let recall_parent_block_id = BlockId::Hash(*header.parent_hash());
+            let recall_block_body = RecallBlockBody {
+                extrinsics: extrinsics.clone(),
+            };
+            let recall_extrinsic_index = match recall_block_body.find_recall_extrinsic_index(
+                recall_byte,
+                recall_block_number,
+                weave_base,
+                self.runtime_api.clone(),
+            ) {
+                Ok(i) => i,
+                Err(e) => continue,
+            };
 
-            let recall_block_weave_base = self
-                .runtime_api
-                .runtime_api()
-                .weave_size(&recall_parent_block_id)?;
-
-            let mut sized_extrinsics = Vec::with_capacity(extrinsics.len());
-
-            let mut acc = 0u64;
-            for (index, _extrinsic) in extrinsics.iter().enumerate() {
-                let tx_size = self.runtime_api.runtime_api().data_size(
-                    &recall_block_id,
-                    recall_block_number,
-                    index as ExtrinsicIndex,
-                )? as u64;
-                if tx_size > 0 {
-                    sized_extrinsics.push((
-                        index as ExtrinsicIndex,
-                        recall_block_weave_base + acc + tx_size,
-                    ));
-                    acc += tx_size;
-                }
-            }
-
-            log::debug!(
-                target: "poa",
-                "Sized extrinsics in the recall block: {:?}",
-                sized_extrinsics,
-            );
-
-            // No data store transactions in this block.
-            if sized_extrinsics.is_empty() {
-                continue;
-            }
-
-            let (recall_extrinsic_index, _recall_block_data_ceil) =
-                find_recall_tx(recall_byte, &sized_extrinsics);
+            let recall_block_weave_base = weave_base;
+            let recall_block_extrinsics_root = extrinsics_root;
 
             // Continue if the recall tx has been forgotten as the forgot
             // txs can not participate in the consensus.
@@ -288,9 +354,10 @@ where
             // continue;
             // }
 
-            let data_result = self
-                .transaction_data_backend
-                .transaction_data(recall_block_id, recall_extrinsic_index as u32);
+            let data_result = self.transaction_data_backend.transaction_data(
+                BlockId::Number(recall_block_number),
+                recall_extrinsic_index as u32,
+            );
 
             match data_result {
                 Ok(Some(tx_data)) => {
@@ -318,7 +385,7 @@ where
                         }
                         if let Ok(tx_proof) = build_extrinsic_proof::<Block>(
                             recall_extrinsic_index,
-                            *header.extrinsics_root(),
+                            recall_block_extrinsics_root,
                             extrinsics,
                         ) {
                             let tx_path_size: usize = tx_proof.iter().map(|t| t.len()).sum();
@@ -345,7 +412,7 @@ where
                     log::warn!(
                         target: "poa",
                         "Transaction data not found given block {} and extrinsic index {}",
-                        recall_block_id,
+                        recall_block_number,
                         recall_extrinsic_index
                     );
                 }
