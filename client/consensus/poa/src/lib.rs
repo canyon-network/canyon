@@ -24,7 +24,7 @@ use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::sync::Arc;
 
-use codec::Encode;
+use codec::{Decode, Encode};
 use sp_runtime::{ConsensusEngineId, DigestItem};
 use thiserror::Error;
 
@@ -51,6 +51,7 @@ use cp_permastore::{PermastoreApi, CHUNK_SIZE};
 mod chunk_proof;
 mod inherent;
 mod tx_proof;
+mod verifier;
 
 pub use self::chunk_proof::{verify_chunk_proof, ChunkProofBuilder, ChunkProofVerifier};
 pub use self::inherent::PoaInherentDataProvider;
@@ -86,6 +87,8 @@ pub enum Error<Block: BlockT> {
     Codec(#[from] codec::Error),
     #[error("Blockchain error")]
     BlockchainError(#[from] sp_blockchain::Error),
+    #[error("VerifyError error")]
+    VerifyError(#[from] verifier::Error),
     #[error(transparent)]
     ApiError(#[from] sp_api::ApiError),
     #[error("Block {0} not found")]
@@ -106,9 +109,9 @@ pub enum Error<Block: BlockT> {
     MaxDepthReached(Depth),
 }
 
-impl<B: BlockT> std::convert::From<Error<B>> for ConsensusError {
-    fn from(error: Error<B>) -> ConsensusError {
-        ConsensusError::ClientImport(error.to_string())
+impl<B: BlockT> From<Error<B>> for ConsensusError {
+    fn from(error: Error<B>) -> Self {
+        Self::ClientImport(error.to_string())
     }
 }
 
@@ -370,8 +373,9 @@ fn fetch_seal<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<Vec<u8>, Er
 
 /// A block importer for PoA.
 ///
-/// This importer has to be used with other mature importer togather, e.g., grandpa block import,
-/// for it implements only the PoA verification and nothing else.
+/// This importer has to be used with other mature block importer
+/// togather, e.g., grandpa block import, for it only implements
+/// the PoA verification and nothing else.
 pub struct PurePoaBlockImport<B, I, C, S> {
     inner: I,
     select_chain: S,
@@ -452,8 +456,10 @@ where
         {
             let header = block.post_header();
             let poa_seal = fetch_seal::<B>(header, best_hash)?;
-            // verify_seal
-            log::debug!(target: "poa", "TODO: verify PoA seal: {:?}", poa_seal);
+            let poa: ProofOfAccess =
+                Decode::decode(&mut poa_seal.as_slice()).map_err(|e| Error::<B>::Codec(e))?;
+
+            verifier::verify(poa).map_err(|e| Error::<B>::VerifyError(e))?;
         }
 
         self.inner
