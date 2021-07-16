@@ -203,6 +203,8 @@ pub mod pallet {
                 }
             };
 
+            // TODO: avoide double including the full ProofOfAccess struct in extrinsic as it will be
+            // included in the header anyway?
             Some(Call::process_poa_outcome(poa_outcome))
         }
 
