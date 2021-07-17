@@ -37,7 +37,7 @@ pub struct PoaInherentDataProvider {
 impl PoaInherentDataProvider {
     /// Creates a new instance of `InherentDataProvider`.
     pub fn create<Block, Client, TransactionDataBackend, RA>(
-        client: &Client,
+        client: Arc<Client>,
         parent: Block::Hash,
         transaction_data_backend: TransactionDataBackend,
         runtime_api: Arc<RA>,

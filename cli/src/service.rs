@@ -360,7 +360,7 @@ pub fn new_full_base(
                                             );
 
                     let poa = cc_consensus_poa::PoaInherentDataProvider::create(
-                        &*client_clone2,
+                        client_clone2,
                         parent,
                         cc_datastore::PermanentStorage::new(
                             offchain_storage_clone,
