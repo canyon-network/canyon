@@ -183,7 +183,7 @@ impl<B: BlockT<Hash = canyon_primitives::Hash>> RecallInfo<B> {
     }
 }
 
-pub fn find_recall_info<Block, Client>(
+fn find_recall_info<Block, Client>(
     recall_byte: DataIndex,
     recall_block_number: NumberFor<Block>,
     client: &Arc<Client>,
@@ -337,9 +337,6 @@ where
                 recall_extrinsic_index,
             } = find_recall_info(recall_byte, recall_block_number, &self.client)?;
 
-            let recall_block_weave_base = weave_base;
-            let recall_block_extrinsics_root = extrinsics_root;
-
             // Continue if the recall tx has been forgotten as the forgot
             // txs can not participate in the consensus.
             //
@@ -355,14 +352,13 @@ where
 
             match recall_data {
                 Ok(Some(tx_data)) => {
-                    let transaction_data_offset =
-                        match recall_byte.checked_sub(recall_block_weave_base) {
-                            Some(offset) => offset,
-                            None => panic!(
-                                "Underflow happened! recall_byte: {}, recall_block_weave_base: {}",
-                                recall_byte, recall_block_weave_base
-                            ),
-                        };
+                    let transaction_data_offset = match recall_byte.checked_sub(weave_base) {
+                        Some(offset) => offset,
+                        None => panic!(
+                            "Underflow happened! recall_byte: {}, recall_block_weave_base: {}",
+                            recall_byte, weave_base
+                        ),
+                    };
 
                     if let Ok(chunk_proof) =
                         ChunkProofBuilder::new(tx_data, CHUNK_SIZE, transaction_data_offset as u32)
@@ -379,7 +375,7 @@ where
                         }
                         if let Ok(tx_proof) = build_extrinsic_proof::<Block>(
                             recall_extrinsic_index,
-                            recall_block_extrinsics_root,
+                            extrinsics_root,
                             extrinsics,
                         ) {
                             let tx_path_size: usize = tx_proof.iter().map(|t| t.len()).sum();
@@ -562,15 +558,16 @@ where
             } = Decode::decode(&mut poa_seal.as_slice()).map_err(|e| Error::<B>::Codec(e))?;
 
             let parent_hash = *block.header.parent_hash();
-            let parent_id = BlockId::Hash(parent_hash);
 
             let weave_size = self
                 .client
                 .runtime_api()
-                .weave_size(&parent_id)
+                .weave_size(&BlockId::Hash(parent_hash))
                 .map_err(|e| Error::<B>::ApiError(e))?;
+
             let recall_byte = calculate_challenge_byte(parent_hash.encode(), weave_size, depth);
-            let recall_block_number = find_recall_block(parent_id, recall_byte, &self.client)?;
+            let recall_block_number =
+                find_recall_block(BlockId::Hash(parent_hash), recall_byte, &self.client)?;
 
             find_recall_info(recall_byte, recall_block_number, &self.client)?
                 .as_tx_proof_verifier()
