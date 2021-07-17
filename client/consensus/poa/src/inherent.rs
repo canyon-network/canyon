@@ -36,27 +36,29 @@ pub struct PoaInherentDataProvider {
 
 impl PoaInherentDataProvider {
     /// Creates a new instance of `InherentDataProvider`.
-    pub fn create<Block, Client, TransactionDataBackend, RA>(
+    pub fn create<Block, Client, TransactionDataBackend>(
         client: Arc<Client>,
         parent: Block::Hash,
         transaction_data_backend: TransactionDataBackend,
-        runtime_api: Arc<RA>,
     ) -> Result<Self, crate::Error<Block>>
     where
         Block: BlockT<Hash = sp_core::H256> + 'static,
-        Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
+        Client: BlockBackend<Block>
+            + HeaderBackend<Block>
+            + ProvideRuntimeApi<Block>
+            + Send
+            + Sync
+            + 'static,
+        Client::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
         TransactionDataBackend: TransactionDataBackendT<Block>,
-        RA: ProvideRuntimeApi<Block> + Send + Sync,
-        RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
     {
-        let poa_outcome =
-            match crate::construct_poa(client, parent, transaction_data_backend, runtime_api) {
-                Ok(outcome) => outcome,
-                Err(e) => {
-                    log::error!(target: "poa", "Failed to construct poa: {:?}", e);
-                    return Err(e);
-                }
-            };
+        let poa_outcome = match crate::construct_poa(client, parent, transaction_data_backend) {
+            Ok(outcome) => outcome,
+            Err(e) => {
+                log::error!(target: "poa", "Failed to construct poa: {:?}", e);
+                return Err(e);
+            }
+        };
         Ok(Self { poa_outcome })
     }
 }

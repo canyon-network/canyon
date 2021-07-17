@@ -344,7 +344,6 @@ pub fn new_full_base(
                 let client_clone2 = client_clone.clone();
                 let client_clone3 = client_clone.clone();
                 let runtime_api = client_clone.clone();
-                let runtime_api2 = client_clone.clone();
                 let offchain_storage_clone = offchain_storage.clone();
                 async move {
                     let uncles = sc_consensus_uncles::create_uncles_inherent_data_provider(
@@ -367,7 +366,6 @@ pub fn new_full_base(
                             client_clone3,
                             runtime_api,
                         ),
-                        runtime_api2,
                     )?;
 
                     Ok((timestamp, slot, uncles, poa))

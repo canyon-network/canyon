@@ -172,23 +172,21 @@ pub struct RecallInfo<B: BlockT> {
     recall_extrinsic_index: ExtrinsicIndex,
 }
 
-pub fn find_recall_info<Block, Client, RA>(
+pub fn find_recall_info<Block, Client>(
     recall_byte: DataIndex,
     recall_block_number: NumberFor<Block>,
     client: &Arc<Client>,
-    runtime_api: &Arc<RA>,
 ) -> Result<RecallInfo<Block>, Error<Block>>
 where
     Block: BlockT,
-    Client: BlockBackend<Block>,
-    RA: ProvideRuntimeApi<Block> + Send + Sync,
-    RA::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
+    Client: BlockBackend<Block> + ProvideRuntimeApi<Block> + Send + Sync,
+    Client::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
 {
     let recall_block_id = BlockId::number(recall_block_number);
 
     let (header, extrinsics) = fetch_block(client, recall_block_id)?;
 
-    let weave_base = runtime_api
+    let weave_base = client
         .runtime_api()
         .weave_size(&BlockId::Hash(*header.parent_hash()))?;
 
@@ -196,7 +194,7 @@ where
 
     let mut acc = 0u64;
     for (index, _extrinsic) in extrinsics.iter().enumerate() {
-        let tx_size = runtime_api.runtime_api().data_size(
+        let tx_size = client.runtime_api().data_size(
             &recall_block_id,
             recall_block_number,
             index as ExtrinsicIndex,
@@ -261,32 +259,29 @@ where
         .ok_or_else(|| Error::RecallBlockNotFound(recall_byte))
 }
 
-pub struct PoaCreator<Block, Client, TransactionDataBackend, RA> {
+pub struct PoaCreator<Block, Client, TransactionDataBackend> {
     client: Arc<Client>,
     transaction_data_backend: TransactionDataBackend,
-    runtime_api: Arc<RA>,
     phatom: PhantomData<Block>,
 }
 
-impl<Block, Client, TransactionDataBackend, RA>
-    PoaCreator<Block, Client, TransactionDataBackend, RA>
+impl<Block, Client, TransactionDataBackend> PoaCreator<Block, Client, TransactionDataBackend>
 where
     Block: BlockT<Hash = canyon_primitives::Hash> + 'static,
-    Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
+    Client: BlockBackend<Block>
+        + HeaderBackend<Block>
+        + ProvideRuntimeApi<Block>
+        + Send
+        + Sync
+        + 'static,
+    Client::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
     TransactionDataBackend: TransactionDataBackendT<Block>,
-    RA: ProvideRuntimeApi<Block> + Send + Sync,
-    RA::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
 {
     /// Creates a new instance of [`PoaCreator`].
-    pub fn new(
-        client: Arc<Client>,
-        transaction_data_backend: TransactionDataBackend,
-        runtime_api: Arc<RA>,
-    ) -> Self {
+    pub fn new(client: Arc<Client>, transaction_data_backend: TransactionDataBackend) -> Self {
         Self {
             client,
             transaction_data_backend,
-            runtime_api,
             phatom: PhantomData::<Block>,
         }
     }
@@ -297,7 +292,7 @@ where
         at: BlockId<Block>,
         recall_byte: DataIndex,
     ) -> Result<NumberFor<Block>, Error<Block>> {
-        self.runtime_api
+        self.client
             .runtime_api()
             .find_recall_block(&at, recall_byte)?
             .ok_or_else(|| Error::RecallBlockNotFound(recall_byte))
@@ -306,7 +301,7 @@ where
     pub fn create(&self, parent: Block::Hash) -> Result<PoaOutcome, Error<Block>> {
         let parent_id = BlockId::Hash(parent);
 
-        let weave_size = self.runtime_api.runtime_api().weave_size(&parent_id)?;
+        let weave_size = self.client.runtime_api().weave_size(&parent_id)?;
 
         if weave_size == 0 {
             log::debug!(target: "poa", "Skipping the poa construction as the weave size is 0");
@@ -329,12 +324,7 @@ where
                 extrinsics,
                 extrinsics_root,
                 recall_extrinsic_index,
-            } = find_recall_info(
-                recall_byte,
-                recall_block_number,
-                &self.client,
-                &self.runtime_api,
-            )?;
+            } = find_recall_info(recall_byte, recall_block_number, &self.client)?;
 
             let recall_block_weave_base = weave_base;
             let recall_block_extrinsics_root = extrinsics_root;
@@ -421,20 +411,23 @@ where
 }
 
 /// Constructs a valid Proof of Access.
-pub fn construct_poa<Block, Client, TransactionDataBackend, RA>(
+pub fn construct_poa<Block, Client, TransactionDataBackend>(
     client: Arc<Client>,
     parent: Block::Hash,
     transaction_data_backend: TransactionDataBackend,
-    runtime_api: Arc<RA>,
 ) -> Result<PoaOutcome, Error<Block>>
 where
     Block: BlockT<Hash = canyon_primitives::Hash> + 'static,
-    Client: BlockBackend<Block> + HeaderBackend<Block> + 'static,
+    Client: BlockBackend<Block>
+        + HeaderBackend<Block>
+        + ProvideRuntimeApi<Block>
+        + Send
+        + Sync
+        + 'static,
+    Client::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
     TransactionDataBackend: TransactionDataBackendT<Block>,
-    RA: ProvideRuntimeApi<Block> + Send + Sync,
-    RA::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
 {
-    PoaCreator::new(client, transaction_data_backend, runtime_api).create(parent)
+    PoaCreator::new(client, transaction_data_backend).create(parent)
 }
 
 /// Fetch PoA seal from the header including a poa proof.
@@ -576,7 +569,7 @@ where
                 extrinsics_root,
                 recall_extrinsic_index,
                 ..
-            } = find_recall_info(recall_byte, recall_block_number, &self.client, &self.client)?;
+            } = find_recall_info(recall_byte, recall_block_number, &self.client)?;
 
             let recall_extrinsic = extrinsics[recall_extrinsic_index as usize].clone();
 
