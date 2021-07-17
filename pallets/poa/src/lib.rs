@@ -119,7 +119,6 @@ pub trait BlockAuthor<AccountId> {
 #[frame_support::pallet]
 pub mod pallet {
     use super::*;
-    use cp_consensus_poa::ProofOfAccess;
     use frame_support::pallet_prelude::*;
     use frame_system::pallet_prelude::*;
 
@@ -203,8 +202,8 @@ pub mod pallet {
                 }
             };
 
-            // TODO: avoide double including the full ProofOfAccess struct in extrinsic as it will be
-            // included in the header anyway?
+            // TODO: avoide double including the full ProofOfAccess struct in extrinsic
+            // as it will be included in the header anyway?
             Some(Call::process_poa_outcome(poa_outcome))
         }
 
@@ -246,9 +245,6 @@ pub mod pallet {
     #[pallet::getter(fn history_depth)]
     pub(super) type HistoryDepth<T: Config> =
         StorageMap<_, Blake2_128Concat, T::AccountId, DepthInfo<T::BlockNumber>>;
-
-    #[pallet::storage]
-    pub(super) type PoaProof<T: Config> = StorageValue<_, ProofOfAccess>;
 
     /// Helper storage item of current block author for easier testing.
     #[cfg(test)]
