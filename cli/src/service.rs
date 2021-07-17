@@ -201,7 +201,6 @@ pub fn new_partial(
                 perma_storage: cc_datastore::PermanentStorage::new(
                     offchain_storage.clone(),
                     client.clone(),
-                    client.clone(),
                 ),
             };
 
@@ -343,7 +342,6 @@ pub fn new_full_base(
                 let client_clone = client_clone.clone();
                 let client_clone2 = client_clone.clone();
                 let client_clone3 = client_clone.clone();
-                let runtime_api = client_clone.clone();
                 let offchain_storage_clone = offchain_storage.clone();
                 async move {
                     let uncles = sc_consensus_uncles::create_uncles_inherent_data_provider(
@@ -361,11 +359,7 @@ pub fn new_full_base(
                     let poa = cc_consensus_poa::PoaInherentDataProvider::create(
                         client_clone2,
                         parent,
-                        cc_datastore::PermanentStorage::new(
-                            offchain_storage_clone,
-                            client_clone3,
-                            runtime_api,
-                        ),
+                        cc_datastore::PermanentStorage::new(offchain_storage_clone, client_clone3),
                     )?;
 
                     Ok((timestamp, slot, uncles, poa))
