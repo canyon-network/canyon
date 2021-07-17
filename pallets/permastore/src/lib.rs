@@ -290,12 +290,6 @@ impl<T: Config> Pallet<T> {
                 Err(i) => i,
             };
 
-        frame_support::log::debug!(
-            target: "runtime::permastore",
-            "Found the index of recall block number: {}",
-            recall_block_number_index,
-        );
-
         <GlobalBlockNumberIndex<T>>::get()
             .get(recall_block_number_index)
             .copied()

@@ -38,17 +38,17 @@ pub enum Error {
 #[derive(Debug, Clone)]
 pub struct ChunkProofVerifier(pub ChunkProof);
 
-impl From<ChunkProof> for ChunkProofVerifier {
-    fn from(inner: ChunkProof) -> Self {
-        Self(inner)
-    }
-}
-
 impl ChunkProofVerifier {
-    /// Checks if the proof is valid against the chunk root.
-    pub fn verify(&self, chunk_root: &H256) -> Result<(), VerifyError> {
+    /// Creates a new instance of [`ChunkProofVerifier`].
+    pub fn new(chunk_proof: ChunkProof) -> Self {
+        Self(chunk_proof)
+    }
+
+    /// Checks if the proof is valid given `chunk_size`.
+    pub fn verify(&self, chunk_size: usize) -> Result<(), VerifyError> {
+        let chunk_root = self.0.chunk_root(chunk_size);
         verify_chunk_proof(
-            chunk_root,
+            &chunk_root,
             self.0.chunk.clone(),
             self.0.chunk_index,
             &self.0.proof,

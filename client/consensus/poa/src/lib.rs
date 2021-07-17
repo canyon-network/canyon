@@ -172,6 +172,17 @@ pub struct RecallInfo<B: BlockT> {
     recall_extrinsic_index: ExtrinsicIndex,
 }
 
+impl<B: BlockT<Hash = canyon_primitives::Hash>> RecallInfo<B> {
+    pub fn as_tx_proof_verifier(self) -> tx_proof::TxProofVerifier<B> {
+        let recall_extrinsic = self.extrinsics[self.recall_extrinsic_index as usize].clone();
+        tx_proof::TxProofVerifier::new(
+            recall_extrinsic,
+            self.extrinsics_root,
+            self.recall_extrinsic_index,
+        )
+    }
+}
+
 pub fn find_recall_info<Block, Client>(
     recall_byte: DataIndex,
     recall_block_number: NumberFor<Block>,
@@ -259,13 +270,13 @@ where
         .ok_or_else(|| Error::RecallBlockNotFound(recall_byte))
 }
 
-pub struct PoaCreator<Block, Client, TransactionDataBackend> {
+pub struct PoaBuilder<Block, Client, TransactionDataBackend> {
     client: Arc<Client>,
     transaction_data_backend: TransactionDataBackend,
     phatom: PhantomData<Block>,
 }
 
-impl<Block, Client, TransactionDataBackend> PoaCreator<Block, Client, TransactionDataBackend>
+impl<Block, Client, TransactionDataBackend> PoaBuilder<Block, Client, TransactionDataBackend>
 where
     Block: BlockT<Hash = canyon_primitives::Hash> + 'static,
     Client: BlockBackend<Block>
@@ -277,7 +288,7 @@ where
     Client::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
     TransactionDataBackend: TransactionDataBackendT<Block>,
 {
-    /// Creates a new instance of [`PoaCreator`].
+    /// Creates a new instance of [`PoaBuilder`].
     pub fn new(client: Arc<Client>, transaction_data_backend: TransactionDataBackend) -> Self {
         Self {
             client,
@@ -298,7 +309,7 @@ where
             .ok_or_else(|| Error::RecallBlockNotFound(recall_byte))
     }
 
-    pub fn create(&self, parent: Block::Hash) -> Result<PoaOutcome, Error<Block>> {
+    pub fn build(&self, parent: Block::Hash) -> Result<PoaOutcome, Error<Block>> {
         let parent_id = BlockId::Hash(parent);
 
         let weave_size = self.client.runtime_api().weave_size(&parent_id)?;
@@ -427,7 +438,7 @@ where
     Client::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
     TransactionDataBackend: TransactionDataBackendT<Block>,
 {
-    PoaCreator::new(client, transaction_data_backend).create(parent)
+    PoaBuilder::new(client, transaction_data_backend).build(parent)
 }
 
 /// Fetch PoA seal from the header including a poa proof.
@@ -483,7 +494,7 @@ where
     C: ProvideRuntimeApi<B> + Send + Sync + HeaderBackend<B> + AuxStore + ProvideCache<B> + BlockOf,
     C::Api: BlockBuilderApi<B>,
 {
-    /// Create a new block import suitable to be used in PoA.
+    /// Creates a new block import suitable to be used in PoA.
     pub fn new(inner: I, client: Arc<C>, select_chain: S) -> Self {
         Self {
             inner,
@@ -544,14 +555,11 @@ where
         {
             let header = block.post_header();
             let poa_seal = fetch_seal::<B>(header, best_hash)?;
-            let poa: ProofOfAccess =
-                Decode::decode(&mut poa_seal.as_slice()).map_err(|e| Error::<B>::Codec(e))?;
-
             let ProofOfAccess {
                 depth,
                 tx_path,
                 chunk_proof,
-            } = poa;
+            } = Decode::decode(&mut poa_seal.as_slice()).map_err(|e| Error::<B>::Codec(e))?;
 
             let parent_hash = *block.header.parent_hash();
             let parent_id = BlockId::Hash(parent_hash);
@@ -564,32 +572,13 @@ where
             let recall_byte = calculate_challenge_byte(parent_hash.encode(), weave_size, depth);
             let recall_block_number = find_recall_block(parent_id, recall_byte, &self.client)?;
 
-            let RecallInfo {
-                extrinsics,
-                extrinsics_root,
-                recall_extrinsic_index,
-                ..
-            } = find_recall_info(recall_byte, recall_block_number, &self.client)?;
+            find_recall_info(recall_byte, recall_block_number, &self.client)?
+                .as_tx_proof_verifier()
+                .verify(&tx_path)
+                .map_err(|e| Error::<B>::VerifyFailed(e))?;
 
-            let recall_extrinsic = extrinsics[recall_extrinsic_index as usize].clone();
-
-            tx_proof::verify_extrinsic_proof(
-                &extrinsics_root,
-                recall_extrinsic_index,
-                recall_extrinsic.encode(),
-                &tx_path,
-            )
-            .map_err(|e| Error::<B>::VerifyFailed(e))?;
-
-            let chunk_root = chunk_proof.chunk_root(CHUNK_SIZE as usize);
-
-            let ChunkProof {
-                chunk,
-                chunk_index,
-                proof,
-            } = chunk_proof;
-
-            chunk_proof::verify_chunk_proof(&chunk_root, chunk, chunk_index, &proof)
+            chunk_proof::ChunkProofVerifier::new(chunk_proof)
+                .verify(CHUNK_SIZE as usize)
                 .map_err(|e| Error::<B>::VerifyFailed(e))?;
 
             log::debug!(target: "poa", "Verify PoA successfully!");
