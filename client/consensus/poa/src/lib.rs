@@ -437,10 +437,9 @@ where
     PoaBuilder::new(client, transaction_data_backend).build(parent)
 }
 
-/// Fetch PoA seal from the header including a poa proof.
+/// Fetch PoA seal from a header that is expected to contain a poa proof.
 ///
-/// The header should have one and only one [`DigestItem::Seal(id, seal)`] regarding to
-/// [`POA_ENGINE_ID`].
+/// The header should have one and only one [`DigestItem::Seal(POA_ENGINE_ID, seal)`].
 fn fetch_seal<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<Vec<u8>, Error<B>> {
     let poa_seal = header
         .digest()
@@ -462,8 +461,8 @@ fn fetch_seal<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<Vec<u8>, Er
 /// A block importer for PoA.
 ///
 /// This importer has to be used with other mature block importer
-/// togather, e.g., grandpa block import, for it only implements
-/// the PoA verification and nothing else.
+/// togather, e.g., grandpa block import, for it only verifies the
+/// validity of PoA sealed digest item in the header and nothing else.
 pub struct PurePoaBlockImport<B, I, C, S> {
     inner: I,
     select_chain: S,
@@ -540,8 +539,6 @@ where
             .map_err(|e| format!("Fetch best chain failed via select chain: {:?}", e))?;
 
         let best_hash = best_header.hash();
-
-        // TODO: let poa can also work as an indepdent consensus?
 
         if self
             .client

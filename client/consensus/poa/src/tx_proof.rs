@@ -23,9 +23,10 @@ use sp_runtime::traits::Block as BlockT;
 use sp_trie::TrieMut;
 
 use canyon_primitives::ExtrinsicIndex;
+use cp_consensus_poa::encode_index;
 use cp_permastore::{Hasher, TrieLayout, VerifyError};
 
-use crate::chunk_proof::{encode_index, Error};
+use crate::chunk_proof::Error;
 
 pub fn build_extrinsic_proof<Block: BlockT<Hash = H256>>(
     extrinsic_index: u32,
@@ -69,11 +70,11 @@ pub fn build_extrinsic_proof<Block: BlockT<Hash = H256>>(
 /// Helper struct to verify the chunk proof.
 #[derive(Debug, Clone)]
 pub struct TxProofVerifier<B: BlockT> {
-    ///
+    /// Recall extrinsic.
     recall_extrinsic: B::Extrinsic,
-    ///
+    /// Extrinsics root of `recall_extrinsic`.
     extrinsics_root: B::Hash,
-    ///
+    /// Extrinsic index of `recall_extrinsic`.
     recall_extrinsic_index: ExtrinsicIndex,
 }
 

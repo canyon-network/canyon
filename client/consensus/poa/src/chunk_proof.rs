@@ -17,14 +17,11 @@
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
 use sp_core::H256;
+use sp_io::hashing::blake2_256;
 use sp_trie::TrieMut;
 
-use cp_consensus_poa::ChunkProof;
+use cp_consensus_poa::{encode_index, ChunkProof};
 use cp_permastore::{Hasher, TrieLayout, VerifyError};
-
-pub(crate) fn encode_index(input: u32) -> Vec<u8> {
-    codec::Encode::encode(&codec::Compact(input))
-}
 
 /// Error type for chunk proof.
 #[derive(Debug, thiserror::Error)]
@@ -44,7 +41,7 @@ impl ChunkProofVerifier {
         Self(chunk_proof)
     }
 
-    /// Checks if the proof is valid given `chunk_size`.
+    /// Checks if the chunk proof is valid given `chunk_size`.
     pub fn verify(&self, chunk_size: usize) -> Result<(), VerifyError> {
         let chunk_root = self.0.chunk_root(chunk_size);
         verify_chunk_proof(
@@ -66,10 +63,7 @@ pub fn verify_chunk_proof(
     sp_trie::verify_trie_proof::<TrieLayout, _, _, _>(
         chunk_root,
         proof,
-        &[(
-            encode_index(chunk_index),
-            Some(sp_io::hashing::blake2_256(&chunk)),
-        )],
+        &[(encode_index(chunk_index), Some(blake2_256(&chunk)))],
     )
 }
 
@@ -115,16 +109,13 @@ impl ChunkProofBuilder {
 
             for (index, chunk) in chunks.enumerate() {
                 // Build the trie using chunk id.
-                trie.insert(
-                    &encode_index(index as u32),
-                    &sp_io::hashing::blake2_256(&chunk),
-                )
-                .unwrap_or_else(|e| {
-                    panic!(
-                        "Failed to insert the trie node: {:?}, chunk index: {}",
-                        e, index
-                    )
-                });
+                trie.insert(&encode_index(index as u32), &blake2_256(&chunk))
+                    .unwrap_or_else(|e| {
+                        panic!(
+                            "Failed to insert the trie node: {:?}, chunk index: {}",
+                            e, index
+                        )
+                    });
 
                 if index == self.target_chunk_index as usize {
                     target_chunk = chunk;
