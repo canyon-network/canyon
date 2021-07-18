@@ -170,6 +170,6 @@ where
         self.client
             .runtime_api()
             .chunk_root(&at, block_number, extrinsic_index)
-            .map_err(|e| Error::ApiError(e))
+            .map_err(Error::ApiError)
     }
 }

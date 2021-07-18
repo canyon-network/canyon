@@ -128,7 +128,7 @@ pub enum PoaOutcome {
 }
 
 impl PoaOutcome {
-    /// Returns true if the poa inherent must be included.
+    /// Returns true if the poa inherent must be included in the block.
     pub fn require_inherent(&self) -> bool {
         matches!(self, Self::Justification(..))
     }

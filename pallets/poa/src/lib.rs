@@ -160,9 +160,10 @@ pub mod pallet {
 
                     assert!(depth > 0, "depth must be greater than 0");
 
-                    <frame_system::Pallet<T>>::deposit_log(
-                        DigestItem::Seal(POA_ENGINE_ID, poa.encode()).into(),
-                    );
+                    <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(
+                        POA_ENGINE_ID,
+                        poa.encode(),
+                    ));
 
                     Self::note_depth(depth);
                 }
