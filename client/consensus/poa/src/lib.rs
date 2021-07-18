@@ -147,7 +147,8 @@ fn binary_search<T: Copy>(target: DataIndex, ordered_list: &[(T, DataIndex)]) ->
     }
 }
 
-/// Returns a tuple of (extrinsic_index, absolute_data_index) of extrinsic in which the recall byte is located.
+/// Returns a tuple of (extrinsic_index, absolute_data_index) of extrinsic
+/// in which `recall_byte` is located.
 fn find_recall_tx(
     recall_byte: DataIndex,
     sized_extrinsics: &[(ExtrinsicIndex, DataIndex)],
@@ -160,15 +161,16 @@ fn find_recall_tx(
     binary_search(recall_byte, sized_extrinsics)
 }
 
+/// All information of recall block that is required to build a PoA.
 #[derive(Debug, Clone)]
 pub struct RecallInfo<B: BlockT> {
-    ///
+    /// Weave size of last block.
     weave_base: DataIndex,
-    ///
+    /// All extrinsics in recall block.
     extrinsics: Vec<B::Extrinsic>,
-    ///
+    /// Extrinsics root of recall block.
     extrinsics_root: B::Hash,
-    ///
+    /// Index of the extrinsic in which recall byte is located.
     recall_extrinsic_index: ExtrinsicIndex,
 }
 
@@ -183,6 +185,7 @@ impl<B: BlockT<Hash = canyon_primitives::Hash>> RecallInfo<B> {
     }
 }
 
+/// Returns all the information about the recall block for the PoA consensus.
 fn find_recall_info<Block, Client>(
     recall_byte: DataIndex,
     recall_block_number: NumberFor<Block>,
@@ -544,7 +547,7 @@ where
             .client
             .runtime_api()
             .require_proof_of_access(&BlockId::Hash(best_hash))
-            .map_err(|e| Error::<B>::ApiError(e))?
+            .map_err(Error::<B>::ApiError)?
         {
             let header = block.post_header();
             let poa_seal = fetch_seal::<B>(header, best_hash)?;
@@ -552,7 +555,7 @@ where
                 depth,
                 tx_path,
                 chunk_proof,
-            } = Decode::decode(&mut poa_seal.as_slice()).map_err(|e| Error::<B>::Codec(e))?;
+            } = Decode::decode(&mut poa_seal.as_slice()).map_err(Error::<B>::Codec)?;
 
             let parent_hash = *block.header.parent_hash();
 
@@ -560,7 +563,7 @@ where
                 .client
                 .runtime_api()
                 .weave_size(&BlockId::Hash(parent_hash))
-                .map_err(|e| Error::<B>::ApiError(e))?;
+                .map_err(Error::<B>::ApiError)?;
 
             let recall_byte = calculate_challenge_byte(parent_hash.encode(), weave_size, depth);
             let recall_block_number =
@@ -569,11 +572,11 @@ where
             find_recall_info(recall_byte, recall_block_number, &self.client)?
                 .as_tx_proof_verifier()
                 .verify(&tx_path)
-                .map_err(|e| Error::<B>::VerifyFailed(e))?;
+                .map_err(Error::<B>::VerifyFailed)?;
 
             chunk_proof::ChunkProofVerifier::new(chunk_proof)
                 .verify(CHUNK_SIZE as usize)
-                .map_err(|e| Error::<B>::VerifyFailed(e))?;
+                .map_err(Error::<B>::VerifyFailed)?;
 
             log::debug!(target: "poa", "Verify PoA successfully!");
         }
