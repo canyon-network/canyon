@@ -153,9 +153,9 @@ fn find_recall_tx(
     recall_byte: DataIndex,
     sized_extrinsics: &[(ExtrinsicIndex, DataIndex)],
 ) -> (ExtrinsicIndex, DataIndex) {
-    log::debug!(
+    log::trace!(
         target: "poa",
-        "finding recall tx, recall_byte: {}, sized_extrinsics: {:?}",
+        "Try finding recall tx, recall_byte: {}, sized_extrinsics: {:?}",
         recall_byte, sized_extrinsics
     );
     binary_search(recall_byte, sized_extrinsics)
@@ -219,9 +219,9 @@ where
         }
     }
 
-    log::debug!(
+    log::trace!(
         target: "poa",
-        "Sized extrinsics in the recall block: {:?}",
+        "The sized extrinsics found in recall block: {:?}",
         sized_extrinsics,
     );
 
@@ -313,6 +313,7 @@ where
     }
 
     pub fn build(&self, parent: Block::Hash) -> Result<PoaOutcome, Error<Block>> {
+        log::debug!(target: "poa", "Start building poa on top of {:?}", parent);
         let parent_id = BlockId::Hash(parent);
 
         let weave_size = self.client.runtime_api().weave_size(&parent_id)?;
@@ -440,10 +441,10 @@ where
     PoaBuilder::new(client, transaction_data_backend).build(parent)
 }
 
-/// Fetch PoA seal from a header that is expected to contain a poa proof.
+/// Extracts PoA seal from a header that is expected to contain a poa proof.
 ///
 /// The header should have one and only one [`DigestItem::Seal(POA_ENGINE_ID, seal)`].
-fn fetch_seal<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<Vec<u8>, Error<B>> {
+fn fetch_poa<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<ProofOfAccess, Error<B>> {
     let poa_seal = header
         .digest()
         .logs()
@@ -454,7 +455,9 @@ fn fetch_seal<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<Vec<u8>, Er
     match poa_seal.len() {
         0 => Err(Error::<B>::HeaderUnsealed(hash).into()),
         1 => match poa_seal[0] {
-            DigestItem::Seal(_id, seal) => Ok(seal.clone()),
+            DigestItem::Seal(_id, seal) => {
+                Decode::decode(&mut seal.as_slice()).map_err(Error::<B>::Codec)
+            }
             _ => unreachable!("Only items sealed using POA_ENGINE_ID has been filtered; qed"),
         },
         _ => Err(Error::<B>::HeaderMultiSealed(hash).into()),
@@ -550,12 +553,11 @@ where
             .map_err(Error::<B>::ApiError)?
         {
             let header = block.post_header();
-            let poa_seal = fetch_seal::<B>(header, best_hash)?;
             let ProofOfAccess {
                 depth,
                 tx_path,
                 chunk_proof,
-            } = Decode::decode(&mut poa_seal.as_slice()).map_err(Error::<B>::Codec)?;
+            } = fetch_poa::<B>(header, best_hash)?;
 
             let parent_hash = *block.header.parent_hash();
 
@@ -577,8 +579,6 @@ where
             chunk_proof::ChunkProofVerifier::new(chunk_proof)
                 .verify(CHUNK_SIZE as usize)
                 .map_err(Error::<B>::VerifyFailed)?;
-
-            log::debug!(target: "poa", "Verify PoA successfully!");
         }
 
         self.inner
