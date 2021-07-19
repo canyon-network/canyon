@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["cc_consensus_poa"] = [{"text":"impl InherentDataProvider for <a class=\"struct\" href=\"cc_consensus_poa/struct.InherentDataProvider.html\" title=\"struct cc_consensus_poa::InherentDataProvider\">InherentDataProvider</a>","synthetic":false,"types":["cc_consensus_poa::inherent::InherentDataProvider"]}];
+implementors["cc_consensus_poa"] = [{"text":"impl InherentDataProvider for <a class=\"struct\" href=\"cc_consensus_poa/struct.PoaInherentDataProvider.html\" title=\"struct cc_consensus_poa::PoaInherentDataProvider\">PoaInherentDataProvider</a>","synthetic":false,"types":["cc_consensus_poa::inherent::PoaInherentDataProvider"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

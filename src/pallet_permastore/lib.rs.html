@@ -366,6 +366,16 @@
 <span id="363">363</span>
 <span id="364">364</span>
 <span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -403,6 +413,7 @@
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
     <span class="ident">ensure</span>,
     <span class="ident">traits</span>::{<span class="ident">Currency</span>, <span class="ident">ExistenceRequirement</span>, <span class="ident">Get</span>, <span class="ident">IsSubType</span>},
+    <span class="ident">weights</span>::<span class="ident">Weight</span>,
 };
 <span class="kw">use</span> <span class="ident">frame_system</span>::<span class="ident">ensure_signed</span>;
 
@@ -453,9 +464,14 @@
 
     <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">hooks</span>]</span>
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Hooks</span><span class="op">&lt;</span><span class="ident">BlockNumberFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">on_initialize</span>(<span class="ident">_n</span>: <span class="ident">BlockNumberFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
+            <span class="comment">// Clear the block size of last block.</span>
+            <span class="op">&lt;</span><span class="ident">BlockDataSize</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">kill</span>();
+            <span class="number">1</span>
+        }
+
         <span class="kw">fn</span> <span class="ident">on_finalize</span>(<span class="ident">n</span>: <span class="ident">BlockNumberFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
-            <span class="comment">// Clear the temp storage.</span>
-            <span class="kw">let</span> <span class="ident">current_block_data_size</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">BlockDataSize</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">take</span>();
+            <span class="kw">let</span> <span class="ident">current_block_data_size</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">BlockDataSize</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
             <span class="kw">if</span> <span class="ident">current_block_data_size</span> <span class="op">&gt;</span> <span class="number">0</span> {
                 <span class="kw">let</span> <span class="ident">latest_weave_size</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">WeaveSize</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
                 <span class="op">&lt;</span><span class="ident">GlobalWeaveSizeIndex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">append</span>(<span class="ident">latest_weave_size</span>);
@@ -653,12 +669,6 @@
                 <span class="prelude-val">Err</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>,
             };
 
-        <span class="ident">frame_support</span>::<span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
-            <span class="ident">target</span>: <span class="string">&quot;runtime::permastore&quot;</span>,
-            <span class="string">&quot;Found the index of recall block number: {}&quot;</span>,
-            <span class="ident">recall_block_number_index</span>,
-        );
-
         <span class="op">&lt;</span><span class="ident">GlobalBlockNumberIndex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>()
             .<span class="ident">get</span>(<span class="ident">recall_block_number_index</span>)
             .<span class="ident">copied</span>()
@@ -667,6 +677,16 @@
     <span class="doccomment">/// Returns the data size of transaction given `block_number` and `extrinsic_index`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">data_size</span>(<span class="ident">block_number</span>: <span class="ident">T</span>::<span class="ident">BlockNumber</span>, <span class="ident">extrinsic_index</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="op">&lt;</span><span class="ident">TransactionDataSize</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>((<span class="ident">block_number</span>, <span class="ident">extrinsic_index</span>))
+    }
+
+    <span class="doccomment">/// Returns true if poa proof should be included and verified.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">require_proof_of_access</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="op">&lt;</span><span class="ident">BlockDataSize</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>() <span class="op">&gt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="op">&lt;</span><span class="ident">WeaveSize</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>() <span class="op">&gt;</span> <span class="number">0</span>
+    }
+
+    <span class="doccomment">/// Returns the data size of current block.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">block_size</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+        <span class="op">&lt;</span><span class="ident">BlockDataSize</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>()
     }
 
     <span class="doccomment">/// Returns the total byte size of weave.</span>

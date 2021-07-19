@@ -176,13 +176,6 @@
 <span id="173">173</span>
 <span id="174">174</span>
 <span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -225,29 +218,24 @@
 
 <span class="doccomment">/// Permanent storage backed by offchain storage.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PermanentStorage</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">RA</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PermanentStorage</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span> {
     <span class="ident">offchain_storage</span>: <span class="ident">LocalStorage</span>,
     <span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
-    <span class="ident">runtime_api</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">RA</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">RA</span><span class="op">&gt;</span> <span class="ident">PermanentStorage</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">RA</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create permanent storage backed by offchain storage.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `runtime_api` is used for getting the chunk root from runtime.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">offchain_storage</span>: <span class="ident">LocalStorage</span>, <span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>, <span class="ident">runtime_api</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">RA</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span> <span class="ident">PermanentStorage</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Creates a new instance of [`PermaStorage`] backed by offchain storage.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">offchain_storage</span>: <span class="ident">LocalStorage</span>, <span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">offchain_storage</span>,
             <span class="ident">client</span>,
-            <span class="ident">runtime_api</span>,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">RA</span><span class="op">&gt;</span> <span class="ident">cp_permastore</span>::<span class="ident">PermaStorage</span> <span class="kw">for</span> <span class="ident">PermanentStorage</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">RA</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span> <span class="ident">cp_permastore</span>::<span class="ident">PermaStorage</span> <span class="kw">for</span> <span class="ident">PermanentStorage</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">C</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
-    <span class="ident">RA</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
 {
     <span class="doccomment">/// Sets the value of transaction data given `key`.</span>
     <span class="doccomment">///</span>
@@ -310,12 +298,11 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">C</span>, <span class="ident">RA</span><span class="op">&gt;</span> <span class="ident">TransactionDataBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PermanentStorage</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">RA</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">C</span><span class="op">&gt;</span> <span class="ident">TransactionDataBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PermanentStorage</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">Block</span>: <span class="ident">BlockT</span>,
-    <span class="ident">C</span>: <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
-    <span class="ident">RA</span>: <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
-    <span class="ident">RA</span>::<span class="ident">Api</span>: <span class="ident">cp_permastore</span>::<span class="ident">PermastoreApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">NumberFor</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>, <span class="ident">u32</span>, <span class="ident">Block</span>::<span class="ident">Hash</span><span class="op">&gt;</span>,
+    <span class="ident">C</span>: <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
+    <span class="ident">C</span>::<span class="ident">Api</span>: <span class="ident">cp_permastore</span>::<span class="ident">PermastoreApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">NumberFor</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>, <span class="ident">u32</span>, <span class="ident">Block</span>::<span class="ident">Hash</span><span class="op">&gt;</span>,
 {
     <span class="kw">fn</span> <span class="ident">transaction_data</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -346,12 +333,11 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">C</span>, <span class="ident">RA</span><span class="op">&gt;</span> <span class="ident">ChunkRootBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PermanentStorage</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">RA</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">C</span><span class="op">&gt;</span> <span class="ident">ChunkRootBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PermanentStorage</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">Block</span>: <span class="ident">BlockT</span>,
-    <span class="ident">C</span>: <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
-    <span class="ident">RA</span>: <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
-    <span class="ident">RA</span>::<span class="ident">Api</span>: <span class="ident">cp_permastore</span>::<span class="ident">PermastoreApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">NumberFor</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>, <span class="ident">u32</span>, <span class="ident">Block</span>::<span class="ident">Hash</span><span class="op">&gt;</span>,
+    <span class="ident">C</span>: <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
+    <span class="ident">C</span>::<span class="ident">Api</span>: <span class="ident">cp_permastore</span>::<span class="ident">PermastoreApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">NumberFor</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>, <span class="ident">u32</span>, <span class="ident">Block</span>::<span class="ident">Hash</span><span class="op">&gt;</span>,
 {
     <span class="kw">fn</span> <span class="ident">chunk_root</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -360,10 +346,10 @@
         <span class="ident">extrinsic_index</span>: <span class="ident">u32</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Block</span>::<span class="ident">Hash</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">at</span> <span class="op">=</span> <span class="ident">at</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">BlockId</span>::<span class="ident">hash</span>(<span class="self">self</span>.<span class="ident">client</span>.<span class="ident">info</span>().<span class="ident">best_hash</span>));
-        <span class="self">self</span>.<span class="ident">runtime_api</span>
+        <span class="self">self</span>.<span class="ident">client</span>
             .<span class="ident">runtime_api</span>()
             .<span class="ident">chunk_root</span>(<span class="kw-2">&amp;</span><span class="ident">at</span>, <span class="ident">block_number</span>, <span class="ident">extrinsic_index</span>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">Error</span>::<span class="ident">ApiError</span>(<span class="ident">e</span>))
+            .<span class="ident">map_err</span>(<span class="ident">Error</span>::<span class="ident">ApiError</span>)
     }
 }
 </pre></div>
