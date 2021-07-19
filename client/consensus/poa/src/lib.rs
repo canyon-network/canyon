@@ -393,7 +393,7 @@ where
                                 continue;
                             }
                             let poa = ProofOfAccess::new(depth, tx_proof, chunk_proof);
-                            log::debug!(target: "poa", "Generate the poa proof successfully: {:?}", poa);
+                            log::trace!(target: "poa", "Generate the poa proof successfully: {:?}", poa);
                             return Ok(PoaOutcome::Justification(poa));
                         }
                     }
