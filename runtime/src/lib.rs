@@ -54,7 +54,7 @@ use sp_version::RuntimeVersion;
 
 use frame_support::{
     construct_runtime, parameter_types,
-    traits::{InstanceFilter, KeyOwnerProofSystem, LockIdentifier, U128CurrencyToVote},
+    traits::{AllowAll, InstanceFilter, KeyOwnerProofSystem, LockIdentifier, U128CurrencyToVote},
     weights::{
         constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
         DispatchClass, IdentityFee, Weight,
@@ -173,7 +173,7 @@ parameter_types! {
 const_assert!(NORMAL_DISPATCH_RATIO.deconstruct() >= AVERAGE_ON_INITIALIZE_RATIO.deconstruct());
 
 impl frame_system::Config for Runtime {
-    type BaseCallFilter = ();
+    type BaseCallFilter = AllowAll;
     type BlockWeights = RuntimeBlockWeights;
     type BlockLength = RuntimeBlockLength;
     type DbWeight = RocksDbWeight;
@@ -1088,7 +1088,7 @@ construct_runtime!(
         Gilt: pallet_gilt::{Pallet, Call, Storage, Event<T>, Config} = 32,
 
         Permastore: pallet_permastore::{Pallet, Call, Storage, Event<T>} = 33,
-        Poa: pallet_poa::{Pallet, Call, Storage, Event<T>} = 34,
+        Poa: pallet_poa::{Pallet, Call, Storage, Inherent, Event<T>} = 34,
 
         Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 35,
     }
@@ -1319,6 +1319,12 @@ impl_runtime_apis! {
         }
         fn data_size(block_number: BlockNumber, extrinsic_index: u32) -> u32 {
             Permastore::data_size(block_number, extrinsic_index)
+        }
+        fn require_proof_of_access() -> bool {
+            Permastore::require_proof_of_access()
+        }
+        fn block_size() -> u64 {
+            Permastore::block_size()
         }
         fn weave_size() -> u64 {
             Permastore::weave_size()

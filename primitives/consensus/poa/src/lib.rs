@@ -24,14 +24,14 @@ use sp_inherents::InherentIdentifier;
 use sp_runtime::ConsensusEngineId;
 use sp_std::vec::Vec;
 
-/// The identifier for the poa inherent.
+/// The identifier for the inherent of poa pallet.
 pub const POA_INHERENT_IDENTIFIER: InherentIdentifier = *b"poaproof";
 
 /// The engine id for the Proof of Access consensus.
-pub const POA_ENGINE_ID: ConsensusEngineId = *b"poa_";
+pub const POA_ENGINE_ID: ConsensusEngineId = *b"POA:";
 
 /// This struct includes the raw bytes of recall chunk as well as the chunk proof stuffs.
-#[derive(Debug, Clone, Encode, Decode)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct ChunkProof {
     /// Random data chunk that is proved to exist.
     pub chunk: Vec<u8>,
@@ -45,15 +45,54 @@ pub struct ChunkProof {
     pub proof: Vec<Vec<u8>>,
 }
 
+/// An utility function to enocde chunk/extrinsic index as trie key.
+// The final proof can be more compact.
+// See https://github.com/paritytech/substrate/pull/8624#discussion_r616075183
+pub fn encode_index(input: u32) -> Vec<u8> {
+    codec::Encode::encode(&codec::Compact(input))
+}
+
 impl ChunkProof {
     /// Returns the proof size in bytes.
     pub fn size(&self) -> usize {
         self.proof.iter().map(|p| p.len()).sum()
     }
+
+    /// Calculates the merkle root of the raw data `chunk`.
+    #[cfg(feature = "std")]
+    pub fn chunk_root(&self, chunk_size: usize) -> sp_core::H256 {
+        use sp_core::Blake2Hasher;
+        use sp_io::hashing::blake2_256;
+        use sp_trie::TrieMut;
+
+        let mut db = sp_trie::MemoryDB::<Blake2Hasher>::default();
+        let mut chunk_root = sp_trie::empty_trie_root::<sp_trie::Layout<Blake2Hasher>>();
+
+        {
+            let mut trie =
+                sp_trie::TrieDBMut::<sp_trie::Layout<Blake2Hasher>>::new(&mut db, &mut chunk_root);
+
+            let chunks = self.chunk.chunks(chunk_size).map(|c| c.to_vec());
+
+            for (index, chunk) in chunks.enumerate() {
+                trie.insert(&encode_index(index as u32), &blake2_256(&chunk))
+                    .unwrap_or_else(|e| {
+                        panic!(
+                            "Failed to insert the trie node: {:?}, chunk index: {}",
+                            e, index
+                        )
+                    });
+            }
+
+            trie.commit();
+        }
+
+        chunk_root
+    }
 }
 
 /// This struct is used to prove the random historical data access of block author.
-#[derive(Debug, Clone, Encode, Decode)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct ProofOfAccess {
     /// Number of trials when a valid `ProofOfAccess` created.
     pub depth: u32,
@@ -63,27 +102,34 @@ pub struct ProofOfAccess {
     pub chunk_proof: ChunkProof,
 }
 
-/// Outcome of generating the inherent data of [`ProofOfAccess`].
-#[derive(Debug, Clone, Encode, Decode)]
+impl ProofOfAccess {
+    /// Creates a new instance of [`ProofOfAccess`].
+    pub fn new(depth: u32, tx_path: Vec<Vec<u8>>, chunk_proof: ChunkProof) -> Self {
+        Self {
+            depth,
+            tx_path,
+            chunk_proof,
+        }
+    }
+}
+
+/// This struct represents the outcome of creating the inherent data of [`ProofOfAccess`].
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub enum PoaOutcome {
-    /// Not required for this block.
+    /// Not required for this block due to the entire weave is empty.
     Skipped,
-    /// Failed to create a valid proof of access due to the max depth limit has been reached.
+    /// Failed to create a valid [`ProofOfAccess`] due to the maximum depth limit has been reached.
     MaxDepthReached,
     /// Generate a [`ProofOfAccess`] successfully.
     ///
-    /// Each block contains a justification of poa as long as the weave size is not 0
-    /// and will be verified on block import.
+    /// Each block contains a justification of poa as long as the weave
+    /// size is not 0 and will be verified on block import.
     Justification(ProofOfAccess),
 }
 
 impl PoaOutcome {
-    /// Returns true if the poa inherent must be included given the poa outcome.
+    /// Returns true if the poa inherent must be included in the block.
     pub fn require_inherent(&self) -> bool {
-        match self {
-            Self::Skipped => false,
-            Self::MaxDepthReached => false,
-            Self::Justification(_) => true,
-        }
+        matches!(self, Self::Justification(..))
     }
 }

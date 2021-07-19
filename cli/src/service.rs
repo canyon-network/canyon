@@ -42,6 +42,13 @@ type FullGrandpaBlockImport =
     grandpa::GrandpaBlockImport<FullBackend, Block, FullClient, FullSelectChain>;
 type LightClient = sc_service::TLightClient<Block, RuntimeApi, Executor>;
 
+type FullPoaBlockImport = cc_consensus_poa::PurePoaBlockImport<
+    Block,
+    FullGrandpaBlockImport,
+    FullClient,
+    FullSelectChain,
+>;
+
 pub fn new_partial(
     config: &Configuration,
 ) -> Result<
@@ -54,7 +61,7 @@ pub fn new_partial(
         (
             impl Fn(canyon_rpc::DenyUnsafe, sc_rpc::SubscriptionTaskExecutor) -> canyon_rpc::IoHandler,
             (
-                sc_consensus_babe::BabeBlockImport<Block, FullClient, FullGrandpaBlockImport>,
+                sc_consensus_babe::BabeBlockImport<Block, FullClient, FullPoaBlockImport>,
                 grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
                 sc_consensus_babe::BabeLink<Block>,
             ),
@@ -105,9 +112,15 @@ pub fn new_partial(
     )?;
     let justification_import = grandpa_block_import.clone();
 
+    let poa_block_import = cc_consensus_poa::PurePoaBlockImport::new(
+        grandpa_block_import,
+        client.clone(),
+        select_chain.clone(),
+    );
+
     let (block_import, babe_link) = sc_consensus_babe::block_import(
         sc_consensus_babe::Config::get_or_compute(&*client)?,
-        grandpa_block_import,
+        poa_block_import,
         client.clone(),
     )?;
 
@@ -188,7 +201,6 @@ pub fn new_partial(
                 perma_storage: cc_datastore::PermanentStorage::new(
                     offchain_storage.clone(),
                     client.clone(),
-                    client.clone(),
                 ),
             };
 
@@ -221,7 +233,7 @@ pub struct NewFullBase {
 pub fn new_full_base(
     mut config: Configuration,
     with_startup_data: impl FnOnce(
-        &sc_consensus_babe::BabeBlockImport<Block, FullClient, FullGrandpaBlockImport>,
+        &sc_consensus_babe::BabeBlockImport<Block, FullClient, FullPoaBlockImport>,
         &sc_consensus_babe::BabeLink<Block>,
     ),
 ) -> Result<NewFullBase, ServiceError> {
@@ -330,8 +342,6 @@ pub fn new_full_base(
                 let client_clone = client_clone.clone();
                 let client_clone2 = client_clone.clone();
                 let client_clone3 = client_clone.clone();
-                let runtime_api = client_clone.clone();
-                let runtime_api2 = client_clone.clone();
                 let offchain_storage_clone = offchain_storage.clone();
                 async move {
                     let uncles = sc_consensus_uncles::create_uncles_inherent_data_provider(
@@ -346,15 +356,10 @@ pub fn new_full_base(
                                                     slot_duration,
                                             );
 
-                    let poa = cc_consensus_poa::InherentDataProvider::create(
-                        &*client_clone2,
+                    let poa = cc_consensus_poa::PoaInherentDataProvider::create(
+                        client_clone2,
                         parent,
-                        cc_datastore::PermanentStorage::new(
-                            offchain_storage_clone,
-                            client_clone3,
-                            runtime_api,
-                        ),
-                        runtime_api2,
+                        cc_datastore::PermanentStorage::new(offchain_storage_clone, client_clone3),
                     )?;
 
                     Ok((timestamp, slot, uncles, poa))

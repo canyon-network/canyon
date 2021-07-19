@@ -34,6 +34,7 @@ use sp_std::{marker::PhantomData, prelude::*};
 use frame_support::{
     ensure,
     traits::{Currency, ExistenceRequirement, Get, IsSubType},
+    weights::Weight,
 };
 use frame_system::ensure_signed;
 
@@ -84,9 +85,14 @@ pub mod pallet {
 
     #[pallet::hooks]
     impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+        fn on_initialize(_n: BlockNumberFor<T>) -> Weight {
+            // Clear the block size of last block.
+            <BlockDataSize<T>>::kill();
+            1
+        }
+
         fn on_finalize(n: BlockNumberFor<T>) {
-            // Clear the temp storage.
-            let current_block_data_size = <BlockDataSize<T>>::take();
+            let current_block_data_size = <BlockDataSize<T>>::get();
             if current_block_data_size > 0 {
                 let latest_weave_size = <WeaveSize<T>>::get();
                 <GlobalWeaveSizeIndex<T>>::append(latest_weave_size);
@@ -284,12 +290,6 @@ impl<T: Config> Pallet<T> {
                 Err(i) => i,
             };
 
-        frame_support::log::debug!(
-            target: "runtime::permastore",
-            "Found the index of recall block number: {}",
-            recall_block_number_index,
-        );
-
         <GlobalBlockNumberIndex<T>>::get()
             .get(recall_block_number_index)
             .copied()
@@ -298,6 +298,16 @@ impl<T: Config> Pallet<T> {
     /// Returns the data size of transaction given `block_number` and `extrinsic_index`.
     pub fn data_size(block_number: T::BlockNumber, extrinsic_index: u32) -> u32 {
         <TransactionDataSize<T>>::get((block_number, extrinsic_index))
+    }
+
+    /// Returns true if poa proof should be included and verified.
+    pub fn require_proof_of_access() -> bool {
+        <BlockDataSize<T>>::get() > 0 || <WeaveSize<T>>::get() > 0
+    }
+
+    /// Returns the data size of current block.
+    pub fn block_size() -> u64 {
+        <BlockDataSize<T>>::get()
     }
 
     /// Returns the total byte size of weave.

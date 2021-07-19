@@ -48,6 +48,7 @@ use sp_std::prelude::*;
 
 use frame_support::{
     inherent::{InherentData, InherentIdentifier, MakeFatalError, ProvideInherent},
+    weights::DispatchClass,
     RuntimeDebug,
 };
 
@@ -140,29 +141,82 @@ pub mod pallet {
     #[pallet::generate_store(pub(super) trait Store)]
     pub struct Pallet<T>(_);
 
+    #[pallet::hooks]
+    impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+        fn on_finalize(_n: BlockNumberFor<T>) {}
+    }
+
     #[pallet::call]
     impl<T: Config> Pallet<T> {
-        /// Updates the historical depth info of block author.
-        #[pallet::weight(0)]
-        pub fn note_depth(origin: OriginFor<T>, #[pallet::compact] depth: Depth) -> DispatchResult {
-            ensure_root(origin)?;
+        #[pallet::weight((0, DispatchClass::Mandatory))]
+        pub fn process_poa_outcome(
+            origin: OriginFor<T>,
+            poa_outcome: PoaOutcome,
+        ) -> DispatchResult {
+            ensure_none(origin)?;
 
-            let block_author = T::BlockAuthor::author();
+            match poa_outcome {
+                PoaOutcome::Justification(poa) => {
+                    let depth = poa.depth;
 
-            if let Some(mut old) = HistoryDepth::<T>::get(&block_author) {
-                old.add_depth(depth);
-                HistoryDepth::<T>::insert(&block_author, old);
-            } else {
-                HistoryDepth::<T>::insert(
-                    &block_author,
-                    DepthInfo {
-                        total_depth: depth,
-                        blocks: 1u32.into(),
-                    },
-                );
+                    assert!(depth > 0, "depth must be greater than 0");
+
+                    <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(
+                        POA_ENGINE_ID,
+                        poa.encode(),
+                    ));
+
+                    Self::note_depth(depth);
+                }
+                PoaOutcome::MaxDepthReached => {
+                    // Decrease the storage capacity?
+                    // Need to update outcome.require_inherent() too.
+                    //
+                    // TODO: slash the block author when SLA is too low?
+                    // None
+                }
+                PoaOutcome::Skipped => (),
             }
 
             Ok(())
+        }
+    }
+
+    #[pallet::inherent]
+    impl<T: Config> ProvideInherent for Pallet<T> {
+        type Call = Call<T>;
+        type Error = MakeFatalError<()>;
+
+        const INHERENT_IDENTIFIER: InherentIdentifier = POA_INHERENT_IDENTIFIER;
+
+        fn create_inherent(data: &InherentData) -> Option<Self::Call> {
+            let poa_outcome: PoaOutcome = match data.get_data(&Self::INHERENT_IDENTIFIER) {
+                Ok(Some(outcome)) => outcome,
+                Ok(None) => return None,
+                Err(e) => {
+                    frame_support::log::error!(
+                        target: "runtime::poa",
+                        "Error occurred when getting the inherent data of poa: {:?}",
+                        e,
+                    );
+                    return None;
+                }
+            };
+
+            // TODO: avoide double including the full ProofOfAccess struct in extrinsic
+            // as it will be included in the header anyway?
+            Some(Call::process_poa_outcome(poa_outcome))
+        }
+
+        fn is_inherent(call: &Self::Call) -> bool {
+            matches!(call, Call::process_poa_outcome(..))
+        }
+
+        fn is_inherent_required(data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
+            match data.get_data::<PoaOutcome>(&Self::INHERENT_IDENTIFIER) {
+                Ok(Some(outcome)) if outcome.require_inherent() => Ok(Some(().into())),
+                _ => Ok(None),
+            }
         }
     }
 
@@ -197,60 +251,24 @@ pub mod pallet {
     #[cfg(test)]
     #[pallet::storage]
     pub(super) type TestAuthor<T: Config> = StorageValue<_, T::AccountId, ValueQuery>;
-}
 
-impl<T: Config> ProvideInherent for Pallet<T> {
-    type Call = Call<T>;
-    type Error = MakeFatalError<()>;
+    impl<T: Config> Pallet<T> {
+        /// Updates the historical depth info of block author.
+        pub(crate) fn note_depth(depth: Depth) {
+            let block_author = T::BlockAuthor::author();
 
-    const INHERENT_IDENTIFIER: InherentIdentifier = POA_INHERENT_IDENTIFIER;
-
-    fn create_inherent(data: &InherentData) -> Option<Self::Call> {
-        let poa_outcome: PoaOutcome = match data.get_data(&Self::INHERENT_IDENTIFIER) {
-            Ok(Some(outcome)) => outcome,
-            Ok(None) => return None,
-            Err(e) => {
-                frame_support::log::error!(
-                    target: "runtime::poa",
-                    "Error occurred when getting the inherent data of poa: {:?}",
-                    e,
+            if let Some(mut old) = HistoryDepth::<T>::get(&block_author) {
+                old.add_depth(depth);
+                HistoryDepth::<T>::insert(&block_author, old);
+            } else {
+                HistoryDepth::<T>::insert(
+                    &block_author,
+                    DepthInfo {
+                        total_depth: depth,
+                        blocks: 1u32.into(),
+                    },
                 );
-                return None;
             }
-        };
-
-        match poa_outcome {
-            PoaOutcome::Justification(poa) => {
-                let depth = poa.depth;
-
-                assert!(depth > 0, "depth must be greater than 0");
-
-                <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(
-                    POA_ENGINE_ID,
-                    poa.encode(),
-                ));
-
-                Some(Call::note_depth(depth))
-            }
-            PoaOutcome::MaxDepthReached => {
-                // Decrease the storage capacity?
-                // Need to update outcome.require_inherent() too.
-                //
-                // TODO: slash the block author when SLA is too low?
-                None
-            }
-            PoaOutcome::Skipped => None,
-        }
-    }
-
-    fn is_inherent(call: &Self::Call) -> bool {
-        matches!(call, Call::note_depth(..))
-    }
-
-    fn is_inherent_required(data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
-        match data.get_data::<PoaOutcome>(&Self::INHERENT_IDENTIFIER) {
-            Ok(Some(outcome)) if outcome.require_inherent() => Ok(Some(().into())),
-            _ => Ok(None),
         }
     }
 }

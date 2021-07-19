@@ -12,6 +12,8 @@ thiserror = "1.0"
 
 sp-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-block-builder = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-consensus = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-inherents = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-io = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }

@@ -22,15 +22,18 @@ use sp_core::H256;
 use sp_runtime::traits::Block as BlockT;
 use sp_trie::TrieMut;
 
+use canyon_primitives::ExtrinsicIndex;
+use cp_consensus_poa::encode_index;
 use cp_permastore::{Hasher, TrieLayout, VerifyError};
 
-use crate::chunk_proof::{encode_index, Error};
+use crate::chunk_proof::TrieError;
 
-pub fn build_extrinsic_proof<Block: BlockT<Hash = H256>>(
-    extrinsic_index: u32,
+/// Returns the calculated merkle proof given `extrinsic_index` and `extrinsics_root`.
+pub fn build_extrinsic_proof<Block: BlockT<Hash = canyon_primitives::Hash>>(
+    extrinsic_index: ExtrinsicIndex,
     extrinsics_root: Block::Hash,
     extrinsics: Vec<Block::Extrinsic>,
-) -> Result<Vec<Vec<u8>>, Error> {
+) -> Result<Vec<Vec<u8>>, TrieError> {
     let mut db = sp_trie::MemoryDB::<Hasher>::default();
     let mut calc_extrinsics_root = sp_trie::empty_trie_root::<TrieLayout>();
 
@@ -60,14 +63,50 @@ pub fn build_extrinsic_proof<Block: BlockT<Hash = H256>>(
         extrinsics_root,
         &[encode_index(extrinsic_index as u32)],
     )
-    .map_err(|e| Error::Trie(Box::new(e)))?;
+    .map_err(|e| TrieError::Trie(Box::new(e)))?;
 
     Ok(proof)
 }
 
+/// A verifier for tx proof.
+#[derive(Debug, Clone)]
+pub struct TxProofVerifier<B: BlockT> {
+    /// Recall extrinsic.
+    recall_extrinsic: B::Extrinsic,
+    /// Extrinsics root of recall block.
+    extrinsics_root: B::Hash,
+    /// Extrinsic index of `recall_extrinsic`.
+    recall_extrinsic_index: ExtrinsicIndex,
+}
+
+impl<B: BlockT<Hash = canyon_primitives::Hash>> TxProofVerifier<B> {
+    /// Creates a new instance of [`TxProofVerifier`].
+    pub fn new(
+        recall_extrinsic: B::Extrinsic,
+        extrinsics_root: B::Hash,
+        recall_extrinsic_index: ExtrinsicIndex,
+    ) -> Self {
+        Self {
+            recall_extrinsic,
+            extrinsics_root,
+            recall_extrinsic_index,
+        }
+    }
+
+    /// Returns Ok(()) if `tx_path` matches the inner tx proof.
+    pub fn verify(&self, tx_path: &[Vec<u8>]) -> Result<(), VerifyError> {
+        verify_extrinsic_proof(
+            &self.extrinsics_root,
+            self.recall_extrinsic_index,
+            self.recall_extrinsic.encode(),
+            tx_path,
+        )
+    }
+}
+
 pub fn verify_extrinsic_proof(
     extrinsics_root: &H256,
-    extrinsic_index: u32,
+    extrinsic_index: ExtrinsicIndex,
     encoded_extrinsic: Vec<u8>,
     proof: &[Vec<u8>],
 ) -> Result<(), VerifyError> {

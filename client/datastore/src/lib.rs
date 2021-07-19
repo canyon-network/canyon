@@ -39,29 +39,24 @@ use cp_permastore::{PermaStorage, PermastoreApi};
 
 /// Permanent storage backed by offchain storage.
 #[derive(Clone)]
-pub struct PermanentStorage<C, RA> {
+pub struct PermanentStorage<C> {
     offchain_storage: LocalStorage,
     client: Arc<C>,
-    runtime_api: Arc<RA>,
 }
 
-impl<C, RA> PermanentStorage<C, RA> {
-    /// Create permanent storage backed by offchain storage.
-    ///
-    /// `runtime_api` is used for getting the chunk root from runtime.
-    pub fn new(offchain_storage: LocalStorage, client: Arc<C>, runtime_api: Arc<RA>) -> Self {
+impl<C> PermanentStorage<C> {
+    /// Creates a new instance of [`PermaStorage`] backed by offchain storage.
+    pub fn new(offchain_storage: LocalStorage, client: Arc<C>) -> Self {
         Self {
             offchain_storage,
             client,
-            runtime_api,
         }
     }
 }
 
-impl<C, RA> cp_permastore::PermaStorage for PermanentStorage<C, RA>
+impl<C> cp_permastore::PermaStorage for PermanentStorage<C>
 where
     C: Send + Sync,
-    RA: Send + Sync,
 {
     /// Sets the value of transaction data given `key`.
     ///
@@ -124,12 +119,11 @@ pub trait TransactionDataBackend<Block: BlockT>: PermaStorage + ChunkRootBackend
     ) -> Result<Option<Vec<u8>>, Error<Block>>;
 }
 
-impl<Block, C, RA> TransactionDataBackend<Block> for PermanentStorage<C, RA>
+impl<Block, C> TransactionDataBackend<Block> for PermanentStorage<C>
 where
     Block: BlockT,
-    C: HeaderBackend<Block> + Send + Sync,
-    RA: ProvideRuntimeApi<Block> + Send + Sync,
-    RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
+    C: HeaderBackend<Block> + ProvideRuntimeApi<Block> + Send + Sync,
+    C::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
 {
     fn transaction_data(
         &self,
@@ -160,12 +154,11 @@ where
     }
 }
 
-impl<Block, C, RA> ChunkRootBackend<Block> for PermanentStorage<C, RA>
+impl<Block, C> ChunkRootBackend<Block> for PermanentStorage<C>
 where
     Block: BlockT,
-    C: HeaderBackend<Block> + Send + Sync,
-    RA: ProvideRuntimeApi<Block> + Send + Sync,
-    RA::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
+    C: HeaderBackend<Block> + ProvideRuntimeApi<Block> + Send + Sync,
+    C::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
 {
     fn chunk_root(
         &self,
@@ -174,9 +167,9 @@ where
         extrinsic_index: u32,
     ) -> Result<Option<Block::Hash>, Error<Block>> {
         let at = at.unwrap_or_else(|| BlockId::hash(self.client.info().best_hash));
-        self.runtime_api
+        self.client
             .runtime_api()
             .chunk_root(&at, block_number, extrinsic_index)
-            .map_err(|e| Error::ApiError(e))
+            .map_err(Error::ApiError)
     }
 }

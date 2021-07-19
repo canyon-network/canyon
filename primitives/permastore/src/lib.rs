@@ -65,6 +65,11 @@ sp_api::decl_runtime_apis! {
         /// Returns the size of transaction data given `block_number` and `extrinsic_index`.
         fn data_size(block_number: BlockNumber, extrinsic_index: ExtrinsicIndex) -> u32;
 
+        fn require_proof_of_access() -> bool ;
+
+        /// Returns the size of current block.
+        fn block_size() -> u64;
+
         /// Returns the size of entire weave.
         fn weave_size() -> u64;
     }
