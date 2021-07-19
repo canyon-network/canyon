@@ -25,13 +25,13 @@ use cp_permastore::{Hasher, TrieLayout, VerifyError};
 
 /// Error type for chunk proof.
 #[derive(Debug, thiserror::Error)]
-pub enum Error {
+pub enum TrieError {
     /// Trie error.
     #[error(transparent)]
     Trie(#[from] Box<dyn std::error::Error + Send + Sync>),
 }
 
-/// Helper struct to verify the chunk proof.
+/// A verifier for chunk proof.
 #[derive(Debug, Clone)]
 pub struct ChunkProofVerifier(pub ChunkProof);
 
@@ -53,7 +53,7 @@ impl ChunkProofVerifier {
     }
 }
 
-/// Verifies the chunk given the `chunk_root` and `proof`.
+/// Verifies the chunk matches given the `chunk_root` and `proof`.
 pub fn verify_chunk_proof(
     chunk_root: &H256,
     chunk: Vec<u8>,
@@ -93,7 +93,7 @@ impl ChunkProofBuilder {
     }
 
     /// Builds the chunk proof.
-    pub fn build(&self) -> Result<ChunkProof, Error> {
+    pub fn build(&self) -> Result<ChunkProof, TrieError> {
         let mut target_chunk = Vec::with_capacity(self.chunk_size as usize);
 
         let mut db = sp_trie::MemoryDB::<Hasher>::default();
@@ -130,7 +130,7 @@ impl ChunkProofBuilder {
             chunk_root,
             &[encode_index(self.target_chunk_index)],
         )
-        .map_err(|e| Error::Trie(Box::new(e)))?;
+        .map_err(|e| TrieError::Trie(Box::new(e)))?;
 
         Ok(ChunkProof {
             chunk: target_chunk,

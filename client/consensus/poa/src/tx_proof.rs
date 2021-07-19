@@ -26,13 +26,14 @@ use canyon_primitives::ExtrinsicIndex;
 use cp_consensus_poa::encode_index;
 use cp_permastore::{Hasher, TrieLayout, VerifyError};
 
-use crate::chunk_proof::Error;
+use crate::chunk_proof::TrieError;
 
-pub fn build_extrinsic_proof<Block: BlockT<Hash = H256>>(
-    extrinsic_index: u32,
+/// Returns the calculated merkle proof given `extrinsic_index` and `extrinsics_root`.
+pub fn build_extrinsic_proof<Block: BlockT<Hash = canyon_primitives::Hash>>(
+    extrinsic_index: ExtrinsicIndex,
     extrinsics_root: Block::Hash,
     extrinsics: Vec<Block::Extrinsic>,
-) -> Result<Vec<Vec<u8>>, Error> {
+) -> Result<Vec<Vec<u8>>, TrieError> {
     let mut db = sp_trie::MemoryDB::<Hasher>::default();
     let mut calc_extrinsics_root = sp_trie::empty_trie_root::<TrieLayout>();
 
@@ -62,12 +63,12 @@ pub fn build_extrinsic_proof<Block: BlockT<Hash = H256>>(
         extrinsics_root,
         &[encode_index(extrinsic_index as u32)],
     )
-    .map_err(|e| Error::Trie(Box::new(e)))?;
+    .map_err(|e| TrieError::Trie(Box::new(e)))?;
 
     Ok(proof)
 }
 
-/// Helper struct to verify the chunk proof.
+/// A verifier for tx proof.
 #[derive(Debug, Clone)]
 pub struct TxProofVerifier<B: BlockT> {
     /// Recall extrinsic.
@@ -79,6 +80,7 @@ pub struct TxProofVerifier<B: BlockT> {
 }
 
 impl<B: BlockT<Hash = canyon_primitives::Hash>> TxProofVerifier<B> {
+    /// Creates a new instance of [`TxProofVerifier`].
     pub fn new(
         recall_extrinsic: B::Extrinsic,
         extrinsics_root: B::Hash,
