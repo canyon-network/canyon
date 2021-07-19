@@ -48,6 +48,7 @@ use sp_std::prelude::*;
 
 use frame_support::{
     inherent::{InherentData, InherentIdentifier, MakeFatalError, ProvideInherent},
+    weights::DispatchClass,
     RuntimeDebug,
 };
 
@@ -147,7 +148,7 @@ pub mod pallet {
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
-        #[pallet::weight(0)]
+        #[pallet::weight((0, DispatchClass::Mandatory))]
         pub fn process_poa_outcome(
             origin: OriginFor<T>,
             poa_outcome: PoaOutcome,
