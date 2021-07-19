@@ -174,7 +174,6 @@ pub mod pallet {
                     // TODO: slash the block author when SLA is too low?
                     // None
                 }
-                // PoaOutcome::Skipped => None,
                 PoaOutcome::Skipped => (),
             }
 
