@@ -92,7 +92,7 @@ impl ChunkProofBuilder {
         }
     }
 
-    /// Builds the chunk proof.
+    /// Creates a [`ChunkProof`].
     pub fn build(&self) -> Result<ChunkProof, TrieError> {
         let mut target_chunk = Vec::with_capacity(self.chunk_size as usize);
 

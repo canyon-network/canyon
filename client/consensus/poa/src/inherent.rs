@@ -16,8 +16,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
-//! This crate creates the inherent data based on the Proof of Access consensus.
-
 use std::sync::Arc;
 
 use sp_api::ProvideRuntimeApi;
@@ -31,7 +29,7 @@ use cp_consensus_poa::{PoaOutcome, POA_INHERENT_IDENTIFIER};
 
 /// A type for creating the inherent data for pallet poa.
 pub struct PoaInherentDataProvider {
-    /// Outcome of creating a proof of access
+    /// Outcome of creating a proof of access.
     pub poa_outcome: PoaOutcome,
 }
 
@@ -43,7 +41,7 @@ impl PoaInherentDataProvider {
         transaction_data_backend: TransactionDataBackend,
     ) -> Result<Self, crate::Error<Block>>
     where
-        Block: BlockT<Hash = sp_core::H256> + 'static,
+        Block: BlockT<Hash = canyon_primitives::Hash> + 'static,
         Client: BlockBackend<Block>
             + HeaderBackend<Block>
             + ProvideRuntimeApi<Block>
