@@ -18,17 +18,34 @@
 
 //! # Proof of Access consensus
 //!
+//! ## Introduction
+//!
 //! Proof of Access is a kind of lightweight storage consensus initially
-//! used by Arweave. In arweave, PoA serves as an enhancement of Proof of
-//! Work in which the entire recall block data is included in the material to be
-//! hashed for input to the proof of work.
+//! adopted by [Arweave](https://arweave.org). In arweave, PoA serves as
+//! an enhancement of Proof of Work in which the entire recall block data
+//! is included in the material to be hashed for input to the proof of work.
 //!
 //! Requiring [`ProofOfAccess`] incentivises storage as miners need
 //! access to random blocks from the blockweave's history in order
 //! to mine new blocks and receive mining rewards.
 //!
-//! This crate implements the core of Proof of Access consensus and
-//! also provides the inherent data provider [`PoaInherentDataProvider`].
+//! ## Usage
+//!
+//! Normally, PoA needs to be used with other consensus algorithem like
+//! PoW or PoS together as it's not typically designed for solving the
+//! problem of selecting one from the validator set to author next block
+//! in an unpredictable or fair way. In another word, PoA is usually
+//! exploited as a precondition for PoW or PoS in order to encourage
+//! the miners to store more data locally.
+//!
+//! This crate implements the core algorithem of Proof of Access in
+//! [`construct_poa`] and the inherent data provider [`PoaInherentDataProvider`].
+//!
+//! To use this engine, you can create an inhehrent extrinsic using the
+//! data provided by [`PoaInherentDataProvider`] in a pallet. Furthermore,
+//! you need to wrap the [`PurePoaBlockImport`] into your existing block
+//! import pipeline. Refer to the [Substrate docs](https://substrate.dev/docs/en/knowledgebase/advanced/block-import)
+//! for more information about creating a nested `BlockImport`.
 
 use std::collections::HashMap;
 use std::marker::PhantomData;
@@ -206,7 +223,7 @@ where
 {
     let recall_block_id = BlockId::number(recall_block_number);
 
-    let (header, extrinsics) = fetch_block(client, recall_block_id)?;
+    let (header, extrinsics) = fetch_block(client, recall_block_id)?.deconstruct();
 
     let weave_base = client
         .runtime_api()
@@ -253,16 +270,12 @@ where
 fn fetch_block<Block, Client>(
     client: &Arc<Client>,
     id: BlockId<Block>,
-) -> Result<(Block::Header, Vec<Block::Extrinsic>), Error<Block>>
+) -> Result<Block, Error<Block>>
 where
     Block: BlockT,
     Client: BlockBackend<Block>,
 {
-    Ok(client
-        .block(&id)?
-        .ok_or(Error::BlockNotFound(id))?
-        .block
-        .deconstruct())
+    Ok(client.block(&id)?.ok_or(Error::BlockNotFound(id))?.block)
 }
 
 /// Returns the block number of recall block.
@@ -475,10 +488,10 @@ fn fetch_poa<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<ProofOfAcces
     }
 }
 
-/// A block importer for PoA.
+/// A pure block importer for PoA.
 ///
 /// This importer has to be used with other mature block importer
-/// togather, e.g., grandpa block import, for it only verifies the
+/// together, e.g., grandpa block import, for it only verifies the
 /// validity of PoA sealed digest item in the header and nothing else.
 pub struct PurePoaBlockImport<B, I, C, S> {
     inner: I,
