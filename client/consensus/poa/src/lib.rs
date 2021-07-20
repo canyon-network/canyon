@@ -51,6 +51,8 @@
 //! import pipeline. Refer to the [Substrate docs](https://substrate.dev/docs/en/knowledgebase/advanced/block-import)
 //! for more information about creating a nested `BlockImport`.
 
+#![deny(missing_docs, unused_extern_crates)]
+
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::sync::Arc;

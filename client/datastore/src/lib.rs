@@ -16,6 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
+#![deny(missing_docs, unused_extern_crates)]
+
 //! This crate provides the feature of persistent storage for the transaction data
 //! expected to exist indefinitely.
 //!
