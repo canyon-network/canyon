@@ -29,6 +29,8 @@
 //! access to random blocks from the blockweave's history in order
 //! to mine new blocks and receive mining rewards.
 //!
+//! TODO: brief flow of PoA generation.
+//!
 //! ## Usage
 //!
 //! Normally, PoA needs to be used with other consensus algorithem like
@@ -39,7 +41,9 @@
 //! the miners to store more data locally.
 //!
 //! This crate implements the core algorithem of Proof of Access in
-//! [`construct_poa`] and the inherent data provider [`PoaInherentDataProvider`].
+//! [`construct_poa`] and provides the inherent data provider via
+//! [`PoaInherentDataProvider`]. [`PurePoaBlockImport`] implements the
+//! `BlockImport` trait, thus can be wrapped in another block importer.
 //!
 //! To use this engine, you can create an inhehrent extrinsic using the
 //! data provided by [`PoaInherentDataProvider`] in a pallet. Furthermore,
