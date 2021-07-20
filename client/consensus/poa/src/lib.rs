@@ -58,7 +58,7 @@ use std::marker::PhantomData;
 use std::sync::Arc;
 
 use codec::{Decode, Encode};
-use sp_runtime::{ConsensusEngineId, DigestItem};
+use sp_runtime::DigestItem;
 use thiserror::Error;
 
 use sp_api::ProvideRuntimeApi;
@@ -107,38 +107,37 @@ type Randomness = Vec<u8>;
 /// Error type for poa consensus.
 #[derive(Error, Debug)]
 pub enum Error<Block: BlockT> {
-    #[error("Header uses the wrong engine {0:?}")]
-    WrongEngine(ConsensusEngineId),
+    /// No PoA seal in the header.
     #[error("Header {0:?} has no PoA seal")]
     HeaderUnsealed(Block::Hash),
+    /// Multiple PoA seals were found in the header.
     #[error("Header {0:?} has multiple PoA seals")]
     HeaderMultiSealed(Block::Hash),
+    /// Client error.
     #[error("Client error: {0}")]
     Client(sp_blockchain::Error),
+    /// Codec error.
     #[error("Codec error")]
     Codec(#[from] codec::Error),
+    /// Blockchain error.
     #[error("Blockchain error")]
     BlockchainError(#[from] sp_blockchain::Error),
+    /// Failed to verify the merkle proof.
     #[error("VerifyError error")]
     VerifyFailed(#[from] cp_permastore::VerifyError),
+    /// Runtime api error.
     #[error(transparent)]
     ApiError(#[from] sp_api::ApiError),
+    /// Block not found.
     #[error("Block {0} not found")]
     BlockNotFound(BlockId<Block>),
+    /// Recall block not found.
     #[error("Recall block not found given the recall byte {0}")]
     RecallBlockNotFound(DataIndex),
+    /// Recall extrinsic not found.
     #[error("Recall extrinsic index not found given the recall byte {0}")]
     RecallExtrinsicNotFound(DataIndex),
-    #[error("Header {0} not found")]
-    HeaderNotFound(BlockId<Block>),
-    #[error("Creating inherents failed: {0}")]
-    CreateInherents(sp_inherents::Error),
-    #[error("Checking inherents failed: {0}")]
-    CheckInherents(sp_inherents::Error),
-    #[error("Checking inherents unknown error for identifier: {0:?}")]
-    CheckInherentsUnknownError(sp_inherents::InherentIdentifier),
-    #[error("the chunk in recall tx not found")]
-    InvalidChunk,
+    /// Maxinum depth reached.
     #[error("Reaching the maximum allowed depth {0}")]
     MaxDepthReached(Depth),
 }

@@ -84,14 +84,19 @@ where
     }
 }
 
+/// Error type for datastore.
 #[derive(thiserror::Error, Debug)]
 pub enum Error<Block: BlockT> {
-    #[error("block number not found given block id `{0}`")]
+    /// Block number not found.
+    #[error("Block number not found given block id `{0}`")]
     BlockNumberNotFound(BlockId<Block>),
-    #[error("chunk root is None at block: {0}, extrinsic index: {1}")]
+    /// Chunk root does not exist.
+    #[error("Chunk root is None at block: {0}, extrinsic index: {1}")]
     ChunkRootIsNone(BlockId<Block>, u32),
+    /// Blockchain error.
     #[error(transparent)]
     Blockchain(#[from] Box<sp_blockchain::Error>),
+    /// Runtime api error.
     #[error(transparent)]
     ApiError(#[from] sp_api::ApiError),
 }
