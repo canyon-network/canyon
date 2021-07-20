@@ -19,8 +19,8 @@
 //! # Poa Pallet
 //!
 //! The Poa pallet provides the feature of recording the validators'
-//! depth info from PoA consensus engine of validators on chain, which
-//! is used to estimate the actual storage capacity of a validator.
+//! historical depth info from PoA consensus engine on chain, which
+//! can be used to estimate the actual storage capacity of a validator.
 //!
 //! we can say a validator stores 100% of the network data locally if
 //! it has produced N blocks with a total depth of N. Furthermore, the
@@ -71,12 +71,12 @@ pub use pallet::*;
 /// of a validator, which implies the storage capacity per validator.
 #[derive(RuntimeDebug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct DepthInfo<BlockNumber> {
-    /// Sum of total depth so far.
+    /// Sum of all depths so far.
     pub total_depth: Depth,
     /// Number of blocks authored by a validator since the weave is non-empty.
     ///
     /// The `blocks` here is not equal to the number of total blocks
-    /// authored by a validator since genesis block because the poa
+    /// authored by a validator from the genesis block because the poa
     /// contruction is skipped when the weave is empty, the blocks
     /// authored in that period are not counted.
     pub blocks: BlockNumber,
@@ -87,15 +87,15 @@ impl<BlockNumber: AtLeast32BitUnsigned + Copy> DepthInfo<BlockNumber> {
     ///
     /// # NOTE
     ///
-    /// `depth` has been ensured to be greater than 0 when creating inherent.
-    /// The smallest depth is 1, which means the block author located the
-    /// recall block at the first time.
+    /// The smallest depth is 1, which has been ensured when creating
+    /// the inherent, it means the block author located the recall
+    /// block at the first time.
     pub fn add_depth(&mut self, depth: Depth) {
         self.total_depth += depth;
         self.blocks += 1u32.into();
     }
 
-    /// Returns the calculated storage capacity given historical depth info.
+    /// Returns the calculated storage capacity.
     ///
     /// In theory, the greater the historical average depth, the less the
     /// storage of node stored locally.

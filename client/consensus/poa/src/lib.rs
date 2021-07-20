@@ -71,6 +71,7 @@ pub const MAX_CHUNK_PATH: u32 = 256 * 1024;
 
 type Randomness = Vec<u8>;
 
+/// Error type for poa consensus.
 #[derive(Error, Debug)]
 pub enum Error<Block: BlockT> {
     #[error("Header uses the wrong engine {0:?}")]
@@ -161,7 +162,7 @@ fn find_recall_tx(
     binary_search(recall_byte, sized_extrinsics)
 }
 
-/// All information of recall block that is required to build a PoA.
+/// All information of recall block that is required to build a [`ProofOfAccess`].
 #[derive(Debug, Clone)]
 pub struct RecallInfo<B: BlockT> {
     /// Weave size of last block.
@@ -273,6 +274,7 @@ where
         .ok_or_else(|| Error::RecallBlockNotFound(recall_byte))
 }
 
+/// A builder for creating [`PoaOutcome`].
 pub struct PoaBuilder<Block, Client, TransactionDataBackend> {
     client: Arc<Client>,
     transaction_data_backend: TransactionDataBackend,
@@ -421,7 +423,7 @@ where
     }
 }
 
-/// Constructs a valid Proof of Access.
+/// Returns a [`PoaOutcome`] after the poa construction.
 pub fn construct_poa<Block, Client, TransactionDataBackend>(
     client: Arc<Client>,
     parent: Block::Hash,
