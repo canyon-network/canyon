@@ -31,8 +31,8 @@
 //!
 //! ### Inherent Extrinsics
 //!
-//! The Poa pallet creates the [`Call::process_poa_outcome`] inherent when
-//! the data for [`POA_INHERENT_IDENTIFIER`] is Some(_) and decodable.
+//! The Poa pallet creates the inherent extrinsic [`Call::process_poa_outcome`]
+//! when the inherent data of [`POA_INHERENT_IDENTIFIER`] is Some(_) and decodable.
 
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -56,8 +56,8 @@ use frame_support::{
 use canyon_primitives::Depth;
 use cp_consensus_poa::{PoaOutcome, POA_ENGINE_ID, POA_INHERENT_IDENTIFIER};
 
-// #[cfg(any(feature = "runtime-benchmarks", test))]
-// mod benchmarking;
+#[cfg(any(feature = "runtime-benchmarks", test))]
+mod benchmarking;
 #[cfg(all(feature = "std", test))]
 mod mock;
 #[cfg(all(feature = "std", test))]

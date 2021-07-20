@@ -84,7 +84,7 @@ pallet-permastore = { path = "../pallets/permastore", default-features = false }
 pallet-poa = { path = "../pallets/poa", default-features = false }
 
 [build-dependencies]
-substrate-wasm-builder = { version = "4.0.0" }
+substrate-wasm-builder = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 
 [dev-dependencies]
 sp-io = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
