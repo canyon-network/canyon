@@ -176,7 +176,7 @@ pub struct RecallInfo<B: BlockT> {
 }
 
 impl<B: BlockT<Hash = canyon_primitives::Hash>> RecallInfo<B> {
-    pub fn as_tx_proof_verifier(self) -> tx_proof::TxProofVerifier<B> {
+    pub fn into_tx_proof_verifier(self) -> tx_proof::TxProofVerifier<B> {
         let recall_extrinsic = self.extrinsics[self.recall_extrinsic_index as usize].clone();
         tx_proof::TxProofVerifier::new(
             recall_extrinsic,
@@ -253,7 +253,7 @@ where
 {
     Ok(client
         .block(&id)?
-        .ok_or_else(|| Error::BlockNotFound(id))?
+        .ok_or(Error::BlockNotFound(id))?
         .block
         .deconstruct())
 }
@@ -271,7 +271,7 @@ where
     runtime_api
         .runtime_api()
         .find_recall_block(&at, recall_byte)?
-        .ok_or_else(|| Error::RecallBlockNotFound(recall_byte))
+        .ok_or(Error::RecallBlockNotFound(recall_byte))
 }
 
 /// A builder for creating [`PoaOutcome`].
@@ -311,7 +311,7 @@ where
         self.client
             .runtime_api()
             .find_recall_block(&at, recall_byte)?
-            .ok_or_else(|| Error::RecallBlockNotFound(recall_byte))
+            .ok_or(Error::RecallBlockNotFound(recall_byte))
     }
 
     pub fn build(&self, parent: Block::Hash) -> Result<PoaOutcome, Error<Block>> {
@@ -455,14 +455,14 @@ fn fetch_poa<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<ProofOfAcces
         .collect::<Vec<_>>();
 
     match poa_seal.len() {
-        0 => Err(Error::<B>::HeaderUnsealed(hash).into()),
+        0 => Err(Error::<B>::HeaderUnsealed(hash)),
         1 => match poa_seal[0] {
             DigestItem::Seal(_id, seal) => {
                 Decode::decode(&mut seal.as_slice()).map_err(Error::<B>::Codec)
             }
             _ => unreachable!("Only items sealed using POA_ENGINE_ID has been filtered; qed"),
         },
-        _ => Err(Error::<B>::HeaderMultiSealed(hash).into()),
+        _ => Err(Error::<B>::HeaderMultiSealed(hash)),
     }
 }
 
@@ -484,7 +484,7 @@ impl<B: Clone, I: Clone, C, S: Clone> Clone for PurePoaBlockImport<B, I, C, S> {
             inner: self.inner.clone(),
             select_chain: self.select_chain.clone(),
             client: self.client.clone(),
-            phatom: self.phatom.clone(),
+            phatom: self.phatom,
         }
     }
 }
@@ -574,7 +574,7 @@ where
                 find_recall_block(BlockId::Hash(parent_hash), recall_byte, &self.client)?;
 
             find_recall_info(recall_byte, recall_block_number, &self.client)?
-                .as_tx_proof_verifier()
+                .into_tx_proof_verifier()
                 .verify(&tx_path)
                 .map_err(Error::<B>::VerifyFailed)?;
 

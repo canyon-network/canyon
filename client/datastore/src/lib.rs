@@ -89,7 +89,7 @@ pub enum Error<Block: BlockT> {
     #[error("chunk root is None at block: {0}, extrinsic index: {1}")]
     ChunkRootIsNone(BlockId<Block>, u32),
     #[error(transparent)]
-    Blockchain(#[from] sp_blockchain::Error),
+    Blockchain(#[from] Box<sp_blockchain::Error>),
     #[error(transparent)]
     ApiError(#[from] sp_api::ApiError),
 }
@@ -139,7 +139,8 @@ where
             .chunk_root(
                 None,
                 self.client
-                    .block_number_from_id(&block_id)?
+                    .block_number_from_id(&block_id)
+                    .map_err(|e| Box::new(e))?
                     .ok_or(Error::BlockNumberNotFound(block_id))?,
                 extrinsic_index,
             )?
