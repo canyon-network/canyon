@@ -140,7 +140,7 @@ where
                 None,
                 self.client
                     .block_number_from_id(&block_id)
-                    .map_err(|e| Box::new(e))?
+                    .map_err(Box::new)?
                     .ok_or(Error::BlockNumberNotFound(block_id))?,
                 extrinsic_index,
             )?

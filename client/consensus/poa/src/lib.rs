@@ -16,9 +16,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
-//! This crate creates the inherent data based on the Proof of Access consensus.
+//! # Proof of Access consensus
 //!
-//! TODO: verify PoA stored in the block header.
+//! Proof of Access is a kind of lightweight storage consensus initially
+//! used by Arweave. In arweave, PoA serves as an enhancement of Proof of
+//! Work in which the entire recall block data is included in the material to be
+//! hashed for input to the proof of work.
+//!
+//! Requiring [`ProofOfAccess`] incentivises storage as miners need
+//! access to random blocks from the blockweave's history in order
+//! to mine new blocks and receive mining rewards.
+//!
+//! This crate implements the core of Proof of Access consensus and
+//! also provides the inherent data provider [`PoaInherentDataProvider`].
 
 use std::collections::HashMap;
 use std::marker::PhantomData;
@@ -53,7 +63,7 @@ mod tx_proof;
 
 pub use self::chunk_proof::{verify_chunk_proof, ChunkProofBuilder, ChunkProofVerifier};
 pub use self::inherent::PoaInherentDataProvider;
-pub use self::tx_proof::{build_extrinsic_proof, verify_extrinsic_proof};
+pub use self::tx_proof::{build_extrinsic_proof, verify_extrinsic_proof, TxProofVerifier};
 pub use cp_consensus_poa::{ChunkProof, ProofOfAccess};
 
 const MIN_DEPTH: u32 = 1;
@@ -141,25 +151,21 @@ fn calculate_challenge_byte(seed: Randomness, weave_size: DataIndex, depth: Dept
     DataIndex::from_le_bytes(make_bytes(multihash(seed, depth))) % weave_size
 }
 
-fn binary_search<T: Copy>(target: DataIndex, ordered_list: &[(T, DataIndex)]) -> (T, DataIndex) {
-    match ordered_list.binary_search_by_key(&target, |&(_, weave_size)| weave_size) {
-        Ok(i) => ordered_list[i],
-        Err(i) => ordered_list[i],
-    }
-}
-
-/// Returns a tuple of (extrinsic_index, absolute_data_index) of extrinsic
-/// in which `recall_byte` is located.
+/// Returns a tuple of (extrinsic_index, absolute_data_index)
+/// of extrinsic in which `recall_byte` is located.
 fn find_recall_tx(
     recall_byte: DataIndex,
     sized_extrinsics: &[(ExtrinsicIndex, DataIndex)],
 ) -> (ExtrinsicIndex, DataIndex) {
     log::trace!(
         target: "poa",
-        "Try finding recall tx, recall_byte: {}, sized_extrinsics: {:?}",
+        "Try locating the position of recall tx, recall_byte: {}, sized_extrinsics: {:?}",
         recall_byte, sized_extrinsics
     );
-    binary_search(recall_byte, sized_extrinsics)
+    match sized_extrinsics.binary_search_by_key(&recall_byte, |&(_, weave_size)| weave_size) {
+        Ok(i) => sized_extrinsics[i],
+        Err(i) => sized_extrinsics[i],
+    }
 }
 
 /// All information of recall block that is required to build a [`ProofOfAccess`].
@@ -176,9 +182,10 @@ pub struct RecallInfo<B: BlockT> {
 }
 
 impl<B: BlockT<Hash = canyon_primitives::Hash>> RecallInfo<B> {
-    pub fn into_tx_proof_verifier(self) -> tx_proof::TxProofVerifier<B> {
+    /// Converts the recall info to a [`TxProofVerifier`].
+    pub fn into_tx_proof_verifier(self) -> TxProofVerifier<B> {
         let recall_extrinsic = self.extrinsics[self.recall_extrinsic_index as usize].clone();
-        tx_proof::TxProofVerifier::new(
+        TxProofVerifier::new(
             recall_extrinsic,
             self.extrinsics_root,
             self.recall_extrinsic_index,
@@ -302,7 +309,7 @@ where
         }
     }
 
-    /// Returns the block number of recall block.
+    /// Returns the number of recall block.
     fn find_recall_block(
         &self,
         at: BlockId<Block>,
@@ -314,6 +321,7 @@ where
             .ok_or(Error::RecallBlockNotFound(recall_byte))
     }
 
+    /// Creates the inherent data [`PoaOutcome`].
     pub fn build(&self, parent: Block::Hash) -> Result<PoaOutcome, Error<Block>> {
         log::debug!(target: "poa", "Start building poa on top of {:?}", parent);
         let parent_id = BlockId::Hash(parent);
@@ -419,6 +427,7 @@ where
         }
 
         log::warn!(target: "poa", "Reaching the max depth: {}", MAX_DEPTH);
+
         Ok(PoaOutcome::MaxDepthReached)
     }
 }
@@ -555,6 +564,7 @@ where
             .map_err(Error::<B>::ApiError)?
         {
             let header = block.post_header();
+
             let ProofOfAccess {
                 depth,
                 tx_path,
