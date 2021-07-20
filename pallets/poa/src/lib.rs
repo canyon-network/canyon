@@ -31,7 +31,7 @@
 //!
 //! ### Inherent Extrinsics
 //!
-//! The Poa pallet creates the [`process_poa_outcome`] inherent when
+//! The Poa pallet creates the [`Call::process_poa_outcome`] inherent when
 //! the data for [`POA_INHERENT_IDENTIFIER`] is Some(_) and decodable.
 
 // Ensure we're `no_std` when compiling for Wasm.
