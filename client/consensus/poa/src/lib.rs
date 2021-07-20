@@ -29,7 +29,17 @@
 //! access to random blocks from the blockweave's history in order
 //! to mine new blocks and receive mining rewards.
 //!
-//! TODO: brief flow of PoA generation.
+//! ## Overview
+//!
+//! The general workflow of PoA is described briefly below:
+//!
+//! 1. Pick a random byte in the whole network storage.
+//! 2. Locate the extrinsic in which the random byte is included.
+//! 3. Check if the data of extrinsic in Step 2 exists in the local storage.
+//!
+//!     - If the data does exist locally, create the two merkle proofs of
+//!        extrinsic and data chunks respectively.
+//!     - If not, repeat from Step 1 by choosing another random byte
 //!
 //! ## Usage
 //!
