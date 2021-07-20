@@ -77,7 +77,7 @@ use sc_client_api::{backend::AuxStore, BlockBackend, BlockOf};
 
 use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
 use cc_datastore::TransactionDataBackend as TransactionDataBackendT;
-use cp_consensus_poa::{PoaOutcome, POA_ENGINE_ID, ProofOfAccess};
+use cp_consensus_poa::{PoaOutcome, ProofOfAccess, POA_ENGINE_ID};
 use cp_permastore::{PermastoreApi, CHUNK_SIZE};
 
 mod chunk_proof;
