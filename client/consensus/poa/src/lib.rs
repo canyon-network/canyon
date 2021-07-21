@@ -36,7 +36,7 @@
 //! 1. Pick a random byte from the whole network storage (BlockWeave).
 //!     - The block weave can be seen as an ever growing gigantic array.
 //!     - Currently, the randome byte is determined by hashing
-//!       the parent header hash for N times(see `calculate_challenge_byte`),
+//!       the parent header hash for N times(see [`calculate_challenge_byte`]),
 //!       which will be replaced with another hashing strategy in SPoRA.
 //!
 //! 2. Locate the extrinsic in which the random byte is included.
@@ -182,7 +182,7 @@ fn make_bytes(h: [u8; 32]) -> [u8; 8] {
 }
 
 /// Returns the position of recall byte in the entire weave.
-fn calculate_challenge_byte(seed: Randomness, weave_size: DataIndex, depth: Depth) -> DataIndex {
+pub fn calculate_challenge_byte(seed: Randomness, weave_size: DataIndex, depth: Depth) -> DataIndex {
     assert!(
         weave_size > 0,
         "weave size can not be 0 when calculating the recall byte"
