@@ -206,11 +206,14 @@ pub mod pallet {
         BalanceOf<T>,
     >;
 
-    /// Total byte size of data stored onto the network.
+    /// Total byte size of data stored onto the network so far.
+    ///
+    /// In another word, it equals to the sum of [`BlockDataSize`]
+    /// of this block and [`WeaveSize`] of previous block.
     #[pallet::storage]
     pub(super) type WeaveSize<T: Config> = StorageValue<_, u64, ValueQuery>;
 
-    /// Total byte size of data stored in current building block.
+    /// Total byte size of data stored during current block.
     #[pallet::storage]
     #[pallet::getter(fn block_data_size)]
     pub(super) type BlockDataSize<T: Config> = StorageValue<_, u64, ValueQuery>;
