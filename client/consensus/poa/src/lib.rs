@@ -182,7 +182,11 @@ fn make_bytes(h: [u8; 32]) -> [u8; 8] {
 }
 
 /// Returns the position of recall byte in the entire weave.
-pub fn calculate_challenge_byte(seed: Randomness, weave_size: DataIndex, depth: Depth) -> DataIndex {
+pub fn calculate_challenge_byte(
+    seed: Randomness,
+    weave_size: DataIndex,
+    depth: Depth,
+) -> DataIndex {
     assert!(
         weave_size > 0,
         "weave size can not be 0 when calculating the recall byte"
