@@ -1,7 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/poa/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
-<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../pallet_poa/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets&#x2F;poa&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../pallet_poa/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -275,7 +272,8 @@
 <span id="272">272</span>
 <span id="273">273</span>
 <span id="274">274</span>
-</pre><div class="example-wrap"><pre class="rust ">
+<span id="275">275</span>
+</pre><pre class="rust">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
 <span class="comment">//</span>
@@ -297,40 +295,41 @@
 <span class="doccomment">//! # Poa Pallet</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The Poa pallet provides the feature of recording the validators&#39;</span>
-<span class="doccomment">//! depth info from PoA consensus engine of validators on chain, which</span>
-<span class="doccomment">//! is used to estimate the actual storage capacity of a validator.</span>
+<span class="doccomment">//! historical depth info from PoA consensus engine on chain, which</span>
+<span class="doccomment">//! can be used to estimate the actual storage capacity of a validator.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! we can say a validator stores 100% of the network data locally if</span>
-<span class="doccomment">//! it has produced N blocks with a total depth of N. Furthermore, the</span>
-<span class="doccomment">//! estimated result becomes increasingly accurate and reliable with</span>
-<span class="doccomment">//! more and more blocks being authored by that validator.</span>
+<span class="doccomment">//! we can say a validator tends to have stored 100% of the network</span>
+<span class="doccomment">//! data locally if it had produced N blocks with a total depth of N.</span>
+<span class="doccomment">//! The estimated result becomes increasingly accurate and reliable</span>
+<span class="doccomment">//! with more and more blocks being authored by that validator.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## Interface</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ### Inherent Extrinsics</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! The Poa pallet creates the [`note_depth`] inherent when the data for</span>
-<span class="doccomment">//! [`POA_INHERENT_IDENTIFIER`] is Some(_) and decodable.</span>
+<span class="doccomment">//! The Poa pallet creates the inherent extrinsic [`Call::process_poa_outcome`]</span>
+<span class="doccomment">//! when the inherent data contains a valid [`POA_INHERENT_IDENTIFIER`].</span>
 
 <span class="comment">// Ensure we&#39;re `no_std` when compiling for Wasm.</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
+<span class="attribute">#![<span class="ident">deny</span>(<span class="ident">rustdoc::broken_intra_doc_links</span>)]</span>
 
 <span class="kw">use</span> <span class="ident">codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
 
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{
-    <span class="ident">generic</span>::<span class="ident">DigestItem</span>,
+    <span class="ident">generic::DigestItem</span>,
     <span class="ident">traits</span>::{<span class="ident">AtLeast32BitUnsigned</span>, <span class="ident">SaturatedConversion</span>},
     <span class="ident">Permill</span>,
 };
-<span class="kw">use</span> <span class="ident">sp_std</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">sp_std::prelude</span>::<span class="kw-2">*</span>;
 
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
     <span class="ident">inherent</span>::{<span class="ident">InherentData</span>, <span class="ident">InherentIdentifier</span>, <span class="ident">MakeFatalError</span>, <span class="ident">ProvideInherent</span>},
-    <span class="ident">weights</span>::<span class="ident">DispatchClass</span>,
+    <span class="ident">weights::DispatchClass</span>,
     <span class="ident">RuntimeDebug</span>,
 };
 
-<span class="kw">use</span> <span class="ident">canyon_primitives</span>::<span class="ident">Depth</span>;
+<span class="kw">use</span> <span class="ident">canyon_primitives::Depth</span>;
 <span class="kw">use</span> <span class="ident">cp_consensus_poa</span>::{<span class="ident">PoaOutcome</span>, <span class="ident">POA_ENGINE_ID</span>, <span class="ident">POA_INHERENT_IDENTIFIER</span>};
 
 <span class="comment">// #[cfg(any(feature = &quot;runtime-benchmarks&quot;, test))]</span>
@@ -349,12 +348,12 @@
 <span class="doccomment">/// of a validator, which implies the storage capacity per validator.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">RuntimeDebug</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DepthInfo</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Sum of total depth so far.</span>
+    <span class="doccomment">/// Sum of all depths so far.</span>
     <span class="kw">pub</span> <span class="ident">total_depth</span>: <span class="ident">Depth</span>,
     <span class="doccomment">/// Number of blocks authored by a validator since the weave is non-empty.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The `blocks` here is not equal to the number of total blocks</span>
-    <span class="doccomment">/// authored by a validator since genesis block because the poa</span>
+    <span class="doccomment">/// authored by a validator from the genesis block because the poa</span>
     <span class="doccomment">/// contruction is skipped when the weave is empty, the blocks</span>
     <span class="doccomment">/// authored in that period are not counted.</span>
     <span class="kw">pub</span> <span class="ident">blocks</span>: <span class="ident">BlockNumber</span>,
@@ -365,15 +364,15 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// # NOTE</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// `depth` has been ensured to be greater than 0 when creating inherent.</span>
-    <span class="doccomment">/// The smallest depth is 1, which means the block author located the</span>
-    <span class="doccomment">/// recall block at the first time.</span>
+    <span class="doccomment">/// The smallest depth is 1, which has been ensured when creating</span>
+    <span class="doccomment">/// the inherent, it means the block author located the recall</span>
+    <span class="doccomment">/// block at the first time.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_depth</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <span class="ident">Depth</span>) {
         <span class="self">self</span>.<span class="ident">total_depth</span> <span class="op">+</span><span class="op">=</span> <span class="ident">depth</span>;
         <span class="self">self</span>.<span class="ident">blocks</span> <span class="op">+</span><span class="op">=</span> <span class="number">1u32</span>.<span class="ident">into</span>();
     }
 
-    <span class="doccomment">/// Returns the calculated storage capacity given historical depth info.</span>
+    <span class="doccomment">/// Returns the calculated storage capacity.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// In theory, the greater the historical average depth, the less the</span>
     <span class="doccomment">/// storage of node stored locally.</span>
@@ -385,7 +384,7 @@
     <span class="doccomment">///                  = self.blocks / self.total_depth</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_storage_capacity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Permill</span> {
-        <span class="ident">Permill</span>::<span class="ident">from_rational</span>(<span class="self">self</span>.<span class="ident">blocks</span>, <span class="self">self</span>.<span class="ident">total_depth</span>.<span class="ident">saturated_into</span>())
+        <span class="ident">Permill::from_rational</span>(<span class="self">self</span>.<span class="ident">blocks</span>, <span class="self">self</span>.<span class="ident">total_depth</span>.<span class="ident">saturated_into</span>())
     }
 }
 
@@ -395,38 +394,38 @@
     <span class="kw">fn</span> <span class="ident">author</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AccountId</span>;
 }
 
-<span class="attribute">#[<span class="ident">frame_support</span>::<span class="ident">pallet</span>]</span>
+<span class="attribute">#[<span class="ident">frame_support::pallet</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pallet</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">frame_support</span>::<span class="ident">pallet_prelude</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">frame_system</span>::<span class="ident">pallet_prelude</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="ident">frame_support::pallet_prelude</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="ident">frame_system::pallet_prelude</span>::<span class="kw-2">*</span>;
 
     <span class="doccomment">/// Our pallet&#39;s configuration trait. All our types and constants go in here. If the</span>
     <span class="doccomment">/// pallet is dependent on specific other pallets, then their configuration traits</span>
     <span class="doccomment">/// should be added to our implied traits list.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// `frame_system::Config` should always be included.</span>
-    <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">config</span>]</span>
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Config</span>: <span class="ident">frame_system</span>::<span class="ident">Config</span> {
+    <span class="attribute">#[<span class="ident">pallet::config</span>]</span>
+    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Config</span>: <span class="ident">frame_system::Config</span> {
         <span class="doccomment">/// The overarching event type.</span>
-        <span class="kw">type</span> <span class="ident">Event</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">IsType</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">frame_system</span>::<span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">Event</span><span class="op">&gt;</span>;
+        <span class="kw">type</span> <span class="ident">Event</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">IsType</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Event</span><span class="op">&gt;</span>;
 
         <span class="doccomment">/// Find the author of current block.</span>
-        <span class="kw">type</span> <span class="ident">BlockAuthor</span>: <span class="ident">BlockAuthor</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">AccountId</span><span class="op">&gt;</span>;
+        <span class="kw">type</span> <span class="ident">BlockAuthor</span>: <span class="ident">BlockAuthor</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::AccountId</span><span class="op">&gt;</span>;
     }
 
-    <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">pallet</span>]</span>
-    <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">generate_store</span>(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait</span> <span class="ident">Store</span>)]</span>
+    <span class="attribute">#[<span class="ident">pallet::pallet</span>]</span>
+    <span class="attribute">#[<span class="ident">pallet::generate_store</span>(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait</span> <span class="ident">Store</span>)]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw">_</span>);
 
-    <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">hooks</span>]</span>
+    <span class="attribute">#[<span class="ident">pallet::hooks</span>]</span>
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Hooks</span><span class="op">&lt;</span><span class="ident">BlockNumberFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">on_finalize</span>(<span class="ident">_n</span>: <span class="ident">BlockNumberFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {}
     }
 
-    <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">call</span>]</span>
+    <span class="attribute">#[<span class="ident">pallet::call</span>]</span>
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>((<span class="number">0</span>, <span class="ident">DispatchClass</span>::<span class="ident">Mandatory</span>))]</span>
+        <span class="attribute">#[<span class="ident">pallet::weight</span>((<span class="number">0</span>, <span class="ident">DispatchClass::Mandatory</span>))]</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">process_poa_outcome</span>(
             <span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
             <span class="ident">poa_outcome</span>: <span class="ident">PoaOutcome</span>,
@@ -434,45 +433,45 @@
             <span class="ident">ensure_none</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 
             <span class="kw">match</span> <span class="ident">poa_outcome</span> {
-                <span class="ident">PoaOutcome</span>::<span class="ident">Justification</span>(<span class="ident">poa</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">PoaOutcome::Justification</span>(<span class="ident">poa</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">depth</span> <span class="op">=</span> <span class="ident">poa</span>.<span class="ident">depth</span>;
 
-                    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">depth</span> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;depth must be greater than 0&quot;</span>);
+                    <span class="macro">assert!</span>(<span class="ident">depth</span> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;depth must be greater than 0&quot;</span>);
 
-                    <span class="op">&lt;</span><span class="ident">frame_system</span>::<span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">deposit_log</span>(<span class="ident">DigestItem</span>::<span class="ident">Seal</span>(
+                    <span class="op">&lt;</span><span class="ident">frame_system::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::deposit_log</span>(<span class="ident">DigestItem::Seal</span>(
                         <span class="ident">POA_ENGINE_ID</span>,
                         <span class="ident">poa</span>.<span class="ident">encode</span>(),
                     ));
 
-                    <span class="self">Self</span>::<span class="ident">note_depth</span>(<span class="ident">depth</span>);
+                    <span class="self">Self</span><span class="ident">::note_depth</span>(<span class="ident">depth</span>);
                 }
-                <span class="ident">PoaOutcome</span>::<span class="ident">MaxDepthReached</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">PoaOutcome::MaxDepthReached</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Decrease the storage capacity?</span>
                     <span class="comment">// Need to update outcome.require_inherent() too.</span>
                     <span class="comment">//</span>
                     <span class="comment">// TODO: slash the block author when SLA is too low?</span>
                     <span class="comment">// None</span>
                 }
-                <span class="ident">PoaOutcome</span>::<span class="ident">Skipped</span> <span class="op">=</span><span class="op">&gt;</span> (),
+                <span class="ident">PoaOutcome::Skipped</span> <span class="op">=</span><span class="op">&gt;</span> (),
             }
 
             <span class="prelude-val">Ok</span>(())
         }
     }
 
-    <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">inherent</span>]</span>
+    <span class="attribute">#[<span class="ident">pallet::inherent</span>]</span>
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">ProvideInherent</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">type</span> <span class="ident">Call</span> <span class="op">=</span> <span class="ident">Call</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
         <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">MakeFatalError</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 
         <span class="kw">const</span> <span class="ident">INHERENT_IDENTIFIER</span>: <span class="ident">InherentIdentifier</span> <span class="op">=</span> <span class="ident">POA_INHERENT_IDENTIFIER</span>;
 
-        <span class="kw">fn</span> <span class="ident">create_inherent</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="ident">InherentData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Call</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">poa_outcome</span>: <span class="ident">PoaOutcome</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">data</span>.<span class="ident">get_data</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">INHERENT_IDENTIFIER</span>) {
+        <span class="kw">fn</span> <span class="ident">create_inherent</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="ident">InherentData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Call</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">poa_outcome</span>: <span class="ident">PoaOutcome</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">data</span>.<span class="ident">get_data</span>(<span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::INHERENT_IDENTIFIER</span>) {
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">outcome</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">outcome</span>,
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
                 <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">frame_support</span>::<span class="ident">log</span>::<span class="macro">error</span><span class="macro">!</span>(
+                    <span class="macro">frame_support::log::error!</span>(
                         <span class="ident">target</span>: <span class="string">&quot;runtime::poa&quot;</span>,
                         <span class="string">&quot;Error occurred when getting the inherent data of poa: {:?}&quot;</span>,
                         <span class="ident">e</span>,
@@ -483,15 +482,15 @@
 
             <span class="comment">// TODO: avoide double including the full ProofOfAccess struct in extrinsic</span>
             <span class="comment">// as it will be included in the header anyway?</span>
-            <span class="prelude-val">Some</span>(<span class="ident">Call</span>::<span class="ident">process_poa_outcome</span>(<span class="ident">poa_outcome</span>))
+            <span class="prelude-val">Some</span>(<span class="ident">Call::process_poa_outcome</span>(<span class="ident">poa_outcome</span>))
         }
 
-        <span class="kw">fn</span> <span class="ident">is_inherent</span>(<span class="ident">call</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Call</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-            <span class="macro">matches</span><span class="macro">!</span>(<span class="ident">call</span>, <span class="ident">Call</span>::<span class="ident">process_poa_outcome</span>(..))
+        <span class="kw">fn</span> <span class="ident">is_inherent</span>(<span class="ident">call</span>: <span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Call</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="macro">matches!</span>(<span class="ident">call</span>, <span class="ident">Call::process_poa_outcome</span>(..))
         }
 
-        <span class="kw">fn</span> <span class="ident">is_inherent_required</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="ident">InherentData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
-            <span class="kw">match</span> <span class="ident">data</span>.<span class="ident">get_data</span>::<span class="op">&lt;</span><span class="ident">PoaOutcome</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">INHERENT_IDENTIFIER</span>) {
+        <span class="kw">fn</span> <span class="ident">is_inherent_required</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="ident">InherentData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Error</span><span class="op">&gt;</span>, <span class="self">Self</span><span class="ident">::Error</span><span class="op">&gt;</span> {
+            <span class="kw">match</span> <span class="ident">data</span>.<span class="ident">get_data</span>::<span class="op">&lt;</span><span class="ident">PoaOutcome</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::INHERENT_IDENTIFIER</span>) {
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">outcome</span>)) <span class="kw">if</span> <span class="ident">outcome</span>.<span class="ident">require_inherent</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(().<span class="ident">into</span>())),
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
             }
@@ -499,15 +498,15 @@
     }
 
     <span class="doccomment">/// Event for the poa pallet.</span>
-    <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">event</span>]</span>
-    <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">metadata</span>(<span class="ident">T</span>::<span class="ident">AccountId</span> <span class="op">=</span> <span class="string">&quot;AccountId&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">pallet::event</span>]</span>
+    <span class="attribute">#[<span class="ident">pallet::metadata</span>(<span class="ident">T::AccountId</span> <span class="op">=</span> <span class="string">&quot;AccountId&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> {
         <span class="doccomment">/// Dummy event, just here so there&#39;s a generic type that&#39;s used.</span>
-        <span class="ident">NewDepth</span>(<span class="ident">T</span>::<span class="ident">AccountId</span>, <span class="ident">Depth</span>),
+        <span class="ident">NewDepth</span>(<span class="ident">T::AccountId</span>, <span class="ident">Depth</span>),
     }
 
     <span class="doccomment">/// Error for the poa pallet.</span>
-    <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">error</span>]</span>
+    <span class="attribute">#[<span class="ident">pallet::error</span>]</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="doccomment">/// Poa inherent is required but there is no one.</span>
         <span class="ident">PoaInherentMissing</span>,
@@ -520,26 +519,26 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Indicated by the average depth of poa generation of a validator.</span>
     <span class="doccomment">/// The smaller the depth, the greater the storage capacity.</span>
-    <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">storage</span>]</span>
-    <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">getter</span>(<span class="kw">fn</span> <span class="ident">history_depth</span>)]</span>
+    <span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
+    <span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">history_depth</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type</span> <span class="ident">HistoryDepth</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
-        <span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Blake2_128Concat</span>, <span class="ident">T</span>::<span class="ident">AccountId</span>, <span class="ident">DepthInfo</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BlockNumber</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+        <span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Blake2_128Concat</span>, <span class="ident">T::AccountId</span>, <span class="ident">DepthInfo</span><span class="op">&lt;</span><span class="ident">T::BlockNumber</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Helper storage item of current block author for easier testing.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-    <span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">storage</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type</span> <span class="ident">TestAuthor</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">T</span>::<span class="ident">AccountId</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
+    <span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type</span> <span class="ident">TestAuthor</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">T::AccountId</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="doccomment">/// Updates the historical depth info of block author.</span>
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">note_depth</span>(<span class="ident">depth</span>: <span class="ident">Depth</span>) {
-            <span class="kw">let</span> <span class="ident">block_author</span> <span class="op">=</span> <span class="ident">T</span>::<span class="ident">BlockAuthor</span>::<span class="ident">author</span>();
+            <span class="kw">let</span> <span class="ident">block_author</span> <span class="op">=</span> <span class="ident">T::BlockAuthor::author</span>();
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">old</span>) <span class="op">=</span> <span class="ident">HistoryDepth</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">block_author</span>) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">old</span>) <span class="op">=</span> <span class="ident">HistoryDepth</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">block_author</span>) {
                 <span class="ident">old</span>.<span class="ident">add_depth</span>(<span class="ident">depth</span>);
-                <span class="ident">HistoryDepth</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="ident">block_author</span>, <span class="ident">old</span>);
+                <span class="ident">HistoryDepth</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">block_author</span>, <span class="ident">old</span>);
             } <span class="kw">else</span> {
-                <span class="ident">HistoryDepth</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">insert</span>(
+                <span class="ident">HistoryDepth</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(
                     <span class="kw-2">&amp;</span><span class="ident">block_author</span>,
                     <span class="ident">DepthInfo</span> {
                         <span class="ident">total_depth</span>: <span class="ident">depth</span>,
@@ -551,5 +550,6 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_poa"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_poa" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</body></html>

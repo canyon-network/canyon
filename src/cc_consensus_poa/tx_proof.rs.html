@@ -1,7 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client/consensus/poa/src/tx_proof.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tx_proof.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
-<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../cc_consensus_poa/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client&#x2F;consensus&#x2F;poa&#x2F;src&#x2F;tx_proof.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tx_proof.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../cc_consensus_poa/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -202,7 +199,10 @@
 <span id="199">199</span>
 <span id="200">200</span>
 <span id="201">201</span>
-</pre><div class="example-wrap"><pre class="rust ">
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+</pre><pre class="rust">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
 <span class="comment">//</span>
@@ -221,34 +221,34 @@
 <span class="comment">// You should have received a copy of the GNU General Public License</span>
 <span class="comment">// along with Canyon. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
-<span class="kw">use</span> <span class="ident">codec</span>::<span class="ident">Encode</span>;
+<span class="kw">use</span> <span class="ident">codec::Encode</span>;
 
-<span class="kw">use</span> <span class="ident">sp_core</span>::<span class="ident">H256</span>;
-<span class="kw">use</span> <span class="ident">sp_runtime</span>::<span class="ident">traits</span>::<span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>;
-<span class="kw">use</span> <span class="ident">sp_trie</span>::<span class="ident">TrieMut</span>;
+<span class="kw">use</span> <span class="ident">sp_core::H256</span>;
+<span class="kw">use</span> <span class="ident">sp_runtime::traits::Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>;
+<span class="kw">use</span> <span class="ident">sp_trie::TrieMut</span>;
 
-<span class="kw">use</span> <span class="ident">canyon_primitives</span>::<span class="ident">ExtrinsicIndex</span>;
-<span class="kw">use</span> <span class="ident">cp_consensus_poa</span>::<span class="ident">encode_index</span>;
+<span class="kw">use</span> <span class="ident">canyon_primitives::ExtrinsicIndex</span>;
+<span class="kw">use</span> <span class="ident">cp_consensus_poa::encode_index</span>;
 <span class="kw">use</span> <span class="ident">cp_permastore</span>::{<span class="ident">Hasher</span>, <span class="ident">TrieLayout</span>, <span class="ident">VerifyError</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">chunk_proof</span>::<span class="ident">TrieError</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::chunk_proof::TrieError</span>;
 
 <span class="doccomment">/// Returns the calculated merkle proof given `extrinsic_index` and `extrinsics_root`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_extrinsic_proof</span><span class="op">&lt;</span><span class="ident">Block</span>: <span class="ident">BlockT</span><span class="op">&lt;</span><span class="ident">Hash</span> <span class="op">=</span> <span class="ident">canyon_primitives</span>::<span class="ident">Hash</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_extrinsic_proof</span><span class="op">&lt;</span><span class="ident">Block</span>: <span class="ident">BlockT</span><span class="op">&lt;</span><span class="ident">Hash</span> <span class="op">=</span> <span class="ident">canyon_primitives::Hash</span><span class="op">&gt;</span><span class="op">&gt;</span>(
     <span class="ident">extrinsic_index</span>: <span class="ident">ExtrinsicIndex</span>,
-    <span class="ident">extrinsics_root</span>: <span class="ident">Block</span>::<span class="ident">Hash</span>,
-    <span class="ident">extrinsics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Block</span>::<span class="ident">Extrinsic</span><span class="op">&gt;</span>,
+    <span class="ident">extrinsics_root</span>: <span class="ident">Block::Hash</span>,
+    <span class="ident">extrinsics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Block::Extrinsic</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">TrieError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">sp_trie</span>::<span class="ident">MemoryDB</span>::<span class="op">&lt;</span><span class="ident">Hasher</span><span class="op">&gt;</span>::<span class="ident">default</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">calc_extrinsics_root</span> <span class="op">=</span> <span class="ident">sp_trie</span>::<span class="ident">empty_trie_root</span>::<span class="op">&lt;</span><span class="ident">TrieLayout</span><span class="op">&gt;</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">sp_trie::MemoryDB</span>::<span class="op">&lt;</span><span class="ident">Hasher</span><span class="op">&gt;</span><span class="ident">::default</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">calc_extrinsics_root</span> <span class="op">=</span> <span class="ident">sp_trie::empty_trie_root</span>::<span class="op">&lt;</span><span class="ident">TrieLayout</span><span class="op">&gt;</span>();
 
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trie</span> <span class="op">=</span> <span class="ident">sp_trie</span>::<span class="ident">TrieDBMut</span>::<span class="op">&lt;</span><span class="ident">TrieLayout</span><span class="op">&gt;</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">db</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">calc_extrinsics_root</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trie</span> <span class="op">=</span> <span class="ident">sp_trie::TrieDBMut</span>::<span class="op">&lt;</span><span class="ident">TrieLayout</span><span class="op">&gt;</span><span class="ident">::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">db</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">calc_extrinsics_root</span>);
 
         <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">extrinsic</span>) <span class="kw">in</span> <span class="ident">extrinsics</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="ident">trie</span>.<span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="ident">encode_index</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>), <span class="kw-2">&amp;</span><span class="ident">extrinsic</span>.<span class="ident">encode</span>())
                 .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                    <span class="macro">panic</span><span class="macro">!</span>(
+                    <span class="macro">panic!</span>(
                         <span class="string">&quot;Failed to insert the trie node: {:?}, extrinsic index: {}&quot;</span>,
                         <span class="ident">e</span>, <span class="ident">index</span>
                     )
@@ -258,17 +258,17 @@
         <span class="ident">trie</span>.<span class="ident">commit</span>();
     }
 
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(
         <span class="ident">extrinsics_root</span>, <span class="ident">calc_extrinsics_root</span>,
         <span class="string">&quot;calculated `extrinsics_root` mismatches&quot;</span>
     );
 
-    <span class="kw">let</span> <span class="ident">proof</span> <span class="op">=</span> <span class="ident">sp_trie</span>::<span class="ident">generate_trie_proof</span>::<span class="op">&lt;</span><span class="ident">TrieLayout</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(
+    <span class="kw">let</span> <span class="ident">proof</span> <span class="op">=</span> <span class="ident">sp_trie::generate_trie_proof</span>::<span class="op">&lt;</span><span class="ident">TrieLayout</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="ident">db</span>,
         <span class="ident">extrinsics_root</span>,
         <span class="kw-2">&amp;</span>[<span class="ident">encode_index</span>(<span class="ident">extrinsic_index</span> <span class="kw">as</span> <span class="ident">u32</span>)],
     )
-    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">TrieError</span>::<span class="ident">Trie</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">e</span>)))<span class="question-mark">?</span>;
+    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">TrieError::Trie</span>(<span class="ident">Box::new</span>(<span class="ident">e</span>)))<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(<span class="ident">proof</span>)
 }
@@ -277,18 +277,18 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TxProofVerifier</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">BlockT</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Recall extrinsic.</span>
-    <span class="ident">recall_extrinsic</span>: <span class="ident">B</span>::<span class="ident">Extrinsic</span>,
+    <span class="ident">recall_extrinsic</span>: <span class="ident">B::Extrinsic</span>,
     <span class="doccomment">/// Extrinsics root of recall block.</span>
-    <span class="ident">extrinsics_root</span>: <span class="ident">B</span>::<span class="ident">Hash</span>,
+    <span class="ident">extrinsics_root</span>: <span class="ident">B::Hash</span>,
     <span class="doccomment">/// Extrinsic index of `recall_extrinsic`.</span>
     <span class="ident">recall_extrinsic_index</span>: <span class="ident">ExtrinsicIndex</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">BlockT</span><span class="op">&lt;</span><span class="ident">Hash</span> <span class="op">=</span> <span class="ident">canyon_primitives</span>::<span class="ident">Hash</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">TxProofVerifier</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">BlockT</span><span class="op">&lt;</span><span class="ident">Hash</span> <span class="op">=</span> <span class="ident">canyon_primitives::Hash</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">TxProofVerifier</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates a new instance of [`TxProofVerifier`].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">recall_extrinsic</span>: <span class="ident">B</span>::<span class="ident">Extrinsic</span>,
-        <span class="ident">extrinsics_root</span>: <span class="ident">B</span>::<span class="ident">Hash</span>,
+        <span class="ident">recall_extrinsic</span>: <span class="ident">B::Extrinsic</span>,
+        <span class="ident">extrinsics_root</span>: <span class="ident">B::Hash</span>,
         <span class="ident">recall_extrinsic_index</span>: <span class="ident">ExtrinsicIndex</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
@@ -309,13 +309,16 @@
     }
 }
 
+<span class="doccomment">/// Verify the extrinsic proof on the extrinsics root and related encoded extrinsic.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Returns Ok(()) if the extrinsic proof is valid.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify_extrinsic_proof</span>(
     <span class="ident">extrinsics_root</span>: <span class="kw-2">&amp;</span><span class="ident">H256</span>,
     <span class="ident">extrinsic_index</span>: <span class="ident">ExtrinsicIndex</span>,
     <span class="ident">encoded_extrinsic</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
     <span class="ident">proof</span>: <span class="kw-2">&amp;</span>[<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>],
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">VerifyError</span><span class="op">&gt;</span> {
-    <span class="ident">sp_trie</span>::<span class="ident">verify_trie_proof</span>::<span class="op">&lt;</span><span class="ident">TrieLayout</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(
+    <span class="ident">sp_trie::verify_trie_proof</span>::<span class="op">&lt;</span><span class="ident">TrieLayout</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(
         <span class="ident">extrinsics_root</span>,
         <span class="ident">proof</span>,
         <span class="kw-2">&amp;</span>[(<span class="ident">encode_index</span>(<span class="ident">extrinsic_index</span>), <span class="prelude-val">Some</span>(<span class="ident">encoded_extrinsic</span>))],
@@ -326,8 +329,8 @@
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident">sc_block_builder</span>::{<span class="ident">BlockBuilder</span>, <span class="ident">RecordProof</span>};
-    <span class="kw">use</span> <span class="ident">sp_blockchain</span>::<span class="ident">HeaderBackend</span>;
-    <span class="kw">use</span> <span class="ident">sp_keyring</span>::<span class="ident">AccountKeyring</span>::{<span class="ident">Alice</span>, <span class="ident">Bob</span>};
+    <span class="kw">use</span> <span class="ident">sp_blockchain::HeaderBackend</span>;
+    <span class="kw">use</span> <span class="ident">sp_keyring::AccountKeyring</span>::{<span class="ident">Alice</span>, <span class="ident">Bob</span>};
     <span class="kw">use</span> <span class="ident">substrate_test_runtime</span>::{<span class="ident">Block</span>, <span class="ident">Transfer</span>};
     <span class="kw">use</span> <span class="ident">substrate_test_runtime_client</span>::{
         <span class="ident">BlockBuilderExt</span>, <span class="ident">DefaultTestClientBuilderExt</span>, <span class="ident">TestClientBuilderExt</span>,
@@ -335,16 +338,16 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_extrinsic_proof</span>() {
-        <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">substrate_test_runtime_client</span>::<span class="ident">TestClientBuilder</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">substrate_test_runtime_client::TestClientBuilder::new</span>();
         <span class="kw">let</span> <span class="ident">backend</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">backend</span>();
         <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">build</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block_builder</span> <span class="op">=</span> <span class="ident">BlockBuilder</span>::<span class="ident">new</span>(
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block_builder</span> <span class="op">=</span> <span class="ident">BlockBuilder::new</span>(
             <span class="kw-2">&amp;</span><span class="ident">client</span>,
             <span class="ident">client</span>.<span class="ident">info</span>().<span class="ident">best_hash</span>,
             <span class="ident">client</span>.<span class="ident">info</span>().<span class="ident">best_number</span>,
-            <span class="ident">RecordProof</span>::<span class="ident">Yes</span>,
-            <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">RecordProof::Yes</span>,
+            <span class="ident">Default::default</span>(),
             <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">backend</span>,
         )
         .<span class="ident">unwrap</span>();
@@ -379,7 +382,7 @@
         <span class="kw">let</span> <span class="ident">proof1</span> <span class="op">=</span>
             <span class="ident">build_extrinsic_proof</span>::<span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>(<span class="number">1</span>, <span class="ident">extrinsics_root</span>, <span class="ident">extrinsics</span>.<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">verify_extrinsic_proof</span>(
+        <span class="macro">assert!</span>(<span class="ident">verify_extrinsic_proof</span>(
             <span class="kw-2">&amp;</span><span class="ident">extrinsics_root</span>,
             <span class="number">0</span>,
             <span class="ident">extrinsics</span>[<span class="number">0</span>].<span class="ident">clone</span>().<span class="ident">encode</span>(),
@@ -387,7 +390,7 @@
         )
         .<span class="ident">is_ok</span>());
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">verify_extrinsic_proof</span>(
+        <span class="macro">assert!</span>(<span class="ident">verify_extrinsic_proof</span>(
             <span class="kw-2">&amp;</span><span class="ident">extrinsics_root</span>,
             <span class="number">0</span>,
             <span class="ident">extrinsics</span>[<span class="number">1</span>].<span class="ident">clone</span>().<span class="ident">encode</span>(),
@@ -395,7 +398,7 @@
         )
         .<span class="ident">is_err</span>());
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">verify_extrinsic_proof</span>(
+        <span class="macro">assert!</span>(<span class="ident">verify_extrinsic_proof</span>(
             <span class="kw-2">&amp;</span><span class="ident">extrinsics_root</span>,
             <span class="number">1</span>,
             <span class="ident">extrinsics</span>[<span class="number">1</span>].<span class="ident">clone</span>().<span class="ident">encode</span>(),
@@ -405,5 +408,6 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="cc_consensus_poa"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="cc_consensus_poa" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</body></html>

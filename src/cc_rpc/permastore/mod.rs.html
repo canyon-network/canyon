@@ -1,7 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client/rpc/src/permastore/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
-<link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../cc_rpc/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1"> 1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client&#x2F;rpc&#x2F;src&#x2F;permastore&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../cc_rpc/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1"> 1</span>
 <span id="2"> 2</span>
 <span id="3"> 3</span>
 <span id="4"> 4</span>
@@ -100,7 +97,7 @@
 <span id="97">97</span>
 <span id="98">98</span>
 <span id="99">99</span>
-</pre><div class="example-wrap"><pre class="rust ">
+</pre><pre class="rust">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
 <span class="comment">//</span>
@@ -119,15 +116,15 @@
 <span class="comment">// You should have received a copy of the GNU General Public License</span>
 <span class="comment">// along with Canyon. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Deref</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
+<span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
+<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
-<span class="kw">use</span> <span class="ident">parking_lot</span>::<span class="ident">RwLock</span>;
+<span class="kw">use</span> <span class="ident">parking_lot::RwLock</span>;
 
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">Bytes</span>, <span class="ident">Encode</span>, <span class="ident">H256</span>};
-<span class="kw">use</span> <span class="ident">sp_runtime</span>::<span class="ident">traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Hash</span>};
+<span class="kw">use</span> <span class="ident">sp_runtime::traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Hash</span>};
 
-<span class="kw">use</span> <span class="ident">cc_rpc_api</span>::<span class="ident">permastore</span>::{
+<span class="kw">use</span> <span class="ident">cc_rpc_api::permastore</span>::{
     <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="ident">InvalidCount</span>, <span class="prelude-ty">Result</span>},
     <span class="ident">PermastoreApi</span>,
 };
@@ -141,7 +138,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PermaStorage</span><span class="op">&gt;</span> <span class="ident">Permastore</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">storage</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">storage</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="ident">storage</span>)),
+            <span class="ident">storage</span>: <span class="ident">Arc::new</span>(<span class="ident">RwLock::new</span>(<span class="ident">storage</span>)),
         }
     }
 }
@@ -157,7 +154,7 @@
     <span class="kw">fn</span> <span class="ident">submit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">Bytes</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">data_size</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">deref</span>().<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="kw">if</span> <span class="ident">data_size</span> <span class="op">&gt;</span> <span class="ident">MAX_UPLOAD_DATA_SIZE</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">DataTooLarge</span>(<span class="ident">InvalidCount</span>::<span class="ident">new</span>(
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::DataTooLarge</span>(<span class="ident">InvalidCount::new</span>(
                 <span class="ident">data_size</span>,
                 <span class="ident">MAX_UPLOAD_DATA_SIZE</span>,
             )));
@@ -166,14 +163,14 @@
         <span class="kw">let</span> <span class="ident">chunks</span> <span class="op">=</span> <span class="ident">value</span>
             .<span class="number">0</span>
             .<span class="ident">chunks</span>(<span class="ident">CHUNK_SIZE</span> <span class="kw">as</span> <span class="ident">usize</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">BlakeTwo256</span>::<span class="ident">hash</span>(<span class="ident">c</span>).<span class="ident">encode</span>())
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">BlakeTwo256::hash</span>(<span class="ident">c</span>).<span class="ident">encode</span>())
             .<span class="ident">collect</span>();
 
-        <span class="kw">let</span> <span class="ident">chunk_root</span> <span class="op">=</span> <span class="ident">BlakeTwo256</span>::<span class="ident">ordered_trie_root</span>(<span class="ident">chunks</span>);
+        <span class="kw">let</span> <span class="ident">chunk_root</span> <span class="op">=</span> <span class="ident">BlakeTwo256::ordered_trie_root</span>(<span class="ident">chunks</span>);
 
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">chunk_root</span>.<span class="ident">encode</span>();
 
-        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
+        <span class="macro">log::debug!</span>(
             <span class="ident">target</span>: <span class="string">&quot;rpc::permastore&quot;</span>,
             <span class="string">&quot;Submitted chunk_root: {:?}, stored key: {:?}&quot;</span>,
             <span class="ident">chunk_root</span>, <span class="ident">key</span>,
@@ -189,7 +186,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">storage</span>.<span class="ident">read</span>().<span class="ident">retrieve</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">key</span>) {
             <span class="kw">let</span> <span class="ident">data_size</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
             <span class="kw">if</span> <span class="ident">data_size</span> <span class="op">&gt;</span> <span class="ident">MAX_DOWNLOAD_DATA_SIZE</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">DataTooLarge</span>(<span class="ident">InvalidCount</span>::<span class="ident">new</span>(
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::DataTooLarge</span>(<span class="ident">InvalidCount::new</span>(
                     <span class="ident">data_size</span>,
                     <span class="ident">MAX_DOWNLOAD_DATA_SIZE</span>,
                 )));
@@ -201,5 +198,6 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="cc_rpc"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="cc_rpc" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
+    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
+</body></html>

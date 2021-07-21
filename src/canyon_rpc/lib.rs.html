@@ -1,7 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `rpc/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
-<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../canyon_rpc/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `rpc&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../canyon_rpc/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -234,7 +231,7 @@
 <span id="231">231</span>
 <span id="232">232</span>
 <span id="233">233</span>
-</pre><div class="example-wrap"><pre class="rust ">
+</pre><pre class="rust">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
 <span class="comment">//</span>
@@ -268,25 +265,25 @@
 
 <span class="attribute">#![<span class="ident">warn</span>(<span class="ident">missing_docs</span>)]</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
+<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
-<span class="kw">use</span> <span class="ident">sc_client_api</span>::<span class="ident">AuxStore</span>;
+<span class="kw">use</span> <span class="ident">sc_client_api::AuxStore</span>;
 <span class="kw">use</span> <span class="ident">sc_consensus_babe</span>::{<span class="ident">Config</span>, <span class="ident">Epoch</span>};
-<span class="kw">use</span> <span class="ident">sc_consensus_babe_rpc</span>::<span class="ident">BabeRpcHandler</span>;
-<span class="kw">use</span> <span class="ident">sc_consensus_epochs</span>::<span class="ident">SharedEpochChanges</span>;
+<span class="kw">use</span> <span class="ident">sc_consensus_babe_rpc::BabeRpcHandler</span>;
+<span class="kw">use</span> <span class="ident">sc_consensus_epochs::SharedEpochChanges</span>;
 <span class="kw">use</span> <span class="ident">sc_finality_grandpa</span>::{
     <span class="ident">FinalityProofProvider</span>, <span class="ident">GrandpaJustificationStream</span>, <span class="ident">SharedAuthoritySet</span>, <span class="ident">SharedVoterState</span>,
 };
-<span class="kw">use</span> <span class="ident">sc_finality_grandpa_rpc</span>::<span class="ident">GrandpaRpcHandler</span>;
-<span class="kw">use</span> <span class="ident">sc_rpc</span>::<span class="ident">SubscriptionTaskExecutor</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sc_rpc_api</span>::<span class="ident">DenyUnsafe</span>;
-<span class="kw">use</span> <span class="ident">sc_transaction_pool_api</span>::<span class="ident">TransactionPool</span>;
-<span class="kw">use</span> <span class="ident">sp_api</span>::<span class="ident">ProvideRuntimeApi</span>;
-<span class="kw">use</span> <span class="ident">sp_block_builder</span>::<span class="ident">BlockBuilder</span>;
+<span class="kw">use</span> <span class="ident">sc_finality_grandpa_rpc::GrandpaRpcHandler</span>;
+<span class="kw">use</span> <span class="ident">sc_rpc::SubscriptionTaskExecutor</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sc_rpc_api::DenyUnsafe</span>;
+<span class="kw">use</span> <span class="ident">sc_transaction_pool_api::TransactionPool</span>;
+<span class="kw">use</span> <span class="ident">sp_api::ProvideRuntimeApi</span>;
+<span class="kw">use</span> <span class="ident">sp_block_builder::BlockBuilder</span>;
 <span class="kw">use</span> <span class="ident">sp_blockchain</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">BlockChainError</span>, <span class="ident">HeaderBackend</span>, <span class="ident">HeaderMetadata</span>};
-<span class="kw">use</span> <span class="ident">sp_consensus</span>::<span class="ident">SelectChain</span>;
-<span class="kw">use</span> <span class="ident">sp_consensus_babe</span>::<span class="ident">BabeApi</span>;
-<span class="kw">use</span> <span class="ident">sp_keystore</span>::<span class="ident">SyncCryptoStorePtr</span>;
+<span class="kw">use</span> <span class="ident">sp_consensus::SelectChain</span>;
+<span class="kw">use</span> <span class="ident">sp_consensus_babe::BabeApi</span>;
+<span class="kw">use</span> <span class="ident">sp_keystore::SyncCryptoStorePtr</span>;
 
 <span class="kw">use</span> <span class="ident">canyon_primitives</span>::{<span class="ident">AccountId</span>, <span class="ident">Balance</span>, <span class="ident">Block</span>, <span class="ident">BlockNumber</span>, <span class="ident">Hash</span>, <span class="ident">Index</span>};
 
@@ -297,7 +294,7 @@
     <span class="doccomment">/// Transaction pool instance.</span>
     <span class="kw">pub</span> <span class="ident">pool</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Remote access to the blockchain (async).</span>
-    <span class="kw">pub</span> <span class="ident">remote_blockchain</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">sc_client_api</span>::<span class="ident">light</span>::<span class="ident">RemoteBlockchain</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">remote_blockchain</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">sc_client_api::light::RemoteBlockchain</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Fetcher instance.</span>
     <span class="kw">pub</span> <span class="ident">fetcher</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>,
 }
@@ -335,7 +332,7 @@
     <span class="doccomment">/// The SelectChain Strategy</span>
     <span class="kw">pub</span> <span class="ident">select_chain</span>: <span class="ident">SC</span>,
     <span class="doccomment">/// A copy of the chain spec.</span>
-    <span class="kw">pub</span> <span class="ident">chain_spec</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">sc_chain_spec</span>::<span class="ident">ChainSpec</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">chain_spec</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">sc_chain_spec::ChainSpec</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Whether to deny unsafe calls</span>
     <span class="kw">pub</span> <span class="ident">deny_unsafe</span>: <span class="ident">DenyUnsafe</span>,
     <span class="doccomment">/// BABE specific dependencies.</span>
@@ -347,12 +344,12 @@
 }
 
 <span class="doccomment">/// A IO handler that uses all Full RPC extensions.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">IoHandler</span> <span class="op">=</span> <span class="ident">jsonrpc_core</span>::<span class="ident">IoHandler</span><span class="op">&lt;</span><span class="ident">sc_rpc</span>::<span class="ident">Metadata</span><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">IoHandler</span> <span class="op">=</span> <span class="ident">jsonrpc_core::IoHandler</span><span class="op">&lt;</span><span class="ident">sc_rpc::Metadata</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// Instantiate all Full RPC extensions.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_full</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">SC</span>, <span class="ident">B</span>, <span class="ident">S</span><span class="op">&gt;</span>(
     <span class="ident">deps</span>: <span class="ident">FullDeps</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">SC</span>, <span class="ident">B</span>, <span class="ident">S</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">jsonrpc_core</span>::<span class="ident">IoHandler</span><span class="op">&lt;</span><span class="ident">sc_rpc_api</span>::<span class="ident">Metadata</span><span class="op">&gt;</span>
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">jsonrpc_core::IoHandler</span><span class="op">&lt;</span><span class="ident">sc_rpc_api::Metadata</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">C</span>: <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>
         <span class="op">+</span> <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>
@@ -361,20 +358,20 @@
         <span class="op">+</span> <span class="ident">Sync</span>
         <span class="op">+</span> <span class="ident">Send</span>
         <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">C</span>::<span class="ident">Api</span>: <span class="ident">substrate_frame_rpc_system</span>::<span class="ident">AccountNonceApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">AccountId</span>, <span class="ident">Index</span><span class="op">&gt;</span>,
-    <span class="ident">C</span>::<span class="ident">Api</span>: <span class="ident">pallet_transaction_payment_rpc</span>::<span class="ident">TransactionPaymentRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">Balance</span><span class="op">&gt;</span>,
-    <span class="ident">C</span>::<span class="ident">Api</span>: <span class="ident">BabeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
-    <span class="ident">C</span>::<span class="ident">Api</span>: <span class="ident">BlockBuilder</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
+    <span class="ident">C::Api</span>: <span class="ident">substrate_frame_rpc_system::AccountNonceApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">AccountId</span>, <span class="ident">Index</span><span class="op">&gt;</span>,
+    <span class="ident">C::Api</span>: <span class="ident">pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">Balance</span><span class="op">&gt;</span>,
+    <span class="ident">C::Api</span>: <span class="ident">BabeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
+    <span class="ident">C::Api</span>: <span class="ident">BlockBuilder</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
     <span class="ident">P</span>: <span class="ident">TransactionPool</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">SC</span>: <span class="ident">SelectChain</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">B</span>: <span class="ident">sc_client_api</span>::<span class="ident">Backend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">B</span>::<span class="ident">State</span>: <span class="ident">sc_client_api</span>::<span class="ident">backend</span>::<span class="ident">StateBackend</span><span class="op">&lt;</span><span class="ident">sp_runtime</span>::<span class="ident">traits</span>::<span class="ident">HashFor</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">S</span>: <span class="ident">cp_permastore</span>::<span class="ident">PermaStorage</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">B</span>: <span class="ident">sc_client_api::Backend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">B::State</span>: <span class="ident">sc_client_api::backend::StateBackend</span><span class="op">&lt;</span><span class="ident">sp_runtime::traits::HashFor</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">S</span>: <span class="ident">cp_permastore::PermaStorage</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">use</span> <span class="ident">pallet_transaction_payment_rpc</span>::{<span class="ident">TransactionPayment</span>, <span class="ident">TransactionPaymentApi</span>};
     <span class="kw">use</span> <span class="ident">substrate_frame_rpc_system</span>::{<span class="ident">FullSystem</span>, <span class="ident">SystemApi</span>};
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">jsonrpc_core</span>::<span class="ident">IoHandler</span>::<span class="ident">default</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">jsonrpc_core::IoHandler::default</span>();
     <span class="kw">let</span> <span class="ident">FullDeps</span> {
         <span class="ident">client</span>,
         <span class="ident">pool</span>,
@@ -399,16 +396,16 @@
         <span class="ident">finality_provider</span>,
     } <span class="op">=</span> <span class="ident">grandpa</span>;
 
-    <span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">SystemApi</span>::<span class="ident">to_delegate</span>(<span class="ident">FullSystem</span>::<span class="ident">new</span>(
+    <span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">SystemApi::to_delegate</span>(<span class="ident">FullSystem::new</span>(
         <span class="ident">client</span>.<span class="ident">clone</span>(),
         <span class="ident">pool</span>,
         <span class="ident">deny_unsafe</span>,
     )));
-    <span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">TransactionPaymentApi</span>::<span class="ident">to_delegate</span>(<span class="ident">TransactionPayment</span>::<span class="ident">new</span>(
+    <span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">TransactionPaymentApi::to_delegate</span>(<span class="ident">TransactionPayment::new</span>(
         <span class="ident">client</span>.<span class="ident">clone</span>(),
     )));
-    <span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">sc_consensus_babe_rpc</span>::<span class="ident">BabeApi</span>::<span class="ident">to_delegate</span>(
-        <span class="ident">BabeRpcHandler</span>::<span class="ident">new</span>(
+    <span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">sc_consensus_babe_rpc::BabeApi::to_delegate</span>(
+        <span class="ident">BabeRpcHandler::new</span>(
             <span class="ident">client</span>.<span class="ident">clone</span>(),
             <span class="ident">shared_epoch_changes</span>.<span class="ident">clone</span>(),
             <span class="ident">keystore</span>,
@@ -417,8 +414,8 @@
             <span class="ident">deny_unsafe</span>,
         ),
     ));
-    <span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">sc_finality_grandpa_rpc</span>::<span class="ident">GrandpaApi</span>::<span class="ident">to_delegate</span>(
-        <span class="ident">GrandpaRpcHandler</span>::<span class="ident">new</span>(
+    <span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">sc_finality_grandpa_rpc::GrandpaApi::to_delegate</span>(
+        <span class="ident">GrandpaRpcHandler::new</span>(
             <span class="ident">shared_authority_set</span>.<span class="ident">clone</span>(),
             <span class="ident">shared_voter_state</span>,
             <span class="ident">justification_stream</span>,
@@ -427,8 +424,8 @@
         ),
     ));
 
-    <span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">sc_sync_state_rpc</span>::<span class="ident">SyncStateRpcApi</span>::<span class="ident">to_delegate</span>(
-        <span class="ident">sc_sync_state_rpc</span>::<span class="ident">SyncStateRpcHandler</span>::<span class="ident">new</span>(
+    <span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">sc_sync_state_rpc::SyncStateRpcApi::to_delegate</span>(
+        <span class="ident">sc_sync_state_rpc::SyncStateRpcHandler::new</span>(
             <span class="ident">chain_spec</span>,
             <span class="ident">client</span>,
             <span class="ident">shared_authority_set</span>,
@@ -437,21 +434,21 @@
         ),
     ));
 
-    <span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">cc_rpc_api</span>::<span class="ident">permastore</span>::<span class="ident">PermastoreApi</span>::<span class="ident">to_delegate</span>(
-        <span class="ident">cc_rpc</span>::<span class="ident">permastore</span>::<span class="ident">Permastore</span>::<span class="ident">new</span>(<span class="ident">perma_storage</span>),
+    <span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">cc_rpc_api::permastore::PermastoreApi::to_delegate</span>(
+        <span class="ident">cc_rpc::permastore::Permastore::new</span>(<span class="ident">perma_storage</span>),
     ));
 
     <span class="ident">io</span>
 }
 
 <span class="doccomment">/// Instantiate all Light RPC extensions.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_light</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">M</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">deps</span>: <span class="ident">LightDeps</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">F</span>, <span class="ident">P</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">jsonrpc_core</span>::<span class="ident">IoHandler</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_light</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">M</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">deps</span>: <span class="ident">LightDeps</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">F</span>, <span class="ident">P</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">jsonrpc_core::IoHandler</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">C</span>: <span class="ident">sp_blockchain</span>::<span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
+    <span class="ident">C</span>: <span class="ident">sp_blockchain::HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
     <span class="ident">C</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">F</span>: <span class="ident">sc_client_api</span>::<span class="ident">light</span>::<span class="ident">Fetcher</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">F</span>: <span class="ident">sc_client_api::light::Fetcher</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">P</span>: <span class="ident">TransactionPool</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">M</span>: <span class="ident">jsonrpc_core</span>::<span class="ident">Metadata</span> <span class="op">+</span> <span class="ident">Default</span>,
+    <span class="ident">M</span>: <span class="ident">jsonrpc_core::Metadata</span> <span class="op">+</span> <span class="ident">Default</span>,
 {
     <span class="kw">use</span> <span class="ident">substrate_frame_rpc_system</span>::{<span class="ident">LightSystem</span>, <span class="ident">SystemApi</span>};
 
@@ -461,13 +458,14 @@
         <span class="ident">remote_blockchain</span>,
         <span class="ident">fetcher</span>,
     } <span class="op">=</span> <span class="ident">deps</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">jsonrpc_core</span>::<span class="ident">IoHandler</span>::<span class="ident">default</span>();
-    <span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">SystemApi</span>::<span class="op">&lt;</span><span class="ident">Hash</span>, <span class="ident">AccountId</span>, <span class="ident">Index</span><span class="op">&gt;</span>::<span class="ident">to_delegate</span>(
-        <span class="ident">LightSystem</span>::<span class="ident">new</span>(<span class="ident">client</span>, <span class="ident">remote_blockchain</span>, <span class="ident">fetcher</span>, <span class="ident">pool</span>),
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">jsonrpc_core::IoHandler::default</span>();
+    <span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">SystemApi</span>::<span class="op">&lt;</span><span class="ident">Hash</span>, <span class="ident">AccountId</span>, <span class="ident">Index</span><span class="op">&gt;</span><span class="ident">::to_delegate</span>(
+        <span class="ident">LightSystem::new</span>(<span class="ident">client</span>, <span class="ident">remote_blockchain</span>, <span class="ident">fetcher</span>, <span class="ident">pool</span>),
     ));
 
     <span class="ident">io</span>
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="canyon_rpc"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="canyon_rpc" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</body></html>
