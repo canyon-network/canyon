@@ -33,17 +33,20 @@
 //!
 //! The general workflow of PoA is described briefly below:
 //!
-//! 1. Pick a random byte in the whole network storage. Currently,
-//!    the randome byte is determined by hashing the parent header
-//!    hash for N times.
+//! 1. Pick a random byte from the whole network storage.
+//!     - The whole network data can be seen as an ever growing
+//!       giagantic array.
+//!     - Currently, the randome byte is determined by hashing
+//!       the parent header hash for N times, which will be replaced
+//!       with another hashing strategy in SPoRA.
 //!
 //! 2. Locate the extrinsic in which the random byte is included.
-//!    You can take the whole network data as an ever growing array.
 //!
-//! 3. Check if the data of extrinsic in Step 2 exists in the local storage.
+//! 3. Check if the data of extrinsic located in Step 2 exists in
+//!    the local storage.
 //!
-//!     - If the data does exist locally, create the two merkle proofs of
-//!        extrinsic and data chunks respectively.
+//!     - If the data does exist locally, create the two merkle proofs
+//!       of extrinsic and data chunks respectively.
 //!     - If not, repeat from Step 1 by choosing another random byte.
 //!
 //! ## Usage
