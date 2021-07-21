@@ -33,12 +33,11 @@
 //!
 //! The general workflow of PoA is described briefly below:
 //!
-//! 1. Pick a random byte from the whole network storage.
-//!     - The whole network data can be seen as an ever growing
-//!       giagantic array.
+//! 1. Pick a random byte from the whole network storage (BlockWeave).
+//!     - The block weave can be seen as an ever growing gigantic array.
 //!     - Currently, the randome byte is determined by hashing
-//!       the parent header hash for N times, which will be replaced
-//!       with another hashing strategy in SPoRA.
+//!       the parent header hash for N times(see `calculate_challenge_byte`),
+//!       which will be replaced with another hashing strategy in SPoRA.
 //!
 //! 2. Locate the extrinsic in which the random byte is included.
 //!

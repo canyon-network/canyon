@@ -22,17 +22,17 @@
 //! historical depth info from PoA consensus engine on chain, which
 //! can be used to estimate the actual storage capacity of a validator.
 //!
-//! we can say a validator stores 100% of the network data locally if
-//! it has produced N blocks with a total depth of N. Furthermore, the
-//! estimated result becomes increasingly accurate and reliable with
-//! more and more blocks being authored by that validator.
+//! we can say a validator tends to have stored 100% of the network
+//! data locally if it had produced N blocks with a total depth of N.
+//! The estimated result becomes increasingly accurate and reliable
+//! with more and more blocks being authored by that validator.
 //!
 //! ## Interface
 //!
 //! ### Inherent Extrinsics
 //!
 //! The Poa pallet creates the inherent extrinsic [`Call::process_poa_outcome`]
-//! when the inherent data of [`POA_INHERENT_IDENTIFIER`] is Some(_) and decodable.
+//! when the inherent data contains a valid [`POA_INHERENT_IDENTIFIER`].
 
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
