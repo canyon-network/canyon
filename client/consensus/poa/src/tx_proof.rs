@@ -104,6 +104,8 @@ impl<B: BlockT<Hash = canyon_primitives::Hash>> TxProofVerifier<B> {
     }
 }
 
+/// Verify the extrinsic proof on the extrinsics root and related encoded extrinsic.
+///
 /// Returns Ok(()) if the extrinsic proof is valid.
 pub fn verify_extrinsic_proof(
     extrinsics_root: &H256,

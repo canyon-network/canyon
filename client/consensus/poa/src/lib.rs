@@ -106,6 +106,7 @@ pub use self::chunk_proof::{verify_chunk_proof, ChunkProofBuilder, ChunkProofVer
 pub use self::inherent::PoaInherentDataProvider;
 pub use self::tx_proof::{build_extrinsic_proof, verify_extrinsic_proof, TxProofVerifier};
 
+/// Minimum depth of PoA.
 const MIN_DEPTH: u32 = 1;
 
 /// The maximum depth of attempting to generate a valid PoA.
