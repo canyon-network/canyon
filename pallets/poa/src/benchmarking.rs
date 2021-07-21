@@ -21,10 +21,10 @@ use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
 
 benchmarks! {
-    // This will measure the execution time of `update_storage_capacity` for b in [1..1000] range.
-    update_storage_capacity {
+    // This will measure the execution time of `process_poa_outcome` for b in [1..1000] range.
+    process_poa_outcome {
         let b in 1 .. 1000;
-    }: update_storage_capacity (RawOrigin::Root, b.into())
+    }: process_poa_outcome (RawOrigin::Root, b.into())
 }
 
 impl_benchmark_test_suite!(Pallet, crate::mock::new_test_ext(), crate::mock::Test);

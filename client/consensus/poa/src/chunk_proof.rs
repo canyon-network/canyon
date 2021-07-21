@@ -67,7 +67,7 @@ pub fn verify_chunk_proof(
     )
 }
 
-/// Utility for buliding a chunk proof from the raw transaction data.
+/// A builder for creating a [`ChunkProof`] from the raw transaction data.
 #[derive(Debug, Clone)]
 pub struct ChunkProofBuilder {
     /// Raw bytes of entire transaction data.
@@ -92,7 +92,7 @@ impl ChunkProofBuilder {
         }
     }
 
-    /// Builds the chunk proof.
+    /// Creates a [`ChunkProof`].
     pub fn build(&self) -> Result<ChunkProof, TrieError> {
         let mut target_chunk = Vec::with_capacity(self.chunk_size as usize);
 

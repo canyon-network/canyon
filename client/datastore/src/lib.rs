@@ -16,6 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
+#![deny(missing_docs, unused_extern_crates)]
+
 //! This crate provides the feature of persistent storage for the transaction data
 //! expected to exist indefinitely.
 //!
@@ -82,14 +84,19 @@ where
     }
 }
 
+/// Error type for datastore.
 #[derive(thiserror::Error, Debug)]
 pub enum Error<Block: BlockT> {
-    #[error("block number not found given block id `{0}`")]
+    /// Block number not found.
+    #[error("Block number not found given block id `{0}`")]
     BlockNumberNotFound(BlockId<Block>),
-    #[error("chunk root is None at block: {0}, extrinsic index: {1}")]
+    /// Chunk root does not exist.
+    #[error("Chunk root is None at block: {0}, extrinsic index: {1}")]
     ChunkRootIsNone(BlockId<Block>, u32),
+    /// Blockchain error.
     #[error(transparent)]
-    Blockchain(#[from] sp_blockchain::Error),
+    Blockchain(#[from] Box<sp_blockchain::Error>),
+    /// Runtime api error.
     #[error(transparent)]
     ApiError(#[from] sp_api::ApiError),
 }
@@ -139,7 +146,8 @@ where
             .chunk_root(
                 None,
                 self.client
-                    .block_number_from_id(&block_id)?
+                    .block_number_from_id(&block_id)
+                    .map_err(Box::new)?
                     .ok_or(Error::BlockNumberNotFound(block_id))?,
                 extrinsic_index,
             )?

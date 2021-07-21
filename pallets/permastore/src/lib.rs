@@ -16,12 +16,32 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
-//! Market for storing data permanently.
+//! # Permastore Pallet
 //!
-//! Provides the interfaces for storing data onto the network.
+//! The Permastore pallet provides the interfaces for storing data
+//! onto the network. It also records some information necessary for
+//! the PoA consensus on chain.
+//!
+//! ## Interface
+//!
+//! ### Dispatchable Functions
+//!
+//! * `store`: Make an order of storing data.
+//! * `forget`: Unimplemented.
+//!
+//! ### Public Functions
+//!
+//! See the [`Pallet`] for details of publicly available functions.
+//!
+//! ### Signed Extensions
+//!
+//! The Permastore pallet defines the [`CheckStore`] extension which
+//! checks the data has been stored in the node and user has sufficient
+//! balance to pay the perpetual storage fee.
 
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
+#![deny(rustdoc::broken_intra_doc_links)]
 
 use codec::{Decode, Encode};
 
@@ -205,11 +225,14 @@ pub mod pallet {
         BalanceOf<T>,
     >;
 
-    /// Total byte size of data stored onto the network.
+    /// Total byte size of data stored onto the network so far.
+    ///
+    /// In another word, it equals to the sum of [`BlockDataSize`]
+    /// of this block and [`WeaveSize`] of previous block.
     #[pallet::storage]
     pub(super) type WeaveSize<T: Config> = StorageValue<_, u64, ValueQuery>;
 
-    /// Total byte size of data stored in current building block.
+    /// Total byte size of data stored during current block.
     #[pallet::storage]
     #[pallet::getter(fn block_data_size)]
     pub(super) type BlockDataSize<T: Config> = StorageValue<_, u64, ValueQuery>;
@@ -241,32 +264,6 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-    // TODO: ensure the transaction data has been indeed stored in the local DB.
-    fn stored_locally(_chunk_root: &T::Hash) -> bool {
-        true
-    }
-
-    // TODO: calculate the perpetual storage cost based on the data size.
-    fn calculate_storage_fee(data_size: u32) -> BalanceOf<T> {
-        data_size.saturated_into()
-    }
-
-    /// Charges the perpetual storage fee.
-    ///
-    /// TODO: Currently all the fee is simply transfered to the treasury,
-    /// we might want a new destination for that.
-    fn charge_storage_fee(
-        who: &T::AccountId,
-        data_size: u32,
-    ) -> Result<BalanceOf<T>, sp_runtime::DispatchError> {
-        let fee = Self::calculate_storage_fee(data_size);
-        let treasury_account: T::AccountId = T::TreasuryPalletId::get().into_account();
-        T::Currency::transfer(who, &treasury_account, fee, ExistenceRequirement::KeepAlive)?;
-        Ok(fee)
-    }
-
-    fn refund_storage_fee(_who: &T::AccountId, _created_at: T::BlockNumber) {}
-
     /// Returns the chunk root given `block_number` and `extrinsic_index`.
     pub fn chunk_root(block_number: T::BlockNumber, extrinsic_index: u32) -> Option<T::Hash> {
         <ChunkRootIndex<T>>::get((block_number, extrinsic_index))
@@ -314,6 +311,32 @@ impl<T: Config> Pallet<T> {
     pub fn weave_size() -> u64 {
         <WeaveSize<T>>::get()
     }
+
+    // TODO: ensure the transaction data has been indeed stored in the local DB.
+    fn stored_locally(_chunk_root: &T::Hash) -> bool {
+        true
+    }
+
+    // TODO: calculate the perpetual storage cost based on the data size.
+    fn calculate_storage_fee(data_size: u32) -> BalanceOf<T> {
+        data_size.saturated_into()
+    }
+
+    /// Charges the perpetual storage fee.
+    ///
+    /// TODO: Currently all the fee is simply transfered to the treasury,
+    /// we might want a new destination for that.
+    fn charge_storage_fee(
+        who: &T::AccountId,
+        data_size: u32,
+    ) -> Result<BalanceOf<T>, sp_runtime::DispatchError> {
+        let fee = Self::calculate_storage_fee(data_size);
+        let treasury_account: T::AccountId = T::TreasuryPalletId::get().into_account();
+        T::Currency::transfer(who, &treasury_account, fee, ExistenceRequirement::KeepAlive)?;
+        Ok(fee)
+    }
+
+    fn refund_storage_fee(_who: &T::AccountId, _created_at: T::BlockNumber) {}
 }
 
 /// A signed extension that checks for the `store` call.

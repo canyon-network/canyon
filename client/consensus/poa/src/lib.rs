@@ -16,16 +16,66 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
-//! This crate creates the inherent data based on the Proof of Access consensus.
+//! # Proof of Access consensus
 //!
-//! TODO: verify PoA stored in the block header.
+//! ## Introduction
+//!
+//! Proof of Access is a kind of lightweight storage consensus initially
+//! adopted by [Arweave](https://arweave.org). In arweave, PoA serves as
+//! an enhancement of Proof of Work in which the entire recall block data
+//! is included in the material to be hashed for input to the proof of work.
+//!
+//! Requiring [`ProofOfAccess`] incentivises storage as miners need
+//! access to random blocks from the blockweave's history in order
+//! to mine new blocks and receive mining rewards.
+//!
+//! ## Overview
+//!
+//! The general workflow of PoA is described briefly below:
+//!
+//! 1. Pick a random byte from the whole network storage (BlockWeave).
+//!     - The block weave can be seen as an ever growing gigantic array.
+//!     - Currently, the randome byte is determined by hashing
+//!       the parent header hash for N times(see [`calculate_challenge_byte`]),
+//!       which will be replaced with another hashing strategy in SPoRA.
+//!
+//! 2. Locate the extrinsic in which the random byte is included.
+//!
+//! 3. Check if the data of extrinsic located in Step 2 exists in
+//!    the local storage.
+//!
+//!     - If the data does exist locally, create the two merkle proofs
+//!       of extrinsic and data chunks respectively.
+//!     - If not, repeat from Step 1 by choosing another random byte.
+//!
+//! ## Usage
+//!
+//! Normally, PoA needs to be used with other consensus algorithem like
+//! PoW or PoS together as it's not typically designed for solving the
+//! problem of selecting one from the validator set to author next block
+//! in an unpredictable or fair way. In another word, PoA is usually
+//! exploited as a precondition for PoW or PoS in order to encourage
+//! the miners to store more data locally.
+//!
+//! This crate implements the core algorithem of Proof of Access in
+//! [`construct_poa`] and provides the inherent data provider via
+//! [`PoaInherentDataProvider`]. [`PurePoaBlockImport`] implements the
+//! `BlockImport` trait, thus can be wrapped in another block importer.
+//!
+//! To use this engine, you can create an inhehrent extrinsic using the
+//! data provided by [`PoaInherentDataProvider`] in a pallet. Furthermore,
+//! you need to wrap the [`PurePoaBlockImport`] into your existing block
+//! import pipeline. Refer to the [Substrate docs](https://substrate.dev/docs/en/knowledgebase/advanced/block-import)
+//! for more information about creating a nested `BlockImport`.
+
+#![deny(missing_docs, unused_extern_crates)]
 
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::sync::Arc;
 
 use codec::{Decode, Encode};
-use sp_runtime::{ConsensusEngineId, DigestItem};
+use sp_runtime::DigestItem;
 use thiserror::Error;
 
 use sp_api::ProvideRuntimeApi;
@@ -44,7 +94,7 @@ use sc_client_api::{backend::AuxStore, BlockBackend, BlockOf};
 
 use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
 use cc_datastore::TransactionDataBackend as TransactionDataBackendT;
-use cp_consensus_poa::{PoaOutcome, POA_ENGINE_ID};
+use cp_consensus_poa::{PoaOutcome, ProofOfAccess, POA_ENGINE_ID};
 use cp_permastore::{PermastoreApi, CHUNK_SIZE};
 
 mod chunk_proof;
@@ -53,9 +103,9 @@ mod tx_proof;
 
 pub use self::chunk_proof::{verify_chunk_proof, ChunkProofBuilder, ChunkProofVerifier};
 pub use self::inherent::PoaInherentDataProvider;
-pub use self::tx_proof::{build_extrinsic_proof, verify_extrinsic_proof};
-pub use cp_consensus_poa::{ChunkProof, ProofOfAccess};
+pub use self::tx_proof::{build_extrinsic_proof, verify_extrinsic_proof, TxProofVerifier};
 
+/// Minimum depth of PoA.
 const MIN_DEPTH: u32 = 1;
 
 /// The maximum depth of attempting to generate a valid PoA.
@@ -71,40 +121,40 @@ pub const MAX_CHUNK_PATH: u32 = 256 * 1024;
 
 type Randomness = Vec<u8>;
 
+/// Error type for poa consensus.
 #[derive(Error, Debug)]
 pub enum Error<Block: BlockT> {
-    #[error("Header uses the wrong engine {0:?}")]
-    WrongEngine(ConsensusEngineId),
+    /// No PoA seal in the header.
     #[error("Header {0:?} has no PoA seal")]
     HeaderUnsealed(Block::Hash),
+    /// Multiple PoA seals were found in the header.
     #[error("Header {0:?} has multiple PoA seals")]
     HeaderMultiSealed(Block::Hash),
+    /// Client error.
     #[error("Client error: {0}")]
     Client(sp_blockchain::Error),
+    /// Codec error.
     #[error("Codec error")]
     Codec(#[from] codec::Error),
+    /// Blockchain error.
     #[error("Blockchain error")]
     BlockchainError(#[from] sp_blockchain::Error),
+    /// Failed to verify the merkle proof.
     #[error("VerifyError error")]
     VerifyFailed(#[from] cp_permastore::VerifyError),
+    /// Runtime api error.
     #[error(transparent)]
     ApiError(#[from] sp_api::ApiError),
+    /// Block not found.
     #[error("Block {0} not found")]
     BlockNotFound(BlockId<Block>),
+    /// Recall block not found.
     #[error("Recall block not found given the recall byte {0}")]
     RecallBlockNotFound(DataIndex),
+    /// Recall extrinsic not found.
     #[error("Recall extrinsic index not found given the recall byte {0}")]
     RecallExtrinsicNotFound(DataIndex),
-    #[error("Header {0} not found")]
-    HeaderNotFound(BlockId<Block>),
-    #[error("Creating inherents failed: {0}")]
-    CreateInherents(sp_inherents::Error),
-    #[error("Checking inherents failed: {0}")]
-    CheckInherents(sp_inherents::Error),
-    #[error("Checking inherents unknown error for identifier: {0:?}")]
-    CheckInherentsUnknownError(sp_inherents::InherentIdentifier),
-    #[error("the chunk in recall tx not found")]
-    InvalidChunk,
+    /// Maxinum depth reached.
     #[error("Reaching the maximum allowed depth {0}")]
     MaxDepthReached(Depth),
 }
@@ -132,7 +182,11 @@ fn make_bytes(h: [u8; 32]) -> [u8; 8] {
 }
 
 /// Returns the position of recall byte in the entire weave.
-fn calculate_challenge_byte(seed: Randomness, weave_size: DataIndex, depth: Depth) -> DataIndex {
+pub fn calculate_challenge_byte(
+    seed: Randomness,
+    weave_size: DataIndex,
+    depth: Depth,
+) -> DataIndex {
     assert!(
         weave_size > 0,
         "weave size can not be 0 when calculating the recall byte"
@@ -140,28 +194,24 @@ fn calculate_challenge_byte(seed: Randomness, weave_size: DataIndex, depth: Dept
     DataIndex::from_le_bytes(make_bytes(multihash(seed, depth))) % weave_size
 }
 
-fn binary_search<T: Copy>(target: DataIndex, ordered_list: &[(T, DataIndex)]) -> (T, DataIndex) {
-    match ordered_list.binary_search_by_key(&target, |&(_, weave_size)| weave_size) {
-        Ok(i) => ordered_list[i],
-        Err(i) => ordered_list[i],
-    }
-}
-
-/// Returns a tuple of (extrinsic_index, absolute_data_index) of extrinsic
-/// in which `recall_byte` is located.
+/// Returns a tuple of (extrinsic_index, absolute_data_index)
+/// of extrinsic in which `recall_byte` is located.
 fn find_recall_tx(
     recall_byte: DataIndex,
     sized_extrinsics: &[(ExtrinsicIndex, DataIndex)],
 ) -> (ExtrinsicIndex, DataIndex) {
     log::trace!(
         target: "poa",
-        "Try finding recall tx, recall_byte: {}, sized_extrinsics: {:?}",
+        "Try locating the position of recall tx, recall_byte: {}, sized_extrinsics: {:?}",
         recall_byte, sized_extrinsics
     );
-    binary_search(recall_byte, sized_extrinsics)
+    match sized_extrinsics.binary_search_by_key(&recall_byte, |&(_, weave_size)| weave_size) {
+        Ok(i) => sized_extrinsics[i],
+        Err(i) => sized_extrinsics[i],
+    }
 }
 
-/// All information of recall block that is required to build a PoA.
+/// All information of recall block that is required to build a [`ProofOfAccess`].
 #[derive(Debug, Clone)]
 pub struct RecallInfo<B: BlockT> {
     /// Weave size of last block.
@@ -175,9 +225,10 @@ pub struct RecallInfo<B: BlockT> {
 }
 
 impl<B: BlockT<Hash = canyon_primitives::Hash>> RecallInfo<B> {
-    pub fn as_tx_proof_verifier(self) -> tx_proof::TxProofVerifier<B> {
+    /// Converts the recall info to a [`TxProofVerifier`].
+    pub fn into_tx_proof_verifier(self) -> TxProofVerifier<B> {
         let recall_extrinsic = self.extrinsics[self.recall_extrinsic_index as usize].clone();
-        tx_proof::TxProofVerifier::new(
+        TxProofVerifier::new(
             recall_extrinsic,
             self.extrinsics_root,
             self.recall_extrinsic_index,
@@ -198,7 +249,7 @@ where
 {
     let recall_block_id = BlockId::number(recall_block_number);
 
-    let (header, extrinsics) = fetch_block(client, recall_block_id)?;
+    let (header, extrinsics) = fetch_block(client, recall_block_id)?.deconstruct();
 
     let weave_base = client
         .runtime_api()
@@ -245,16 +296,12 @@ where
 fn fetch_block<Block, Client>(
     client: &Arc<Client>,
     id: BlockId<Block>,
-) -> Result<(Block::Header, Vec<Block::Extrinsic>), Error<Block>>
+) -> Result<Block, Error<Block>>
 where
     Block: BlockT,
     Client: BlockBackend<Block>,
 {
-    Ok(client
-        .block(&id)?
-        .ok_or_else(|| Error::BlockNotFound(id))?
-        .block
-        .deconstruct())
+    Ok(client.block(&id)?.ok_or(Error::BlockNotFound(id))?.block)
 }
 
 /// Returns the block number of recall block.
@@ -270,9 +317,10 @@ where
     runtime_api
         .runtime_api()
         .find_recall_block(&at, recall_byte)?
-        .ok_or_else(|| Error::RecallBlockNotFound(recall_byte))
+        .ok_or(Error::RecallBlockNotFound(recall_byte))
 }
 
+/// A builder for creating [`PoaOutcome`].
 pub struct PoaBuilder<Block, Client, TransactionDataBackend> {
     client: Arc<Client>,
     transaction_data_backend: TransactionDataBackend,
@@ -300,7 +348,7 @@ where
         }
     }
 
-    /// Returns the block number of recall block.
+    /// Returns the number of recall block.
     fn find_recall_block(
         &self,
         at: BlockId<Block>,
@@ -309,9 +357,10 @@ where
         self.client
             .runtime_api()
             .find_recall_block(&at, recall_byte)?
-            .ok_or_else(|| Error::RecallBlockNotFound(recall_byte))
+            .ok_or(Error::RecallBlockNotFound(recall_byte))
     }
 
+    /// Creates the inherent data [`PoaOutcome`].
     pub fn build(&self, parent: Block::Hash) -> Result<PoaOutcome, Error<Block>> {
         log::debug!(target: "poa", "Start building poa on top of {:?}", parent);
         let parent_id = BlockId::Hash(parent);
@@ -417,11 +466,12 @@ where
         }
 
         log::warn!(target: "poa", "Reaching the max depth: {}", MAX_DEPTH);
+
         Ok(PoaOutcome::MaxDepthReached)
     }
 }
 
-/// Constructs a valid Proof of Access.
+/// Returns a [`PoaOutcome`] after the poa construction.
 pub fn construct_poa<Block, Client, TransactionDataBackend>(
     client: Arc<Client>,
     parent: Block::Hash,
@@ -453,21 +503,21 @@ fn fetch_poa<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<ProofOfAcces
         .collect::<Vec<_>>();
 
     match poa_seal.len() {
-        0 => Err(Error::<B>::HeaderUnsealed(hash).into()),
+        0 => Err(Error::<B>::HeaderUnsealed(hash)),
         1 => match poa_seal[0] {
             DigestItem::Seal(_id, seal) => {
                 Decode::decode(&mut seal.as_slice()).map_err(Error::<B>::Codec)
             }
             _ => unreachable!("Only items sealed using POA_ENGINE_ID has been filtered; qed"),
         },
-        _ => Err(Error::<B>::HeaderMultiSealed(hash).into()),
+        _ => Err(Error::<B>::HeaderMultiSealed(hash)),
     }
 }
 
-/// A block importer for PoA.
+/// A pure block importer for PoA.
 ///
 /// This importer has to be used with other mature block importer
-/// togather, e.g., grandpa block import, for it only verifies the
+/// together, e.g., grandpa block import, for it only verifies the
 /// validity of PoA sealed digest item in the header and nothing else.
 pub struct PurePoaBlockImport<B, I, C, S> {
     inner: I,
@@ -482,7 +532,7 @@ impl<B: Clone, I: Clone, C, S: Clone> Clone for PurePoaBlockImport<B, I, C, S> {
             inner: self.inner.clone(),
             select_chain: self.select_chain.clone(),
             client: self.client.clone(),
-            phatom: self.phatom.clone(),
+            phatom: self.phatom,
         }
     }
 }
@@ -553,6 +603,7 @@ where
             .map_err(Error::<B>::ApiError)?
         {
             let header = block.post_header();
+
             let ProofOfAccess {
                 depth,
                 tx_path,
@@ -572,7 +623,7 @@ where
                 find_recall_block(BlockId::Hash(parent_hash), recall_byte, &self.client)?;
 
             find_recall_info(recall_byte, recall_block_number, &self.client)?
-                .as_tx_proof_verifier()
+                .into_tx_proof_verifier()
                 .verify(&tx_path)
                 .map_err(Error::<B>::VerifyFailed)?;
 
