@@ -65,8 +65,10 @@
 //! To use this engine, you can create an inhehrent extrinsic using the
 //! data provided by [`PoaInherentDataProvider`] in a pallet. Furthermore,
 //! you need to wrap the [`PurePoaBlockImport`] into your existing block
-//! import pipeline. Refer to the [Substrate docs](https://substrate.dev/docs/en/knowledgebase/advanced/block-import)
-//! for more information about creating a nested `BlockImport`.
+//! import pipeline. Refer to the [Substrate docs][1] for more information
+//! about creating a nested `BlockImport`.
+//!
+//! [1]: https://substrate.dev/docs/en/knowledgebase/advanced/block-import
 
 #![deny(missing_docs, unused_extern_crates)]
 
