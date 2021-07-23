@@ -18,18 +18,14 @@
 
 use super::*;
 
-use frame_support::{
-    assert_ok, parameter_types,
-    traits::{AllowAll, OnFinalize, OnInitialize},
-    weights::{DispatchInfo, GetDispatchInfo},
-};
+use frame_support::{parameter_types, traits::AllowAll};
 use sp_core::H256;
 // The testing primitives are very useful for avoiding having to work with signatures
 // or public keys. `u64` is used as the `AccountId` and no `Signature`s are required.
 use sp_runtime::{
     testing::Header,
     traits::{BlakeTwo256, IdentityLookup},
-    BuildStorage, ConsensusEngineId,
+    BuildStorage,
 };
 // Reexport crate as its pallet name for construct_runtime.
 use crate as pallet_poa;

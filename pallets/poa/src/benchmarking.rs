@@ -17,18 +17,17 @@
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
-use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
+use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
 
 use cp_consensus_poa::ProofOfAccess;
-use sc_block_builder::{BlockBuilder, BuiltBlock, RecordProof};
-use sc_client_db::{Backend, RefTrackingState};
+use sc_block_builder::{BlockBuilder, RecordProof};
 use sp_blockchain::HeaderBackend;
 use sp_keyring::AccountKeyring::{Alice, Bob};
-use sp_runtime::traits::{Block as BlockT, Header as HeaderT};
-use substrate_test_runtime::{Block, Extrinsic, Header, Transfer};
+use sp_runtime::traits::Block as BlockT;
+use substrate_test_runtime::{Block, Transfer};
 use substrate_test_runtime_client::{
-    BlockBuilderExt, Client, DefaultTestClientBuilderExt, TestClientBuilderExt,
+    BlockBuilderExt, DefaultTestClientBuilderExt, TestClientBuilderExt,
 };
 
 use cc_consensus_poa::{build_extrinsic_proof, ChunkProof, ChunkProofBuilder};

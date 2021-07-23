@@ -16,23 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
-use codec::Encode;
-
-use frame_support::{
-    assert_ok,
-    pallet_prelude::PhantomData,
-    traits::{OnFinalize, OnInitialize},
-    weights::{DispatchInfo, GetDispatchInfo},
-};
-use sp_core::H256;
-use sp_runtime::{
-    testing::{DigestItem, Header},
-    traits::{Header as HeaderT, SignedExtension},
-    transaction_validity::InvalidTransaction,
-};
-
-use crate::mock::{new_test_ext, Origin, Poa, System, Test};
-use crate::{self as pallet_poa, DepthInfo, HistoryDepth, TestAuthor};
+use crate::mock::{new_test_ext, Poa, Test};
+use crate::{DepthInfo, HistoryDepth, TestAuthor};
 
 #[test]
 fn note_depth_should_work() {
