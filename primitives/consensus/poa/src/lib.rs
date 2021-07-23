@@ -123,7 +123,7 @@ pub enum PoaOutcome {
     /// Generate a [`ProofOfAccess`] successfully.
     ///
     /// Each block contains a justification of poa as long as the weave
-    /// size is not 0 and will be verified on block import.
+    /// size is not zero and will be verified on block import.
     Justification(ProofOfAccess),
 }
 

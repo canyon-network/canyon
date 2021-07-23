@@ -20,11 +20,87 @@ use super::*;
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
 
+use cp_consensus_poa::ProofOfAccess;
+use sc_block_builder::{BlockBuilder, BuiltBlock, RecordProof};
+use sc_client_db::{Backend, RefTrackingState};
+use sp_blockchain::HeaderBackend;
+use sp_keyring::AccountKeyring::{Alice, Bob};
+use sp_runtime::traits::{Block as BlockT, Header as HeaderT};
+use substrate_test_runtime::{Block, Extrinsic, Header, Transfer};
+use substrate_test_runtime_client::{
+    BlockBuilderExt, Client, DefaultTestClientBuilderExt, TestClientBuilderExt,
+};
+
+use cc_consensus_poa::{build_extrinsic_proof, ChunkProof, ChunkProofBuilder};
+use cp_permastore::CHUNK_SIZE;
+use rand::Rng;
+
+const MAX_DATA_SIZE: usize = 256 * 1024;
+
+fn generate_chunk_proof(data: Vec<u8>, offset: u32) -> ChunkProof {
+    ChunkProofBuilder::new(data, CHUNK_SIZE, offset)
+        .build()
+        .expect("Couldn't build chunk proof")
+}
+
+fn random_data(data_size: usize) -> Vec<u8> {
+    let mut rng = rand::thread_rng();
+    (0..data_size).map(|_| rng.gen::<u8>()).collect()
+}
+
+fn mock_extrinsic_proof() -> Vec<Vec<u8>> {
+    let builder = substrate_test_runtime_client::TestClientBuilder::new();
+    let backend = builder.backend();
+    let client = builder.build();
+
+    let mut block_builder = BlockBuilder::new(
+        &client,
+        client.info().best_hash,
+        client.info().best_number,
+        RecordProof::Yes,
+        Default::default(),
+        &*backend,
+    )
+    .unwrap();
+
+    block_builder
+        .push_transfer(Transfer {
+            from: Alice.into(),
+            to: Bob.into(),
+            amount: 123,
+            nonce: 0,
+        })
+        .unwrap();
+
+    block_builder
+        .push_transfer(Transfer {
+            from: Bob.into(),
+            to: Alice.into(),
+            amount: 1,
+            nonce: 0,
+        })
+        .unwrap();
+
+    let built_block = block_builder.build().unwrap();
+
+    let (block, extrinsics) = built_block.block.deconstruct();
+
+    let extrinsics_root = block.extrinsics_root;
+
+    build_extrinsic_proof::<Block>(0, extrinsics_root, extrinsics.clone()).unwrap()
+}
+
 benchmarks! {
     // This will measure the execution time of `process_poa_outcome` for b in [1..1000] range.
     process_poa_outcome {
         let b in 1 .. 1000;
-    }: process_poa_outcome (RawOrigin::Root, b.into())
+        let mut rng = rand::thread_rng();
+        let offset = rng.gen_range(0..MAX_DATA_SIZE) as u32;
+        let chunk_proof = generate_chunk_proof(random_data(MAX_DATA_SIZE), offset);
+        let tx_proof = mock_extrinsic_proof();
+        let poa = ProofOfAccess::new(1, tx_proof, chunk_proof);
+        let poa_outcome = PoaOutcome::Justification(poa);
+    }: process_poa_outcome (RawOrigin::None, poa_outcome)
 }
 
 impl_benchmark_test_suite!(Pallet, crate::mock::new_test_ext(), crate::mock::Test);

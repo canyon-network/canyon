@@ -4856,17 +4856,26 @@ name = "pallet-poa"
 version = "0.1.0"
 dependencies = [
  "canyon-primitives",
+ "cc-consensus-poa",
  "cp-consensus-poa",
+ "cp-permastore",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "pallet-balances",
  "parity-scale-codec",
+ "rand 0.8.4",
+ "sc-block-builder",
+ "sc-client-db",
  "serde",
+ "sp-blockchain",
  "sp-core",
  "sp-io",
+ "sp-keyring",
  "sp-runtime",
  "sp-std",
+ "substrate-test-runtime",
+ "substrate-test-runtime-client",
 ]
 
 [[package]]
