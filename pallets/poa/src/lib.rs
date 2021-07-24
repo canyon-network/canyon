@@ -38,7 +38,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![deny(rustdoc::broken_intra_doc_links)]
 
-use codec::{Decode, Encode};
+use codec::{Decode, Encode, MaxEncodedLen};
 
 use sp_runtime::{
     generic::DigestItem,
@@ -62,15 +62,17 @@ mod benchmarking;
 mod mock;
 #[cfg(all(feature = "std", test))]
 mod tests;
+pub mod weights;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
+pub use self::weights::WeightInfo;
 
 /// Historical info about the average value of depth.
 ///
 /// This struct is used for calculating the historical average depth
 /// of a validator, which implies the storage capacity per validator.
-#[derive(RuntimeDebug, Clone, Eq, PartialEq, Encode, Decode)]
+#[derive(RuntimeDebug, Clone, Eq, PartialEq, Encode, Decode, MaxEncodedLen)]
 pub struct DepthInfo<BlockNumber> {
     /// Sum of all depths so far.
     pub total_depth: Depth,
@@ -140,6 +142,7 @@ pub mod pallet {
 
     #[pallet::pallet]
     #[pallet::generate_store(pub(super) trait Store)]
+    #[pallet::generate_storage_info]
     pub struct Pallet<T>(_);
 
     #[pallet::hooks]

@@ -16,9 +16,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
-use cp_consensus_poa::ProofOfAccess;
-use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
-use frame_system::RawOrigin;
 use sc_block_builder::{BlockBuilder, RecordProof};
 use sp_blockchain::HeaderBackend;
 use sp_keyring::AccountKeyring::{Alice, Bob};
@@ -85,7 +82,7 @@ fn mock_extrinsic_proof() -> Vec<Vec<u8>> {
 #[test]
 fn test_generate_proof_of_access() {
     let random_data = crate::benchmarking::mock_a_data_chunk();
-    let offset = 56780;
+    let offset = 56_780_000;
     let chunk_proof = generate_chunk_proof(random_data, offset);
 
     println!("chunk_index: {:?}", chunk_proof.chunk_index);
@@ -93,18 +90,7 @@ fn test_generate_proof_of_access() {
 
     let tx_proof = mock_extrinsic_proof();
 
-    let chunk_proof_blob = vec![vec![66, 0, 0]];
-    let tx_proof_blob = vec![
-        vec![
-            129, 0, 17, 0, 0, 128, 30, 85, 112, 233, 177, 97, 26, 150, 16, 141, 207, 22, 17, 191,
-            37, 122, 32, 6, 215, 194, 234, 225, 162, 126, 44, 51, 80, 88, 17, 147, 20, 156,
-        ],
-        vec![64, 0],
-    ];
-
     println!("tx_proof: {:?}", tx_proof);
-
-    let poa = ProofOfAccess::new(1, tx_proof, chunk_proof);
 }
 
 #[test]
