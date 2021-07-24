@@ -16,8 +16,96 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
+use cp_consensus_poa::ProofOfAccess;
+use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
+use frame_system::RawOrigin;
+use sc_block_builder::{BlockBuilder, RecordProof};
+use sp_blockchain::HeaderBackend;
+use sp_keyring::AccountKeyring::{Alice, Bob};
+use sp_runtime::traits::Block as BlockT;
+use substrate_test_runtime::{Block, Transfer};
+use substrate_test_runtime_client::{
+    BlockBuilderExt, DefaultTestClientBuilderExt, TestClientBuilderExt,
+};
+
+use cc_consensus_poa::{build_extrinsic_proof, ChunkProof, ChunkProofBuilder};
+use cp_permastore::CHUNK_SIZE;
+
 use crate::mock::{new_test_ext, Poa, Test};
 use crate::{DepthInfo, HistoryDepth, TestAuthor};
+
+fn generate_chunk_proof(data: Vec<u8>, offset: u32) -> ChunkProof {
+    ChunkProofBuilder::new(data, CHUNK_SIZE, offset)
+        .build()
+        .expect("Couldn't build chunk proof")
+}
+
+fn mock_extrinsic_proof() -> Vec<Vec<u8>> {
+    let builder = substrate_test_runtime_client::TestClientBuilder::new();
+    let backend = builder.backend();
+    let client = builder.build();
+
+    let mut block_builder = BlockBuilder::new(
+        &client,
+        client.info().best_hash,
+        client.info().best_number,
+        RecordProof::No,
+        Default::default(),
+        &*backend,
+    )
+    .unwrap();
+
+    block_builder
+        .push_transfer(Transfer {
+            from: Alice.into(),
+            to: Bob.into(),
+            amount: 123,
+            nonce: 0,
+        })
+        .unwrap();
+
+    block_builder
+        .push_transfer(Transfer {
+            from: Bob.into(),
+            to: Alice.into(),
+            amount: 1,
+            nonce: 0,
+        })
+        .unwrap();
+
+    let built_block = block_builder.build().unwrap();
+
+    let (block, extrinsics) = built_block.block.deconstruct();
+
+    let extrinsics_root = block.extrinsics_root;
+
+    build_extrinsic_proof::<Block>(0, extrinsics_root, extrinsics.clone()).unwrap()
+}
+
+#[test]
+fn test_generate_proof_of_access() {
+    let random_data = crate::benchmarking::mock_a_data_chunk();
+    let offset = 56780;
+    let chunk_proof = generate_chunk_proof(random_data, offset);
+
+    println!("chunk_index: {:?}", chunk_proof.chunk_index);
+    println!("chunk_proof: {:?}", chunk_proof.proof);
+
+    let tx_proof = mock_extrinsic_proof();
+
+    let chunk_proof_blob = vec![vec![66, 0, 0]];
+    let tx_proof_blob = vec![
+        vec![
+            129, 0, 17, 0, 0, 128, 30, 85, 112, 233, 177, 97, 26, 150, 16, 141, 207, 22, 17, 191,
+            37, 122, 32, 6, 215, 194, 234, 225, 162, 126, 44, 51, 80, 88, 17, 147, 20, 156,
+        ],
+        vec![64, 0],
+    ];
+
+    println!("tx_proof: {:?}", tx_proof);
+
+    let poa = ProofOfAccess::new(1, tx_proof, chunk_proof);
+}
 
 #[test]
 fn note_depth_should_work() {

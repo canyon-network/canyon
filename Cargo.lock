@@ -1270,6 +1270,7 @@ name = "cp-consensus-poa"
 version = "0.1.0"
 dependencies = [
  "parity-scale-codec",
+ "serde",
  "sp-api",
  "sp-core",
  "sp-inherents",
@@ -4864,7 +4865,6 @@ dependencies = [
  "frame-system",
  "pallet-balances",
  "parity-scale-codec",
- "rand 0.8.4",
  "sc-block-builder",
  "sc-client-db",
  "serde",

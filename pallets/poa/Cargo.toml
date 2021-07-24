@@ -23,8 +23,6 @@ canyon-primitives = { path = "../../primitives/", default-features = false }
 cp-consensus-poa = { path = "../../primitives/consensus/poa", default-features = false }
 
 [dev-dependencies]
-rand = "0.8"
-
 sc-block-builder = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sc-client-db = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }

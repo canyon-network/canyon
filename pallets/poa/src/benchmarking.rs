@@ -17,89 +17,47 @@
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
+use cp_consensus_poa::{ChunkProof, ProofOfAccess};
 use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
+use sp_std::vec;
 
-use cp_consensus_poa::ProofOfAccess;
-use sc_block_builder::{BlockBuilder, RecordProof};
-use sp_blockchain::HeaderBackend;
-use sp_keyring::AccountKeyring::{Alice, Bob};
-use sp_runtime::traits::Block as BlockT;
-use substrate_test_runtime::{Block, Transfer};
-use substrate_test_runtime_client::{
-    BlockBuilderExt, DefaultTestClientBuilderExt, TestClientBuilderExt,
-};
+pub(crate) fn mock_a_data_chunk() -> Vec<u8> {
+    const ALPHABET: [u8; 32] = [
+        b'q', b'w', b'e', b'r', b't', b'y', b'u', b'i', b'o', b'p', b'[', b']', b'a', b's', b'd',
+        b'f', b'g', b'h', b'j', b'k', b'l', b';', b'z', b'x', b'c', b'v', b'b', b'n', b'm', b',',
+        b'.', b' ',
+    ];
 
-use cc_consensus_poa::{build_extrinsic_proof, ChunkProof, ChunkProofBuilder};
-use cp_permastore::CHUNK_SIZE;
-use rand::Rng;
-
-const MAX_DATA_SIZE: usize = 256 * 1024;
-
-fn generate_chunk_proof(data: Vec<u8>, offset: u32) -> ChunkProof {
-    ChunkProofBuilder::new(data, CHUNK_SIZE, offset)
-        .build()
-        .expect("Couldn't build chunk proof")
-}
-
-fn random_data(data_size: usize) -> Vec<u8> {
-    let mut rng = rand::thread_rng();
-    (0..data_size).map(|_| rng.gen::<u8>()).collect()
-}
-
-fn mock_extrinsic_proof() -> Vec<Vec<u8>> {
-    let builder = substrate_test_runtime_client::TestClientBuilder::new();
-    let backend = builder.backend();
-    let client = builder.build();
-
-    let mut block_builder = BlockBuilder::new(
-        &client,
-        client.info().best_hash,
-        client.info().best_number,
-        RecordProof::Yes,
-        Default::default(),
-        &*backend,
-    )
-    .unwrap();
-
-    block_builder
-        .push_transfer(Transfer {
-            from: Alice.into(),
-            to: Bob.into(),
-            amount: 123,
-            nonce: 0,
-        })
-        .unwrap();
-
-    block_builder
-        .push_transfer(Transfer {
-            from: Bob.into(),
-            to: Alice.into(),
-            amount: 1,
-            nonce: 0,
-        })
-        .unwrap();
-
-    let built_block = block_builder.build().unwrap();
-
-    let (block, extrinsics) = built_block.block.deconstruct();
-
-    let extrinsics_root = block.extrinsics_root;
-
-    build_extrinsic_proof::<Block>(0, extrinsics_root, extrinsics.clone()).unwrap()
+    ALPHABET.repeat(8192)
 }
 
 benchmarks! {
     // This will measure the execution time of `process_poa_outcome` for b in [1..1000] range.
     process_poa_outcome {
         let b in 1 .. 1000;
-        let mut rng = rand::thread_rng();
-        let offset = rng.gen_range(0..MAX_DATA_SIZE) as u32;
-        let chunk_proof = generate_chunk_proof(random_data(MAX_DATA_SIZE), offset);
-        let tx_proof = mock_extrinsic_proof();
+
+        let chunk = mock_a_data_chunk();
+        let chunk_index = 0u32;
+        let proof = vec![vec![66, 0, 0]];
+
+        let chunk_proof = ChunkProof::new(chunk, chunk_index, proof);
+
+        let tx_proof = vec![
+            vec![
+                129, 0, 17, 0, 0, 128, 30, 85, 112, 233, 177, 97, 26, 150, 16, 141, 207, 22, 17, 191,
+                37, 122, 32, 6, 215, 194, 234, 225, 162, 126, 44, 51, 80, 88, 17, 147, 20, 156,
+            ],
+            vec![64, 0],
+        ];
+
         let poa = ProofOfAccess::new(1, tx_proof, chunk_proof);
+
         let poa_outcome = PoaOutcome::Justification(poa);
     }: process_poa_outcome (RawOrigin::None, poa_outcome)
+    verify {
+        // TODO: verify process_poa_outcome
+    }
 }
 
 impl_benchmark_test_suite!(Pallet, crate::mock::new_test_ext(), crate::mock::Test);
