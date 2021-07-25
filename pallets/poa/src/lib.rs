@@ -64,9 +64,9 @@ mod mock;
 mod tests;
 pub mod weights;
 
+pub use self::weights::WeightInfo;
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
-pub use self::weights::WeightInfo;
 
 /// Historical info about the average value of depth.
 ///
