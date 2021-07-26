@@ -67,10 +67,23 @@ jobs:
           override: true
       - run: cargo test --workspace
 
+  benchmarks:
+    name: Runtime Benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          target: wasm32-unknown-unknown
+          toolchain: nightly-2021-05-18
+          override: true
+      - run: cargo build --features runtime-benchmarks
+
   all-ci:
     # This dummy job depends on all the mandatory checks.
     # It succeeds if and only if all checks are successful.
-    needs: [fmt, clippy, check, test]
+    needs: [fmt, clippy, check, test, benchmarks]
     runs-on: ubuntu-latest
     steps:
      - run: echo Success
