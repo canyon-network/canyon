@@ -638,6 +638,9 @@
 <span id="638">638</span>
 <span id="639">639</span>
 <span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
 </pre><pre class="rust">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -706,8 +709,10 @@
 <span class="doccomment">//! To use this engine, you can create an inhehrent extrinsic using the</span>
 <span class="doccomment">//! data provided by [`PoaInherentDataProvider`] in a pallet. Furthermore,</span>
 <span class="doccomment">//! you need to wrap the [`PurePoaBlockImport`] into your existing block</span>
-<span class="doccomment">//! import pipeline. Refer to the [Substrate docs](https://substrate.dev/docs/en/knowledgebase/advanced/block-import)</span>
-<span class="doccomment">//! for more information about creating a nested `BlockImport`.</span>
+<span class="doccomment">//! import pipeline. Refer to the [Substrate docs][1] for more information</span>
+<span class="doccomment">//! about creating a nested `BlockImport`.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [1]: https://substrate.dev/docs/en/knowledgebase/advanced/block-import</span>
 
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>, <span class="ident">unused_extern_crates</span>)]</span>
 
@@ -735,7 +740,6 @@
 
 <span class="kw">use</span> <span class="ident">canyon_primitives</span>::{<span class="ident">DataIndex</span>, <span class="ident">Depth</span>, <span class="ident">ExtrinsicIndex</span>};
 <span class="kw">use</span> <span class="ident">cc_datastore::TransactionDataBackend</span> <span class="kw">as</span> <span class="ident">TransactionDataBackendT</span>;
-<span class="kw">use</span> <span class="ident">cp_consensus_poa</span>::{<span class="ident">PoaOutcome</span>, <span class="ident">ProofOfAccess</span>, <span class="ident">POA_ENGINE_ID</span>};
 <span class="kw">use</span> <span class="ident">cp_permastore</span>::{<span class="ident">PermastoreApi</span>, <span class="ident">CHUNK_SIZE</span>};
 
 <span class="kw">mod</span> <span class="ident">chunk_proof</span>;
@@ -745,6 +749,8 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::chunk_proof</span>::{<span class="ident">verify_chunk_proof</span>, <span class="ident">ChunkProofBuilder</span>, <span class="ident">ChunkProofVerifier</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::inherent::PoaInherentDataProvider</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::tx_proof</span>::{<span class="ident">build_extrinsic_proof</span>, <span class="ident">verify_extrinsic_proof</span>, <span class="ident">TxProofVerifier</span>};
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">cp_consensus_poa</span>::{<span class="ident">ChunkProof</span>, <span class="ident">PoaOutcome</span>, <span class="ident">ProofOfAccess</span>, <span class="ident">POA_ENGINE_ID</span>};
 
 <span class="doccomment">/// Minimum depth of PoA.</span>
 <span class="kw">const</span> <span class="ident">MIN_DEPTH</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;

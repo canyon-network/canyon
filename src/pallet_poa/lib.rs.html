@@ -273,6 +273,9 @@
 <span id="273">273</span>
 <span id="274">274</span>
 <span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
 </pre><pre class="rust">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -314,7 +317,7 @@
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">rustdoc::broken_intra_doc_links</span>)]</span>
 
-<span class="kw">use</span> <span class="ident">codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
+<span class="kw">use</span> <span class="ident">codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>, <span class="ident">MaxEncodedLen</span>};
 
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{
     <span class="ident">generic::DigestItem</span>,
@@ -332,13 +335,15 @@
 <span class="kw">use</span> <span class="ident">canyon_primitives::Depth</span>;
 <span class="kw">use</span> <span class="ident">cp_consensus_poa</span>::{<span class="ident">PoaOutcome</span>, <span class="ident">POA_ENGINE_ID</span>, <span class="ident">POA_INHERENT_IDENTIFIER</span>};
 
-<span class="comment">// #[cfg(any(feature = &quot;runtime-benchmarks&quot;, test))]</span>
-<span class="comment">// mod benchmarking;</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime-benchmarks&quot;</span>, <span class="ident">test</span>))]</span>
+<span class="kw">mod</span> <span class="ident">benchmarking</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
 <span class="kw">mod</span> <span class="ident">mock</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">weights</span>;
 
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::weights::WeightInfo</span>;
 <span class="comment">// Re-export pallet items so that they can be accessed from the crate namespace.</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pallet</span>::<span class="kw-2">*</span>;
 
@@ -346,7 +351,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// This struct is used for calculating the historical average depth</span>
 <span class="doccomment">/// of a validator, which implies the storage capacity per validator.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">RuntimeDebug</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">RuntimeDebug</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">MaxEncodedLen</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DepthInfo</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Sum of all depths so far.</span>
     <span class="kw">pub</span> <span class="ident">total_depth</span>: <span class="ident">Depth</span>,
@@ -416,6 +421,7 @@
 
     <span class="attribute">#[<span class="ident">pallet::pallet</span>]</span>
     <span class="attribute">#[<span class="ident">pallet::generate_store</span>(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait</span> <span class="ident">Store</span>)]</span>
+    <span class="attribute">#[<span class="ident">pallet::generate_storage_info</span>]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw">_</span>);
 
     <span class="attribute">#[<span class="ident">pallet::hooks</span>]</span>

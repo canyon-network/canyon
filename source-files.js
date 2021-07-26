@@ -12,5 +12,5 @@ sourcesIndex["cc_rpc_api"] = {"name":"","dirs":[{"name":"permastore","files":["e
 sourcesIndex["cp_consensus_poa"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["cp_permastore"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_permastore"] = {"name":"","files":["lib.rs"]};
-sourcesIndex["pallet_poa"] = {"name":"","files":["lib.rs"]};
+sourcesIndex["pallet_poa"] = {"name":"","files":["lib.rs","weights.rs"]};
 createSourceSidebar();

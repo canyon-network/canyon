@@ -1,3 +1,4 @@
 (function() {var implementors = {};
 implementors["canyon_runtime"] = [{"text":"impl MaxEncodedLen for <a class=\"enum\" href=\"canyon_runtime/enum.ProxyType.html\" title=\"enum canyon_runtime::ProxyType\">ProxyType</a>","synthetic":false,"types":["canyon_runtime::ProxyType"]}];
+implementors["pallet_poa"] = [{"text":"impl&lt;BlockNumber:&nbsp;MaxEncodedLen&gt; MaxEncodedLen for <a class=\"struct\" href=\"pallet_poa/struct.DepthInfo.html\" title=\"struct pallet_poa::DepthInfo\">DepthInfo</a>&lt;BlockNumber&gt;","synthetic":false,"types":["pallet_poa::DepthInfo"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
