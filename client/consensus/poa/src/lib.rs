@@ -65,8 +65,10 @@
 //! To use this engine, you can create an inhehrent extrinsic using the
 //! data provided by [`PoaInherentDataProvider`] in a pallet. Furthermore,
 //! you need to wrap the [`PurePoaBlockImport`] into your existing block
-//! import pipeline. Refer to the [Substrate docs](https://substrate.dev/docs/en/knowledgebase/advanced/block-import)
-//! for more information about creating a nested `BlockImport`.
+//! import pipeline. Refer to the [Substrate docs][1] for more information
+//! about creating a nested `BlockImport`.
+//!
+//! [1]: https://substrate.dev/docs/en/knowledgebase/advanced/block-import
 
 #![deny(missing_docs, unused_extern_crates)]
 
@@ -94,7 +96,6 @@ use sc_client_api::{backend::AuxStore, BlockBackend, BlockOf};
 
 use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
 use cc_datastore::TransactionDataBackend as TransactionDataBackendT;
-use cp_consensus_poa::{PoaOutcome, ProofOfAccess, POA_ENGINE_ID};
 use cp_permastore::{PermastoreApi, CHUNK_SIZE};
 
 mod chunk_proof;
@@ -104,6 +105,8 @@ mod tx_proof;
 pub use self::chunk_proof::{verify_chunk_proof, ChunkProofBuilder, ChunkProofVerifier};
 pub use self::inherent::PoaInherentDataProvider;
 pub use self::tx_proof::{build_extrinsic_proof, verify_extrinsic_proof, TxProofVerifier};
+
+pub use cp_consensus_poa::{ChunkProof, PoaOutcome, ProofOfAccess, POA_ENGINE_ID};
 
 /// Minimum depth of PoA.
 const MIN_DEPTH: u32 = 1;

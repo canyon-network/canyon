@@ -32,6 +32,8 @@ pub const POA_ENGINE_ID: ConsensusEngineId = *b"POA:";
 
 /// This struct includes the raw bytes of recall chunk as well as the chunk proof stuffs.
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 pub struct ChunkProof {
     /// Random data chunk that is proved to exist.
     pub chunk: Vec<u8>,
@@ -53,6 +55,15 @@ pub fn encode_index(input: u32) -> Vec<u8> {
 }
 
 impl ChunkProof {
+    /// Creates a new instance of [`ChunkProof`].
+    pub fn new(chunk: Vec<u8>, chunk_index: u32, proof: Vec<Vec<u8>>) -> Self {
+        Self {
+            chunk,
+            chunk_index,
+            proof,
+        }
+    }
+
     /// Returns the proof size in bytes.
     pub fn size(&self) -> usize {
         self.proof.iter().map(|p| p.len()).sum()
@@ -93,6 +104,8 @@ impl ChunkProof {
 
 /// This struct is used to prove the random historical data access of block author.
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 pub struct ProofOfAccess {
     /// Number of trials when a valid `ProofOfAccess` created.
     pub depth: u32,
@@ -115,6 +128,8 @@ impl ProofOfAccess {
 
 /// This struct represents the outcome of creating the inherent data of [`ProofOfAccess`].
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 pub enum PoaOutcome {
     /// Not required for this block due to the entire weave is empty.
     Skipped,
@@ -123,7 +138,7 @@ pub enum PoaOutcome {
     /// Generate a [`ProofOfAccess`] successfully.
     ///
     /// Each block contains a justification of poa as long as the weave
-    /// size is not 0 and will be verified on block import.
+    /// size is not zero and will be verified on block import.
     Justification(ProofOfAccess),
 }
 
