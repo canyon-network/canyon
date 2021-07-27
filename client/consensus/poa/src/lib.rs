@@ -70,6 +70,7 @@
 //!
 //! [1]: https://substrate.dev/docs/en/knowledgebase/advanced/block-import
 
+#![forbid(unsafe_code)]
 #![deny(missing_docs, unused_extern_crates)]
 
 use std::collections::HashMap;
@@ -100,6 +101,8 @@ use cp_permastore::{PermastoreApi, CHUNK_SIZE};
 
 mod chunk_proof;
 mod inherent;
+#[cfg(test)]
+mod tests;
 mod tx_proof;
 
 pub use self::chunk_proof::{verify_chunk_proof, ChunkProofBuilder, ChunkProofVerifier};
