@@ -58,21 +58,23 @@ use frame_support::{
 };
 use frame_system::ensure_signed;
 
-// #[cfg(any(feature = "runtime-benchmarks", test))]
-// mod benchmarking;
+#[cfg(any(feature = "runtime-benchmarks", test))]
+mod benchmarking;
 #[cfg(all(feature = "std", test))]
 mod mock;
 #[cfg(all(feature = "std", test))]
 mod tests;
+pub mod weights;
+
+pub use self::weights::WeightInfo;
+// Re-export pallet items so that they can be accessed from the crate namespace.
+pub use pallet::*;
 
 /// The balance type of this module.
 pub type BalanceOf<T> =
     <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
 type ExtrinsicIndex = u32;
-
-// Re-export pallet items so that they can be accessed from the crate namespace.
-pub use pallet::*;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -97,6 +99,9 @@ pub mod pallet {
 
         /// Maximum of a transaction data in bytes.
         type MaxDataSize: Get<u32>;
+
+        /// Weight information for extrinsics in this pallet.
+        type WeightInfo: WeightInfo;
     }
 
     #[pallet::pallet]
@@ -112,8 +117,7 @@ pub mod pallet {
         }
 
         fn on_finalize(n: BlockNumberFor<T>) {
-            let current_block_data_size = <BlockDataSize<T>>::get();
-            if current_block_data_size > 0 {
+            if <BlockDataSize<T>>::get() > 0 {
                 let latest_weave_size = <WeaveSize<T>>::get();
                 <GlobalWeaveSizeIndex<T>>::append(latest_weave_size);
                 <GlobalBlockNumberIndex<T>>::append(n);
@@ -128,7 +132,7 @@ pub mod pallet {
         /// The minimum data size is 1 bytes, the maximum is `MAX_DATA_SIZE`.
         /// The digest of data will be recorded on chain, the actual data has
         /// to be stored off-chain before executing this extrinsic.
-        #[pallet::weight(0)]
+        #[pallet::weight(T::WeightInfo::store())]
         pub fn store(origin: OriginFor<T>, data_size: u32, chunk_root: T::Hash) -> DispatchResult {
             let sender = ensure_signed(origin)?;
 
@@ -165,7 +169,7 @@ pub mod pallet {
         /// By the mean of forgetting a data, this piece of data will be
         /// prevented from being selected as the random data source in the
         /// PoA consensus.
-        #[pallet::weight(0)]
+        #[pallet::weight(T::WeightInfo::forget())]
         pub fn forget(
             origin: OriginFor<T>,
             block_number: T::BlockNumber,
@@ -331,6 +335,7 @@ impl<T: Config> Pallet<T> {
         data_size: u32,
     ) -> Result<BalanceOf<T>, sp_runtime::DispatchError> {
         let fee = Self::calculate_storage_fee(data_size);
+        frame_support::log::info!(target: "runtime", "who: {:?}, Free: {:?}", who, T::Currency::free_balance(who));
         let treasury_account: T::AccountId = T::TreasuryPalletId::get().into_account();
         T::Currency::transfer(who, &treasury_account, fee, ExistenceRequirement::KeepAlive)?;
         Ok(fee)

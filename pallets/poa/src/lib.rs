@@ -138,6 +138,9 @@ pub mod pallet {
 
         /// Find the author of current block.
         type BlockAuthor: BlockAuthor<Self::AccountId>;
+
+        /// Weight information for extrinsics in this pallet.
+        type WeightInfo: WeightInfo;
     }
 
     #[pallet::pallet]
@@ -152,7 +155,7 @@ pub mod pallet {
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
-        #[pallet::weight((0, DispatchClass::Mandatory))]
+        #[pallet::weight((T::WeightInfo::process_poa_outcome(), DispatchClass::Mandatory))]
         pub fn process_poa_outcome(
             origin: OriginFor<T>,
             poa_outcome: PoaOutcome,
