@@ -11,6 +11,7 @@ cargo build --release --features=runtime-benchmarks
 bin=./target/release/canyon
 
 pallets=(
+  permastore
   poa
 )
 
@@ -29,5 +30,7 @@ for pallet in "${pallets[@]}"; do
     --template=./scripts/pallet-weights-template.hbs \
     --output="$output"
 
-  rustfmt "$output"
+  if [ -f "$output" ]; then
+    rustfmt "$output"
+  fi
 done

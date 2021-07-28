@@ -794,6 +794,7 @@ impl pallet_permastore::Config for Runtime {
     type Currency = Balances;
     type TreasuryPalletId = TreasuryModuleId;
     type MaxDataSize = MaxDataSize;
+    type WeightInfo = pallet_permastore::weights::SubstrateWeight<Runtime>;
 }
 
 impl pallet_poa::BlockAuthor<AccountId> for Runtime {
@@ -805,6 +806,7 @@ impl pallet_poa::BlockAuthor<AccountId> for Runtime {
 impl pallet_poa::Config for Runtime {
     type Event = Event;
     type BlockAuthor = Self;
+    type WeightInfo = pallet_poa::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -1408,27 +1410,11 @@ impl_runtime_apis! {
             add_benchmark!(params, batches, pallet_utility, Utility);
             add_benchmark!(params, batches, pallet_vesting, Vesting);
 
+            add_benchmark!(params, batches, pallet_permastore, Permastore);
             add_benchmark!(params, batches, pallet_poa, Poa);
 
             if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
             Ok((batches, storage_info))
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use frame_system::offchain::CreateSignedTransaction;
-
-    #[test]
-    fn validate_transaction_submitter_bounds() {
-        fn is_submit_signed_transaction<T>()
-        where
-            T: CreateSignedTransaction<Call>,
-        {
-        }
-
-        is_submit_signed_transaction::<Runtime>();
     }
 }

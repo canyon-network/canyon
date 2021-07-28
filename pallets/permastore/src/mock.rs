@@ -101,6 +101,7 @@ impl Config for Test {
     type Currency = Balances;
     type TreasuryPalletId = TreasuryPalletId;
     type MaxDataSize = MaxDataSize;
+    type WeightInfo = ();
 }
 
 // This function basically just builds a genesis storage key/value store according to
