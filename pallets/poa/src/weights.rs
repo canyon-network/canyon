@@ -59,7 +59,7 @@ pub trait WeightInfo {
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
     fn process_poa_outcome() -> Weight {
-        (776_401_000 as Weight)
+        (778_720_000 as Weight)
             .saturating_add(T::DbWeight::get().reads(3 as Weight))
             .saturating_add(T::DbWeight::get().writes(2 as Weight))
     }
@@ -68,7 +68,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 // For backwards compatibility and tests
 impl WeightInfo for () {
     fn process_poa_outcome() -> Weight {
-        (776_401_000 as Weight)
+        (778_720_000 as Weight)
             .saturating_add(RocksDbWeight::get().reads(3 as Weight))
             .saturating_add(RocksDbWeight::get().writes(2 as Weight))
     }
