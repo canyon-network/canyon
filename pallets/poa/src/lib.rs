@@ -164,6 +164,7 @@ pub mod pallet {
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
+        /// Handle the inherent data from the poa consensus.
         #[pallet::weight((T::WeightInfo::process_poa_outcome(), DispatchClass::Mandatory))]
         pub fn process_poa_outcome(
             origin: OriginFor<T>,
@@ -198,7 +199,8 @@ pub mod pallet {
             Ok(())
         }
 
-        #[pallet::weight(0)]
+        /// Set new poa configuration.
+        #[pallet::weight(T::WeightInfo::set_config())]
         pub fn set_config(origin: OriginFor<T>, new: PoaConfiguration) -> DispatchResult {
             ensure_root(origin)?;
 

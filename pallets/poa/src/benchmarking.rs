@@ -17,7 +17,7 @@
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
-use cp_consensus_poa::{ChunkProof, ProofOfAccess};
+use cp_consensus_poa::{ChunkProof, PoaConfiguration, ProofOfAccess};
 use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
 use sp_std::vec;
@@ -49,6 +49,17 @@ benchmarks! {
     }: process_poa_outcome (RawOrigin::None, poa_outcome)
     verify {
         // TODO: verify process_poa_outcome
+    }
+
+    set_config {
+        let new = PoaConfiguration {
+            max_depth: 1u32,
+            max_tx_path: 100u32,
+            max_chunk_path: 100u32
+        };
+    }: set_config (RawOrigin::Root, new.clone())
+    verify {
+        assert_eq!(new, Pallet::<T>::poa_config());
     }
 }
 
