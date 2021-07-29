@@ -134,6 +134,9 @@ pub enum Error<Block: BlockT> {
     /// Blockchain error.
     #[error("Blockchain error")]
     BlockchainError(#[from] sp_blockchain::Error),
+    /// Invalid ProofOfAccess.
+    #[error("Invalid ProofOfAccess: {0:?}")]
+    InvalidProofOfAccess(ProofOfAccess),
     /// Failed to verify the merkle proof.
     #[error("VerifyError error")]
     VerifyFailed(#[from] cp_permastore::VerifyError),
@@ -572,7 +575,7 @@ where
         + AuxStore
         + ProvideCache<B>
         + BlockOf,
-    C::Api: BlockBuilderApi<B> + PermastoreApi<B, NumberFor<B>, u32, B::Hash>,
+    C::Api: BlockBuilderApi<B> + PermastoreApi<B, NumberFor<B>, u32, B::Hash> + PoaApi<B>,
 {
     type Error = ConsensusError;
     type Transaction = sp_api::TransactionFor<C, B>;
@@ -604,14 +607,18 @@ where
             .map_err(Error::<B>::ApiError)?
         {
             let header = block.post_header();
-
-            let ProofOfAccess {
-                depth,
-                tx_path,
-                chunk_proof,
-            } = fetch_poa::<B>(header, best_hash)?;
+            let poa = fetch_poa::<B>(header, best_hash)?;
 
             let parent_hash = *block.header.parent_hash();
+            let poa_config = self
+                .client
+                .runtime_api()
+                .poa_config(&BlockId::Hash(parent_hash))
+                .map_err(Error::<B>::ApiError)?;
+
+            if !poa.is_valid(&poa_config) {
+                return Err(Error::<B>::InvalidProofOfAccess(poa).into());
+            }
 
             let weave_size = self
                 .client
@@ -619,11 +626,15 @@ where
                 .weave_size(&BlockId::Hash(parent_hash))
                 .map_err(Error::<B>::ApiError)?;
 
+            let ProofOfAccess {
+                depth,
+                tx_path,
+                chunk_proof,
+            } = poa;
+
             let recall_byte = calculate_challenge_byte(parent_hash.encode(), weave_size, depth);
             let recall_block_number =
                 find_recall_block(BlockId::Hash(parent_hash), recall_byte, &self.client)?;
-
-            // TODO: verify proof size
 
             find_recall_info(recall_byte, recall_block_number, &self.client)?
                 .into_tx_proof_verifier()
