@@ -197,6 +197,19 @@ pub mod pallet {
 
             Ok(())
         }
+
+        #[pallet::weight(0)]
+        pub fn set_config(origin: OriginFor<T>, new: PoaConfiguration) -> DispatchResult {
+            ensure_root(origin)?;
+
+            ensure!(new.check_sanity(), Error::<T>::InvalidPoaConfiguration);
+
+            PoaConfig::<T>::put(&new);
+
+            Self::deposit_event(Event::<T>::ConfigUpdated(new));
+
+            Ok(())
+        }
     }
 
     #[pallet::inherent]
@@ -255,9 +268,10 @@ pub mod pallet {
     /// Event for the poa pallet.
     #[pallet::event]
     #[pallet::metadata(T::AccountId = "AccountId")]
+    #[pallet::generate_deposit(pub(super) fn deposit_event)]
     pub enum Event<T: Config> {
-        /// Dummy event, just here so there's a generic type that's used.
-        NewDepth(T::AccountId, Depth),
+        /// New poa configuration.
+        ConfigUpdated(PoaConfiguration),
     }
 
     /// Error for the poa pallet.
@@ -265,6 +279,8 @@ pub mod pallet {
     pub enum Error<T> {
         /// Invalid inherent data of `[ProofOfAccess]`
         InvalidProofOfAccess,
+        /// The poa configuration failed the sanity checks.
+        InvalidPoaConfiguration,
     }
 
     /// Poa Configuration.

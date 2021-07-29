@@ -198,6 +198,16 @@ impl Default for PoaConfiguration {
     }
 }
 
+impl PoaConfiguration {
+    /// Returns true if all the sanity checks are passed.
+    pub fn check_sanity(&self) -> bool {
+        // TODO:
+        // 1. upper limit check?
+        // 2. more accurate check for the proof since the size of merkle proof has a lower bound?
+        self.max_depth > 0 && self.max_tx_path > 0 && self.max_chunk_path > 0
+    }
+}
+
 impl sp_std::fmt::Debug for PoaConfiguration {
     #[cfg(feature = "std")]
     fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
