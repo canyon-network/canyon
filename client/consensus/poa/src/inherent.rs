@@ -48,7 +48,8 @@ impl PoaInherentDataProvider {
             + Send
             + Sync
             + 'static,
-        Client::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
+        Client::Api: cp_permastore::PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>
+            + cp_poa::PoaApi<Block>,
         TransactionDataBackend: TransactionDataBackendT<Block>,
     {
         let poa_outcome = match crate::construct_poa(client, parent, transaction_data_backend) {

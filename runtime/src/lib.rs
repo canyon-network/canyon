@@ -1333,6 +1333,12 @@ impl_runtime_apis! {
         }
     }
 
+    impl cp_poa::PoaApi<Block> for Runtime {
+        fn poa_config() -> cp_poa::PoaConfiguration {
+            Poa::poa_config()
+        }
+    }
+
     #[cfg(feature = "try-runtime")]
     impl frame_try_runtime::TryRuntime<Block> for Runtime {
         fn on_runtime_upgrade() -> Result<(Weight, Weight), sp_runtime::RuntimeString> {

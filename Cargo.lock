@@ -916,6 +916,7 @@ version = "0.1.0"
 dependencies = [
  "canyon-primitives",
  "cp-permastore",
+ "cp-poa",
  "frame-benchmarking",
  "frame-election-provider-support",
  "frame-executive",
@@ -1035,6 +1036,7 @@ dependencies = [
  "cc-datastore",
  "cp-consensus-poa",
  "cp-permastore",
+ "cp-poa",
  "criterion",
  "log",
  "parity-scale-codec",
@@ -1289,6 +1291,14 @@ dependencies = [
  "sp-core",
  "sp-std",
  "sp-trie",
+]
+
+[[package]]
+name = "cp-poa"
+version = "0.1.0"
+dependencies = [
+ "cp-consensus-poa",
+ "sp-api",
 ]
 
 [[package]]

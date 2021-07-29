@@ -23,6 +23,7 @@ members = [
     "primitives",
     "primitives/consensus/poa",
     "primitives/permastore",
+    "primitives/poa",
     "rpc",
     "runtime",
 ]

@@ -26,6 +26,7 @@ canyon-primitives = { path = "../../../primitives" }
 cc-datastore = { path = "../../datastore" }
 cp-consensus-poa = { path = "../../../primitives/consensus/poa" }
 cp-permastore = { path = "../../../primitives/permastore" }
+cp-poa = { path = "../../../primitives/poa" }
 
 [dev-dependencies]
 criterion = "0.3"

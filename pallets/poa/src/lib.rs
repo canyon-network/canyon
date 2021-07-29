@@ -54,7 +54,7 @@ use frame_support::{
 };
 
 use canyon_primitives::Depth;
-use cp_consensus_poa::{PoaOutcome, POA_ENGINE_ID, POA_INHERENT_IDENTIFIER};
+use cp_consensus_poa::{PoaConfiguration, PoaOutcome, POA_ENGINE_ID, POA_INHERENT_IDENTIFIER};
 
 #[cfg(any(feature = "runtime-benchmarks", test))]
 mod benchmarking;
@@ -120,6 +120,15 @@ pub trait BlockAuthor<AccountId> {
     fn author() -> AccountId;
 }
 
+/// Error type for the poa inherent.
+#[derive(RuntimeDebug, Clone, Encode, Decode)]
+pub enum InherentError {
+    /// The poa entry included is invalid.
+    InvalidProofOfAccess,
+    /// Poa inherent is not provided.
+    MissingPoaInherent,
+}
+
 #[frame_support::pallet]
 pub mod pallet {
     use super::*;
@@ -155,6 +164,7 @@ pub mod pallet {
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
+        /// Handle the inherent data from the poa consensus.
         #[pallet::weight((T::WeightInfo::process_poa_outcome(), DispatchClass::Mandatory))]
         pub fn process_poa_outcome(
             origin: OriginFor<T>,
@@ -164,18 +174,19 @@ pub mod pallet {
 
             match poa_outcome {
                 PoaOutcome::Justification(poa) => {
-                    let depth = poa.depth;
-
-                    assert!(depth > 0, "depth must be greater than 0");
+                    ensure!(
+                        poa.is_valid(&Self::poa_config()),
+                        Error::<T>::InvalidProofOfAccess
+                    );
 
                     <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(
                         POA_ENGINE_ID,
                         poa.encode(),
                     ));
 
-                    Self::note_depth(depth);
+                    Self::note_depth(poa.depth);
                 }
-                PoaOutcome::MaxDepthReached => {
+                PoaOutcome::MaxDepthReached(_) => {
                     // Decrease the storage capacity?
                     // Need to update outcome.require_inherent() too.
                     //
@@ -187,12 +198,26 @@ pub mod pallet {
 
             Ok(())
         }
+
+        /// Set new poa configuration.
+        #[pallet::weight(T::WeightInfo::set_config())]
+        pub fn set_config(origin: OriginFor<T>, new: PoaConfiguration) -> DispatchResult {
+            ensure_root(origin)?;
+
+            ensure!(new.check_sanity(), Error::<T>::InvalidPoaConfiguration);
+
+            PoaConfig::<T>::put(&new);
+
+            Self::deposit_event(Event::<T>::ConfigUpdated(new));
+
+            Ok(())
+        }
     }
 
     #[pallet::inherent]
     impl<T: Config> ProvideInherent for Pallet<T> {
         type Call = Call<T>;
-        type Error = MakeFatalError<()>;
+        type Error = MakeFatalError<InherentError>;
 
         const INHERENT_IDENTIFIER: InherentIdentifier = POA_INHERENT_IDENTIFIER;
 
@@ -215,13 +240,28 @@ pub mod pallet {
             Some(Call::process_poa_outcome(poa_outcome))
         }
 
+        fn check_inherent(call: &Self::Call, _: &InherentData) -> Result<(), Self::Error> {
+            match call {
+                Call::process_poa_outcome(PoaOutcome::Justification(poa)) => {
+                    if poa.is_valid(&Self::poa_config()) {
+                        Ok(())
+                    } else {
+                        Err(InherentError::InvalidProofOfAccess.into())
+                    }
+                }
+                _ => Ok(()),
+            }
+        }
+
         fn is_inherent(call: &Self::Call) -> bool {
             matches!(call, Call::process_poa_outcome(..))
         }
 
         fn is_inherent_required(data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
             match data.get_data::<PoaOutcome>(&Self::INHERENT_IDENTIFIER) {
-                Ok(Some(outcome)) if outcome.require_inherent() => Ok(Some(().into())),
+                Ok(Some(outcome)) if outcome.require_inherent() => {
+                    Ok(Some(InherentError::MissingPoaInherent.into()))
+                }
                 _ => Ok(None),
             }
         }
@@ -230,17 +270,25 @@ pub mod pallet {
     /// Event for the poa pallet.
     #[pallet::event]
     #[pallet::metadata(T::AccountId = "AccountId")]
+    #[pallet::generate_deposit(pub(super) fn deposit_event)]
     pub enum Event<T: Config> {
-        /// Dummy event, just here so there's a generic type that's used.
-        NewDepth(T::AccountId, Depth),
+        /// New poa configuration.
+        ConfigUpdated(PoaConfiguration),
     }
 
     /// Error for the poa pallet.
     #[pallet::error]
     pub enum Error<T> {
-        /// Poa inherent is required but there is no one.
-        PoaInherentMissing,
+        /// Invalid inherent data of `[ProofOfAccess]`
+        InvalidProofOfAccess,
+        /// The poa configuration failed the sanity checks.
+        InvalidPoaConfiguration,
     }
+
+    /// Poa Configuration.
+    #[pallet::storage]
+    #[pallet::getter(fn poa_config)]
+    pub(super) type PoaConfig<T: Config> = StorageValue<_, PoaConfiguration, ValueQuery>;
 
     /// Historical depth info for each validator.
     ///

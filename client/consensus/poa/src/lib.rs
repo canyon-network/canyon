@@ -97,6 +97,7 @@ use sc_client_api::{backend::AuxStore, BlockBackend, BlockOf};
 use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
 use cc_datastore::TransactionDataBackend as TransactionDataBackendT;
 use cp_permastore::{PermastoreApi, CHUNK_SIZE};
+use cp_poa::PoaApi;
 
 mod chunk_proof;
 mod inherent;
@@ -106,21 +107,12 @@ pub use self::chunk_proof::{verify_chunk_proof, ChunkProofBuilder, ChunkProofVer
 pub use self::inherent::PoaInherentDataProvider;
 pub use self::tx_proof::{build_extrinsic_proof, verify_extrinsic_proof, TxProofVerifier};
 
-pub use cp_consensus_poa::{ChunkProof, PoaOutcome, ProofOfAccess, POA_ENGINE_ID};
+pub use cp_consensus_poa::{
+    ChunkProof, PoaConfiguration, PoaOutcome, ProofOfAccess, POA_ENGINE_ID,
+};
 
 /// Minimum depth of PoA.
 const MIN_DEPTH: u32 = 1;
-
-/// The maximum depth of attempting to generate a valid PoA.
-///
-/// TODO: make it configurable in Runtime?
-pub const MAX_DEPTH: u32 = 1_000;
-
-/// Maximum byte size of transaction merkle path.
-pub const MAX_TX_PATH: u32 = 256 * 1024;
-
-/// Maximum byte size of chunk merkle path.
-pub const MAX_CHUNK_PATH: u32 = 256 * 1024;
 
 type Randomness = Vec<u8>;
 
@@ -142,6 +134,9 @@ pub enum Error<Block: BlockT> {
     /// Blockchain error.
     #[error("Blockchain error")]
     BlockchainError(#[from] sp_blockchain::Error),
+    /// Invalid ProofOfAccess.
+    #[error("Invalid ProofOfAccess: {0:?}")]
+    InvalidProofOfAccess(ProofOfAccess),
     /// Failed to verify the merkle proof.
     #[error("VerifyError error")]
     VerifyFailed(#[from] cp_permastore::VerifyError),
@@ -339,7 +334,7 @@ where
         + Send
         + Sync
         + 'static,
-    Client::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
+    Client::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash> + PoaApi<Block>,
     TransactionDataBackend: TransactionDataBackendT<Block>,
 {
     /// Creates a new instance of [`PoaBuilder`].
@@ -375,7 +370,13 @@ where
             return Ok(PoaOutcome::Skipped);
         }
 
-        for depth in MIN_DEPTH..=MAX_DEPTH {
+        let PoaConfiguration {
+            max_depth,
+            max_tx_path,
+            max_chunk_path,
+        } = self.client.runtime_api().poa_config(&parent_id)?;
+
+        for depth in MIN_DEPTH..=max_depth {
             log::debug!(target: "poa", "Attempting to generate poa at depth: {}", depth);
             let recall_byte = calculate_challenge_byte(parent.encode(), weave_size, depth);
             let recall_block_number = self.find_recall_block(parent_id, recall_byte)?;
@@ -420,12 +421,12 @@ where
                         ChunkProofBuilder::new(tx_data, CHUNK_SIZE, transaction_data_offset as u32)
                             .build()
                     {
-                        if chunk_proof.size() > MAX_CHUNK_PATH as usize {
+                        if chunk_proof.size() > max_chunk_path as usize {
                             log::debug!(
                                 target: "poa",
                                 "Dropping the chunk proof as it's too large ({} > {})",
                                 chunk_proof.size(),
-                                MAX_CHUNK_PATH,
+                                max_chunk_path,
                             );
                             continue;
                         }
@@ -435,12 +436,12 @@ where
                             extrinsics,
                         ) {
                             let tx_path_size: usize = tx_proof.iter().map(|t| t.len()).sum();
-                            if tx_path_size > MAX_TX_PATH as usize {
+                            if tx_path_size > max_tx_path as usize {
                                 log::debug!(
                                     target: "poa",
                                     "Dropping the tx proof as it's too large ({} > {})",
                                     tx_path_size,
-                                    MAX_TX_PATH,
+                                    max_tx_path,
                                 );
                                 continue;
                             }
@@ -468,9 +469,9 @@ where
             }
         }
 
-        log::warn!(target: "poa", "Reaching the max depth: {}", MAX_DEPTH);
+        log::warn!(target: "poa", "Reaching the max depth: {}", max_depth);
 
-        Ok(PoaOutcome::MaxDepthReached)
+        Ok(PoaOutcome::MaxDepthReached(max_depth))
     }
 }
 
@@ -488,7 +489,7 @@ where
         + Send
         + Sync
         + 'static,
-    Client::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
+    Client::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash> + PoaApi<Block>,
     TransactionDataBackend: TransactionDataBackendT<Block>,
 {
     PoaBuilder::new(client, transaction_data_backend).build(parent)
@@ -574,7 +575,7 @@ where
         + AuxStore
         + ProvideCache<B>
         + BlockOf,
-    C::Api: BlockBuilderApi<B> + PermastoreApi<B, NumberFor<B>, u32, B::Hash>,
+    C::Api: BlockBuilderApi<B> + PermastoreApi<B, NumberFor<B>, u32, B::Hash> + PoaApi<B>,
 {
     type Error = ConsensusError;
     type Transaction = sp_api::TransactionFor<C, B>;
@@ -606,20 +607,30 @@ where
             .map_err(Error::<B>::ApiError)?
         {
             let header = block.post_header();
-
-            let ProofOfAccess {
-                depth,
-                tx_path,
-                chunk_proof,
-            } = fetch_poa::<B>(header, best_hash)?;
+            let poa = fetch_poa::<B>(header, best_hash)?;
 
             let parent_hash = *block.header.parent_hash();
+            let poa_config = self
+                .client
+                .runtime_api()
+                .poa_config(&BlockId::Hash(parent_hash))
+                .map_err(Error::<B>::ApiError)?;
+
+            if !poa.is_valid(&poa_config) {
+                return Err(Error::<B>::InvalidProofOfAccess(poa).into());
+            }
 
             let weave_size = self
                 .client
                 .runtime_api()
                 .weave_size(&BlockId::Hash(parent_hash))
                 .map_err(Error::<B>::ApiError)?;
+
+            let ProofOfAccess {
+                depth,
+                tx_path,
+                chunk_proof,
+            } = poa;
 
             let recall_byte = calculate_challenge_byte(parent_hash.encode(), weave_size, depth);
             let recall_block_number =
