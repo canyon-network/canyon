@@ -18,7 +18,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use codec::{Decode, Encode};
+use codec::{Decode, Encode, MaxEncodedLen};
 
 use sp_inherents::InherentIdentifier;
 use sp_runtime::ConsensusEngineId;
@@ -146,5 +146,46 @@ impl PoaOutcome {
     /// Returns true if the poa inherent must be included in the block.
     pub fn require_inherent(&self) -> bool {
         matches!(self, Self::Justification(..))
+    }
+}
+
+const MAX_DEPTH: u32 = 1_000;
+const MAX_TX_PATH: u32 = 256 * 1024;
+const MAX_CHUNK_PATH: u32 = 256 * 1024;
+
+/// Configuration of the PoA consensus engine.
+#[derive(Clone, Eq, PartialEq, Encode, Decode, MaxEncodedLen)]
+pub struct PoaConfiguration {
+    /// The maximum depth of attempting to generate a valid [`ProofOfAccess`].
+    pub max_depth: u32,
+    /// Maximum byte size of tx merkle path.
+    pub max_tx_path: u32,
+    /// Maximum byte size of chunk merkle path.
+    pub max_chunk_path: u32,
+}
+
+impl Default for PoaConfiguration {
+    fn default() -> Self {
+        Self {
+            max_depth: MAX_DEPTH,
+            max_tx_path: MAX_TX_PATH,
+            max_chunk_path: MAX_CHUNK_PATH,
+        }
+    }
+}
+
+impl sp_std::fmt::Debug for PoaConfiguration {
+    #[cfg(feature = "std")]
+    fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+        f.debug_struct("PoaConfiguration")
+            .field("max_depth", &self.max_depth)
+            .field("max_tx_path", &self.max_tx_path)
+            .field("max_chunk_path", &self.max_chunk_path)
+            .finish()
+    }
+
+    #[cfg(not(feature = "std"))]
+    fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+        f.write_str("<wasm:stripped>")
     }
 }

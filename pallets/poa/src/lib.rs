@@ -54,7 +54,7 @@ use frame_support::{
 };
 
 use canyon_primitives::Depth;
-use cp_consensus_poa::{PoaOutcome, POA_ENGINE_ID, POA_INHERENT_IDENTIFIER};
+use cp_consensus_poa::{PoaConfiguration, PoaOutcome, POA_ENGINE_ID, POA_INHERENT_IDENTIFIER};
 
 #[cfg(any(feature = "runtime-benchmarks", test))]
 mod benchmarking;
@@ -241,6 +241,11 @@ pub mod pallet {
         /// Poa inherent is required but there is no one.
         PoaInherentMissing,
     }
+
+    /// Poa Configuration.
+    #[pallet::storage]
+    #[pallet::getter(fn poa_config)]
+    pub(super) type PoaConfig<T: Config> = StorageValue<_, PoaConfiguration, ValueQuery>;
 
     /// Historical depth info for each validator.
     ///
