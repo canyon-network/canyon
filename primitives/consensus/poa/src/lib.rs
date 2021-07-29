@@ -158,7 +158,7 @@ pub enum PoaOutcome {
     /// Not required for this block due to the entire weave is empty.
     Skipped,
     /// Failed to create a valid [`ProofOfAccess`] due to the maximum depth limit has been reached.
-    MaxDepthReached,
+    MaxDepthReached(u32),
     /// Generate a [`ProofOfAccess`] successfully.
     ///
     /// Each block contains a justification of poa as long as the weave

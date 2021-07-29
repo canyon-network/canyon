@@ -468,7 +468,7 @@ where
 
         log::warn!(target: "poa", "Reaching the max depth: {}", max_depth);
 
-        Ok(PoaOutcome::MaxDepthReached)
+        Ok(PoaOutcome::MaxDepthReached(max_depth))
     }
 }
 

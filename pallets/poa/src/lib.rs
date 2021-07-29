@@ -185,7 +185,7 @@ pub mod pallet {
 
                     Self::note_depth(poa.depth);
                 }
-                PoaOutcome::MaxDepthReached => {
+                PoaOutcome::MaxDepthReached(_) => {
                     // Decrease the storage capacity?
                     // Need to update outcome.require_inherent() too.
                     //
