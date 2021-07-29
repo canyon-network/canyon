@@ -124,6 +124,30 @@ impl ProofOfAccess {
             chunk_proof,
         }
     }
+
+    /// Returns the size of tx proof.
+    pub fn tx_path_len(&self) -> usize {
+        self.tx_path.iter().map(|x| x.len()).sum()
+    }
+
+    /// Returns the size of chunk proof.
+    pub fn chunk_path_len(&self) -> usize {
+        self.chunk_proof.size()
+    }
+
+    /// Returns true if the proof is valid given `poa_config`.
+    pub fn is_valid(&self, poa_config: &PoaConfiguration) -> bool {
+        let PoaConfiguration {
+            max_depth,
+            max_tx_path,
+            max_chunk_path,
+        } = poa_config;
+
+        self.depth > 0
+            && &self.depth <= max_depth
+            && &(self.tx_path_len() as u32) <= max_tx_path
+            && &(self.chunk_path_len() as u32) <= max_chunk_path
+    }
 }
 
 /// This struct represents the outcome of creating the inherent data of [`ProofOfAccess`].
