@@ -80,6 +80,7 @@
 <span id="80">80</span>
 <span id="81">81</span>
 <span id="82">82</span>
+<span id="83">83</span>
 </pre><pre class="rust">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -131,7 +132,8 @@
             <span class="op">+</span> <span class="ident">Send</span>
             <span class="op">+</span> <span class="ident">Sync</span>
             <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">Client::Api</span>: <span class="ident">cp_permastore::PermastoreApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">NumberFor</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>, <span class="ident">u32</span>, <span class="ident">Block::Hash</span><span class="op">&gt;</span>,
+        <span class="ident">Client::Api</span>: <span class="ident">cp_permastore::PermastoreApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">NumberFor</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>, <span class="ident">u32</span>, <span class="ident">Block::Hash</span><span class="op">&gt;</span>
+            <span class="op">+</span> <span class="ident">cp_poa::PoaApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
         <span class="ident">TransactionDataBackend</span>: <span class="ident">TransactionDataBackendT</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">poa_outcome</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw">crate</span><span class="ident">::construct_poa</span>(<span class="ident">client</span>, <span class="ident">parent</span>, <span class="ident">transaction_data_backend</span>) {

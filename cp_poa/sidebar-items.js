@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["PoaConfiguration","Configuration of the PoA consensus engine."]],"trait":[["PoaApi","The poa API."]]});

@@ -1418,6 +1418,12 @@
 <span id="1418">1418</span>
 <span id="1419">1419</span>
 <span id="1420">1420</span>
+<span id="1421">1421</span>
+<span id="1422">1422</span>
+<span id="1423">1423</span>
+<span id="1424">1424</span>
+<span id="1425">1425</span>
+<span id="1426">1426</span>
 </pre><pre class="rust">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -2751,6 +2757,12 @@
         }
         <span class="kw">fn</span> <span class="ident">weave_size</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
             <span class="ident">Permastore::weave_size</span>()
+        }
+    }
+
+    <span class="kw">impl</span> <span class="ident">cp_poa::PoaApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+        <span class="kw">fn</span> <span class="ident">poa_config</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cp_poa::PoaConfiguration</span> {
+            <span class="ident">Poa::poa_config</span>()
         }
     }
 
