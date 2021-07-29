@@ -1,22 +1,40 @@
-use super::*;
-use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
+use codec::Encode;
+
+use frame_benchmarking::{benchmarks, impl_benchmark_test_suite, whitelisted_caller};
+use frame_support::traits::Currency;
 use frame_system::RawOrigin;
+use sp_runtime::traits::Hash;
+
+use crate::{Call, Config, Pallet};
 
 benchmarks! {
-    // This will measure the execution time of `accumulate_dummy` for b in [1..1000] range.
     store {
-        let data_size in 1 .. 1000;
-        let caller = account("caller", 0, 0);
-        let chunk_root = Default::default();
-        let data = Vec::new();
-    }: _ (RawOrigin::Signed(caller), data_size.into(), chunk_root, root)
+        let caller = whitelisted_caller();
+        let balance = 10_000u32;
+        let data = b"transaction data";
+        let min = T::Currency::minimum_balance().max(1u32.into());
+        T::Currency::make_free_balance_be(&caller, min * balance.into());
+        let chunk_root = T::Hashing::hash(&data.encode()[..]);
+    }: store (RawOrigin::Signed(caller), data.len() as u32, chunk_root)
+    verify {
+        // TODO
+    }
 
-    // This will measure the execution time of `set_dummy` for b in [1..1000] range.
     forget {
-        let b in 1 .. 1000;
-        let block_number = 100;
-        let extrinsic_index = 3;
-    }: set_dummy (RawOrigin::Signed(caller), block_number, extrinsic_index)
+        let caller: T::AccountId = whitelisted_caller();
+        let balance = 10_000u32;
+        let min = T::Currency::minimum_balance().max(1u32.into());
+        T::Currency::make_free_balance_be(&caller, min * balance.into());
+        let block_number: T::BlockNumber = 100u32.into();
+        frame_system::Pallet::<T>::set_block_number(block_number);
+        let data = b"transaction data";
+        let chunk_root = T::Hashing::hash(&data.encode()[..]);
+        Pallet::<T>::store(RawOrigin::Signed(caller.clone()).into(), data.len() as u32, chunk_root)?;
+        let extrinsic_index = 0u32;
+    }: forget (RawOrigin::Signed(caller), block_number, extrinsic_index)
+    verify {
+        // TODO
+    }
 }
 
 impl_benchmark_test_suite!(Pallet, crate::mock::new_test_ext(), crate::mock::Test);

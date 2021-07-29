@@ -8,7 +8,7 @@ edition = "2018"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "2.1", default-features = false }
+codec = { package = "parity-scale-codec", version = "2.2", default-features = false, features = ["derive", "max-encoded-len"] }
 serde = { version = "1.0.101", optional = true }
 
 sp-io = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
@@ -23,8 +23,17 @@ canyon-primitives = { path = "../../primitives/", default-features = false }
 cp-consensus-poa = { path = "../../primitives/consensus/poa", default-features = false }
 
 [dev-dependencies]
+sc-block-builder = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-client-db = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-keyring = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 pallet-balances = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+substrate-test-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+substrate-test-runtime-client = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
+cc-consensus-poa = { path = "../../client/consensus/poa" }
+cp-permastore = { path = "../../primitives/permastore" }
 
 [features]
 default = ["std"]

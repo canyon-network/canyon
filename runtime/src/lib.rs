@@ -794,6 +794,7 @@ impl pallet_permastore::Config for Runtime {
     type Currency = Balances;
     type TreasuryPalletId = TreasuryModuleId;
     type MaxDataSize = MaxDataSize;
+    type WeightInfo = pallet_permastore::weights::SubstrateWeight<Runtime>;
 }
 
 impl pallet_poa::BlockAuthor<AccountId> for Runtime {
@@ -805,6 +806,7 @@ impl pallet_poa::BlockAuthor<AccountId> for Runtime {
 impl pallet_poa::Config for Runtime {
     type Event = Event;
     type BlockAuthor = Self;
+    type WeightInfo = pallet_poa::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -1343,8 +1345,13 @@ impl_runtime_apis! {
     impl frame_benchmarking::Benchmark<Block> for Runtime {
         fn dispatch_benchmark(
             config: frame_benchmarking::BenchmarkConfig
-        ) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
+        ) -> Result<
+            (Vec<frame_benchmarking::BenchmarkBatch>, Vec<frame_support::traits::StorageInfo>),
+            sp_runtime::RuntimeString,
+        > {
             use frame_benchmarking::{Benchmarking, BenchmarkBatch, add_benchmark, TrackedStorageKey};
+            use frame_support::traits::StorageInfoTrait;
+
             // Trying to add benchmarks directly to the Session Pallet caused cyclic dependency
             // issues. To get around that, we separated the Session benchmarks into its own crate,
             // which is why we need these two lines below.
@@ -1370,6 +1377,8 @@ impl_runtime_apis! {
                 // Treasury Account
                 hex_literal::hex!("26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da95ecffd7b6c0f78751baa9d281e0bfa3a6d6f646c70792f74727372790000000000000000000000000000000000000000").to_vec().into(),
             ];
+
+            let storage_info = AllPalletsWithSystem::storage_info();
 
             let mut batches = Vec::<BenchmarkBatch>::new();
             let params = (&config, &whitelist);
@@ -1401,25 +1410,11 @@ impl_runtime_apis! {
             add_benchmark!(params, batches, pallet_utility, Utility);
             add_benchmark!(params, batches, pallet_vesting, Vesting);
 
+            add_benchmark!(params, batches, pallet_permastore, Permastore);
+            add_benchmark!(params, batches, pallet_poa, Poa);
+
             if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
-            Ok(batches)
+            Ok((batches, storage_info))
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use frame_system::offchain::CreateSignedTransaction;
-
-    #[test]
-    fn validate_transaction_submitter_bounds() {
-        fn is_submit_signed_transaction<T>()
-        where
-            T: CreateSignedTransaction<Call>,
-        {
-        }
-
-        is_submit_signed_transaction::<Runtime>();
     }
 }

@@ -38,7 +38,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![deny(rustdoc::broken_intra_doc_links)]
 
-use codec::{Decode, Encode};
+use codec::{Decode, Encode, MaxEncodedLen};
 
 use sp_runtime::{
     generic::DigestItem,
@@ -56,13 +56,15 @@ use frame_support::{
 use canyon_primitives::Depth;
 use cp_consensus_poa::{PoaOutcome, POA_ENGINE_ID, POA_INHERENT_IDENTIFIER};
 
-// #[cfg(any(feature = "runtime-benchmarks", test))]
-// mod benchmarking;
+#[cfg(any(feature = "runtime-benchmarks", test))]
+mod benchmarking;
 #[cfg(all(feature = "std", test))]
 mod mock;
 #[cfg(all(feature = "std", test))]
 mod tests;
+pub mod weights;
 
+pub use self::weights::WeightInfo;
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
 
@@ -70,7 +72,7 @@ pub use pallet::*;
 ///
 /// This struct is used for calculating the historical average depth
 /// of a validator, which implies the storage capacity per validator.
-#[derive(RuntimeDebug, Clone, Eq, PartialEq, Encode, Decode)]
+#[derive(RuntimeDebug, Clone, Eq, PartialEq, Encode, Decode, MaxEncodedLen)]
 pub struct DepthInfo<BlockNumber> {
     /// Sum of all depths so far.
     pub total_depth: Depth,
@@ -136,10 +138,14 @@ pub mod pallet {
 
         /// Find the author of current block.
         type BlockAuthor: BlockAuthor<Self::AccountId>;
+
+        /// Weight information for extrinsics in this pallet.
+        type WeightInfo: WeightInfo;
     }
 
     #[pallet::pallet]
     #[pallet::generate_store(pub(super) trait Store)]
+    #[pallet::generate_storage_info]
     pub struct Pallet<T>(_);
 
     #[pallet::hooks]
@@ -149,7 +155,7 @@ pub mod pallet {
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
-        #[pallet::weight((0, DispatchClass::Mandatory))]
+        #[pallet::weight((T::WeightInfo::process_poa_outcome(), DispatchClass::Mandatory))]
         pub fn process_poa_outcome(
             origin: OriginFor<T>,
             poa_outcome: PoaOutcome,
