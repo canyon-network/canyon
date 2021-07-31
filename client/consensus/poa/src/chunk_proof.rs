@@ -93,6 +93,10 @@ impl ChunkProofBuilder {
     }
 
     /// Creates a [`ChunkProof`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if the building of chunks trie failed.
     pub fn build(&self) -> Result<ChunkProof, TrieError> {
         let mut target_chunk = Vec::with_capacity(self.chunk_size as usize);
 

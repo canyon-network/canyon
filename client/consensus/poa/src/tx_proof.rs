@@ -29,6 +29,10 @@ use cp_permastore::{Hasher, TrieLayout, VerifyError};
 use crate::chunk_proof::TrieError;
 
 /// Returns the calculated merkle proof given `extrinsic_index` and `extrinsics_root`.
+///
+/// # Panics
+///
+/// Panics if the building of tx trie failed or the calculated extrinsic root mismatches.
 pub fn build_extrinsic_proof<Block: BlockT<Hash = canyon_primitives::Hash>>(
     extrinsic_index: ExtrinsicIndex,
     extrinsics_root: Block::Hash,
