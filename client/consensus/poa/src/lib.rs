@@ -77,22 +77,19 @@ use std::marker::PhantomData;
 use std::sync::Arc;
 
 use codec::{Decode, Encode};
-use sp_runtime::DigestItem;
 use thiserror::Error;
 
+use sc_client_api::{backend::AuxStore, BlockBackend, BlockOf};
+use sc_consensus::{BlockCheckParams, BlockImport, BlockImportParams, ImportResult};
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder as BlockBuilderApi;
 use sp_blockchain::{well_known_cache_keys::Id as CacheKeyId, HeaderBackend, ProvideCache};
-use sp_consensus::{
-    BlockCheckParams, BlockImport, BlockImportParams, Error as ConsensusError, ImportResult,
-    SelectChain,
-};
+use sp_consensus::{Error as ConsensusError, SelectChain};
+use sp_runtime::DigestItem;
 use sp_runtime::{
     generic::BlockId,
     traits::{Block as BlockT, Header as HeaderT, NumberFor},
 };
-
-use sc_client_api::{backend::AuxStore, BlockBackend, BlockOf};
 
 use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
 use cc_datastore::TransactionDataBackend as TransactionDataBackendT;

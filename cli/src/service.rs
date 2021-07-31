@@ -56,7 +56,7 @@ pub fn new_partial(
         FullClient,
         FullBackend,
         FullSelectChain,
-        sp_consensus::DefaultImportQueue<Block, FullClient>,
+        sc_consensus::DefaultImportQueue<Block, FullClient>,
         sc_transaction_pool::FullPool<Block, FullClient>,
         (
             impl Fn(canyon_rpc::DenyUnsafe, sc_rpc::SubscriptionTaskExecutor) -> canyon_rpc::IoHandler,
