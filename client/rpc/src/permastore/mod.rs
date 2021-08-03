@@ -22,7 +22,7 @@ use std::sync::Arc;
 
 use parking_lot::RwLock;
 
-use sc_rpc_api::author::{error::FutureResult, hash::ExtrinsicOrHash};
+use sc_rpc_api::author::{error::FutureResult, hash::ExtrinsicOrHash, AuthorApi};
 use sc_transaction_pool_api::{TransactionPool, TxHash};
 
 use sp_core::{Bytes, Encode, H256};
@@ -35,18 +35,24 @@ use cc_rpc_api::permastore::{
 use cp_permastore::{PermaStorage, CHUNK_SIZE};
 
 #[derive(Debug)]
-pub struct Permastore<T, P> {
+pub struct Permastore<T, P, A, B> {
     /// Permanent data storage.
     storage: Arc<RwLock<T>>,
     /// Transaction pool.
     pool: Arc<P>,
+    /// Authoring api.
+    author: A,
+    /// Block.
+    phatom: PhantomData<B>,
 }
 
-impl<T, P> Permastore<T, P> {
-    pub fn new(storage: T, pool: Arc<P>) -> Self {
+impl<T, P, A, B> Permastore<T, P, A, B> {
+    pub fn new(storage: T, pool: Arc<P>, author: A) -> Self {
         Self {
             storage: Arc::new(RwLock::new(storage)),
             pool,
+            author,
+            phatom: PhantomData::<B>,
         }
     }
 }
@@ -57,20 +63,24 @@ const MAX_UPLOAD_DATA_SIZE: u32 = 10 * 1024 * 1024;
 /// Maximum byte size of downloading transaction data directly. 12MiB
 const MAX_DOWNLOAD_DATA_SIZE: u32 = 12 * 1024 * 1024;
 
-impl<T, P> PermastoreApi<TxHash<P>> for Permastore<T, P>
+impl<T, P, A, B> PermastoreApi<TxHash<P>> for Permastore<T, P, A, B>
 where
     T: PermaStorage + 'static,
     P: TransactionPool + Send + Sync + 'static,
+    B: BlockT,
+    A: AuthorApi<TxHash<P>, <B as BlockT>::Hash>,
 {
     fn submit_extrinsic(&self, ext: Bytes, data: Bytes) -> FutureResult<TxHash<P>> {
-        todo!()
+        // TODO: process the transaction data.
+        self.author.submit_extrinsic(ext)
     }
 
     fn remove_extrinsic(
         &self,
         bytes_or_hash: Vec<ExtrinsicOrHash<TxHash<P>>>,
     ) -> Result<Vec<TxHash<P>>> {
-        todo!()
+        // TODO: process the transaction data.
+        Ok(self.author.remove_extrinsic(bytes_or_hash)?)
     }
 
     // Can this be an attack as anyone can submit arbitrary data to the node?

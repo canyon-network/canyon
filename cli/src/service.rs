@@ -179,6 +179,7 @@ pub fn new_partial(
             .offchain_storage()
             .unwrap_or_else(|| panic!("offchain storage is some; qed"));
 
+        let spawn_handle = task_manager.spawn_handle();
         let rpc_extensions_builder = move |deny_unsafe, subscription_executor| {
             let deps = canyon_rpc::FullDeps {
                 client: client.clone(),
@@ -204,7 +205,19 @@ pub fn new_partial(
                 ),
             };
 
-            canyon_rpc::create_full(deps)
+            use jsonrpc_pubsub::manager::SubscriptionManager;
+
+            let task_executor = sc_rpc::SubscriptionTaskExecutor::new(spawn_handle.clone());
+            let subscriptions = SubscriptionManager::new(Arc::new(task_executor.clone()));
+            let author = sc_rpc::author::Author::new(
+                client.clone(),
+                pool.clone(),
+                subscriptions,
+                keystore.clone(),
+                deny_unsafe,
+            );
+
+            canyon_rpc::create_full(deps, author)
         };
 
         (rpc_extensions_builder, rpc_setup)
