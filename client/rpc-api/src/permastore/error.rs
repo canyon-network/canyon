@@ -106,7 +106,6 @@ impl From<Error> for rpc::Error {
                 message: e.to_string(),
                 data: None,
             },
-
         }
     }
 }
