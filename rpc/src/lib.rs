@@ -129,6 +129,7 @@ where
     C::Api: BabeApi<Block>,
     C::Api: BlockBuilder<Block>,
     P: TransactionPool + 'static,
+    <P as TransactionPool>::Hash: serde::de::DeserializeOwned,
     SC: SelectChain<Block> + 'static,
     B: sc_client_api::Backend<Block> + Send + Sync + 'static,
     B::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashFor<Block>>,
@@ -164,7 +165,7 @@ where
 
     io.extend_with(SystemApi::to_delegate(FullSystem::new(
         client.clone(),
-        pool,
+        pool.clone(),
         deny_unsafe,
     )));
     io.extend_with(TransactionPaymentApi::to_delegate(TransactionPayment::new(
@@ -201,7 +202,7 @@ where
     ));
 
     io.extend_with(cc_rpc_api::permastore::PermastoreApi::to_delegate(
-        cc_rpc::permastore::Permastore::new(perma_storage),
+        cc_rpc::permastore::Permastore::new(perma_storage, pool),
     ));
 
     io

@@ -20,6 +20,8 @@ pub mod error;
 
 use jsonrpc_derive::rpc;
 
+use sc_rpc_api::author::{error::FutureResult, hash::ExtrinsicOrHash};
+
 use sp_core::{Bytes, H256};
 
 use self::error::Result;
@@ -28,7 +30,15 @@ pub use self::gen_client::Client as OffchainClient;
 
 /// Canyon perma storage RPC API.
 #[rpc]
-pub trait PermastoreApi {
+pub trait PermastoreApi<Hash> {
+    /// Sepecialized `submit_extrinsic` for submitting the store extrinsic and transaction data.
+    #[rpc(name = "permastore_submitExtrinsic")]
+    fn submit_extrinsic(&self, ext: Bytes, data: Bytes) -> FutureResult<Hash>;
+
+    /// Sepecialized `remove_extrinsic` for removing the extrinsic and data if any.
+    #[rpc(name = "permastore_removeExtrinsic")]
+    fn remove_extrinsic(&self, bytes_or_hash: Vec<ExtrinsicOrHash<Hash>>) -> Result<Vec<Hash>>;
+
     /// Submit the whole data of a transaction.
     #[rpc(name = "permastore_submit")]
     fn submit(&self, value: Bytes) -> Result<H256>;

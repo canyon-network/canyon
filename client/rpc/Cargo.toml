@@ -17,6 +17,9 @@ jsonrpc-derive = "15.1.0"
 log = "0.4"
 parking_lot = "0.11"
 
+sc-rpc-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-transaction-pool-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
 sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 

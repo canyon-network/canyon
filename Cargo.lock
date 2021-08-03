@@ -899,6 +899,7 @@ dependencies = [
  "sc-rpc-api",
  "sc-sync-state-rpc",
  "sc-transaction-pool-api",
+ "serde",
  "sp-api",
  "sp-block-builder",
  "sp-blockchain",
@@ -1088,6 +1089,8 @@ dependencies = [
  "jsonrpc-derive",
  "log",
  "parking_lot 0.11.1",
+ "sc-rpc-api",
+ "sc-transaction-pool-api",
  "sp-core",
  "sp-runtime",
 ]
@@ -1099,6 +1102,7 @@ dependencies = [
  "jsonrpc-core",
  "jsonrpc-core-client",
  "jsonrpc-derive",
+ "sc-rpc-api",
  "sp-core",
  "thiserror",
 ]

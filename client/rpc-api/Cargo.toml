@@ -16,4 +16,6 @@ jsonrpc-core-client = "15.1.0"
 jsonrpc-derive = "15.1.0"
 thiserror = "1.0"
 
+sc-rpc-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
 sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
