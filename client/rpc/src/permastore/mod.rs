@@ -20,6 +20,7 @@ use std::marker::PhantomData;
 use std::ops::Deref;
 use std::sync::Arc;
 
+use jsonrpc_core::futures::future::result;
 use parking_lot::RwLock;
 
 use sc_rpc_api::author::{error::FutureResult, hash::ExtrinsicOrHash, AuthorApi};
@@ -71,7 +72,11 @@ where
     A: AuthorApi<TxHash<P>, <B as BlockT>::Hash>,
 {
     fn submit_extrinsic(&self, ext: Bytes, data: Bytes) -> FutureResult<TxHash<P>> {
-        // TODO: process the transaction data.
+        if let Err(e) = self.submit(data) {
+            return Box::new(result(Err(sc_rpc_api::author::error::Error::Client(
+                Box::new(e),
+            ))));
+        }
         self.author.submit_extrinsic(ext)
     }
 
@@ -79,7 +84,7 @@ where
         &self,
         bytes_or_hash: Vec<ExtrinsicOrHash<TxHash<P>>>,
     ) -> Result<Vec<TxHash<P>>> {
-        // TODO: process the transaction data.
+        // FIXME: remove the transaction data directly or later?
         Ok(self.author.remove_extrinsic(bytes_or_hash)?)
     }
 
