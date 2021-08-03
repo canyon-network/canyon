@@ -51,7 +51,6 @@ sc-consensus = { git = "https://github.com/canyon-network/substrate", branch = "
 sc-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sc-consensus-slots = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sc-consensus-uncles = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sc-finality-grandpa-warp-sync = { git = "https://github.com/canyon-network/substrate", branch = "canyon", optional = true }
 sc-network = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sc-offchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sc-rpc = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
@@ -136,7 +135,6 @@ cli = [
 	"frame-benchmarking-cli",
 	"substrate-frame-cli",
 	"sc-service/db",
-	"sc-finality-grandpa-warp-sync",
 	"structopt",
 	"substrate-build-script-utils",
 	"try-runtime-cli",
