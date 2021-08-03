@@ -32,7 +32,10 @@ use crate::chunk_proof::TrieError;
 ///
 /// # Panics
 ///
-/// Panics if the building of tx trie failed or the calculated extrinsic root mismatches.
+/// Panics in the following cases:
+///
+/// * the building of tx trie failed.
+/// * the calculated extrinsic root mismatches.
 pub fn build_extrinsic_proof<Block: BlockT<Hash = canyon_primitives::Hash>>(
     extrinsic_index: ExtrinsicIndex,
     extrinsics_root: Block::Hash,
@@ -108,7 +111,7 @@ impl<B: BlockT<Hash = canyon_primitives::Hash>> TxProofVerifier<B> {
     }
 }
 
-/// Verify the extrinsic proof on the extrinsics root and related encoded extrinsic.
+/// Verify the extrinsic proof against the extrinsics root and related encoded extrinsic.
 ///
 /// Returns Ok(()) if the extrinsic proof is valid.
 pub fn verify_extrinsic_proof(
