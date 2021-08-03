@@ -53,9 +53,10 @@
 //! Normally, PoA needs to be used with other consensus algorithem like
 //! PoW or PoS together as it's not typically designed for solving the
 //! problem of selecting one from the validator set to author next block
-//! in an unpredictable or fair way. In another word, PoA is usually
-//! exploited as a precondition for PoW or PoS in order to encourage
-//! the miners to store more data locally.
+//! in an unpredictable or fair way. In another word, PoA is not intended
+//! for resolving the leader election problem, and is usually exploited
+//! as a precondition for PoW or PoS in order to encourage the miners to
+//! store more data locally.
 //!
 //! This crate implements the core algorithem of Proof of Access in
 //! [`construct_poa`] and provides the inherent data provider via
