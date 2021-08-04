@@ -1089,6 +1089,7 @@ name = "cc-rpc"
 version = "0.1.0"
 dependencies = [
  "assert_matches",
+ "cc-datastore",
  "cc-rpc-api",
  "cp-permastore",
  "futures 0.1.31",

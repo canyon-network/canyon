@@ -37,3 +37,5 @@ sc-rpc = { git = "https://github.com/canyon-network/substrate", branch = "canyon
 sc-transaction-pool = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-keystore = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 substrate-test-runtime-client = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
+cc-datastore = { path = "../datastore", features = ["test-helpers"] }
