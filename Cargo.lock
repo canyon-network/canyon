@@ -188,6 +188,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "assert_matches"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9b34d609dfbaf33d6889b2b7106d3ca345eacad44200913df5ba02bfd31d2ba9"
+
+[[package]]
 name = "async-attributes"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1082,17 +1088,26 @@ dependencies = [
 name = "cc-rpc"
 version = "0.1.0"
 dependencies = [
+ "assert_matches",
  "cc-rpc-api",
  "cp-permastore",
+ "futures 0.1.31",
+ "futures 0.3.15",
  "jsonrpc-core",
  "jsonrpc-core-client",
  "jsonrpc-derive",
+ "jsonrpc-pubsub",
  "log",
+ "parity-scale-codec",
  "parking_lot 0.11.1",
+ "sc-rpc",
  "sc-rpc-api",
+ "sc-transaction-pool",
  "sc-transaction-pool-api",
  "sp-core",
+ "sp-keystore",
  "sp-runtime",
+ "substrate-test-runtime-client",
 ]
 
 [[package]]
@@ -7058,6 +7073,7 @@ dependencies = [
  "hash-db",
  "jsonrpc-core",
  "jsonrpc-pubsub",
+ "lazy_static",
  "log",
  "parity-scale-codec",
  "parking_lot 0.11.1",
