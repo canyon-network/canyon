@@ -58,7 +58,7 @@ pub enum Error {
     #[error("invalid proof: ")]
     InvalidProof,
     #[error("authoring api: {0}")]
-    AuthoringError(#[from] sc_rpc_api::author::error::Error),
+    AuthoringApiError(#[from] sc_rpc_api::author::error::Error),
 }
 
 const BASE_ERROR: i64 = 6000;
@@ -101,7 +101,7 @@ impl From<Error> for rpc::Error {
                 message: "chunk proof is invalid".into(),
                 data: None,
             },
-            Error::AuthoringError(e) => rpc::Error {
+            Error::AuthoringApiError(e) => rpc::Error {
                 code: rpc::ErrorCode::ServerError(BASE_ERROR + 7),
                 message: e.to_string(),
                 data: None,
