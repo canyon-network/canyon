@@ -370,9 +370,9 @@
         } <span class="op">=</span> <span class="ident">poa_config</span>;
 
         <span class="self">self</span>.<span class="ident">depth</span> <span class="op">&gt;</span> <span class="number">0</span>
-            <span class="op">&amp;&amp;</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">depth</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max_depth</span>
-            <span class="op">&amp;&amp;</span> <span class="kw-2">&amp;</span>(<span class="self">self</span>.<span class="ident">tx_path_len</span>() <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max_tx_path</span>
-            <span class="op">&amp;&amp;</span> <span class="kw-2">&amp;</span>(<span class="self">self</span>.<span class="ident">chunk_path_len</span>() <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max_chunk_path</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">depth</span> <span class="op">&lt;</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">max_depth</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">tx_path_len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">max_tx_path</span> <span class="kw">as</span> <span class="ident">usize</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">chunk_path_len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">max_chunk_path</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 }
 

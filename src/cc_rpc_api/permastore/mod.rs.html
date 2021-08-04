@@ -37,6 +37,16 @@
 <span id="37">37</span>
 <span id="38">38</span>
 <span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
 </pre><pre class="rust">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -60,6 +70,8 @@
 
 <span class="kw">use</span> <span class="ident">jsonrpc_derive::rpc</span>;
 
+<span class="kw">use</span> <span class="ident">sc_rpc_api::author</span>::{<span class="ident">error::FutureResult</span>, <span class="ident">hash::ExtrinsicOrHash</span>};
+
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">Bytes</span>, <span class="ident">H256</span>};
 
 <span class="kw">use</span> <span class="self">self</span><span class="ident">::error::Result</span>;
@@ -68,7 +80,15 @@
 
 <span class="doccomment">/// Canyon perma storage RPC API.</span>
 <span class="attribute">#[<span class="ident">rpc</span>]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PermastoreApi</span> {
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PermastoreApi</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Sepecialized `submit_extrinsic` for submitting the store extrinsic and transaction data.</span>
+    <span class="attribute">#[<span class="ident">rpc</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;permastore_submitExtrinsic&quot;</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">submit_extrinsic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ext</span>: <span class="ident">Bytes</span>, <span class="ident">data</span>: <span class="ident">Bytes</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FutureResult</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span>;
+
+    <span class="doccomment">/// Sepecialized `remove_extrinsic` for removing the extrinsic and data if any.</span>
+    <span class="attribute">#[<span class="ident">rpc</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;permastore_removeExtrinsic&quot;</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">remove_extrinsic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes_or_hash</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ExtrinsicOrHash</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+
     <span class="doccomment">/// Submit the whole data of a transaction.</span>
     <span class="attribute">#[<span class="ident">rpc</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;permastore_submit&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">submit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">Bytes</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>;
