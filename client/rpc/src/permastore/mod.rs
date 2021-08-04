@@ -92,6 +92,7 @@ where
     }
 
     // Can this be an attack as anyone can submit arbitrary data to the node?
+    // TODO: add tests for submit and retrieve?
     fn submit(&self, value: Bytes) -> Result<H256> {
         let data_size = value.deref().len() as u32;
         if data_size > MAX_UPLOAD_DATA_SIZE {

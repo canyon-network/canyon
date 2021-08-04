@@ -1092,7 +1092,6 @@ dependencies = [
  "cc-datastore",
  "cc-rpc-api",
  "cp-permastore",
- "futures 0.1.31",
  "futures 0.3.15",
  "jsonrpc-core",
  "jsonrpc-core-client",
