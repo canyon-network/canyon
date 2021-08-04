@@ -144,9 +144,9 @@ impl ProofOfAccess {
         } = poa_config;
 
         self.depth > 0
-            && &self.depth <= max_depth
-            && &(self.tx_path_len() as u32) <= max_tx_path
-            && &(self.chunk_path_len() as u32) <= max_chunk_path
+            && self.depth <= *max_depth
+            && self.tx_path_len() <= *max_tx_path as usize
+            && self.chunk_path_len() <= *max_chunk_path as usize
     }
 }
 

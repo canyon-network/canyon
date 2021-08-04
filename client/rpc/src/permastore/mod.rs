@@ -16,13 +16,21 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
+#[cfg(test)]
+mod tests;
+
+use std::marker::PhantomData;
 use std::ops::Deref;
 use std::sync::Arc;
 
+use jsonrpc_core::futures::future::result;
 use parking_lot::RwLock;
 
+use sc_rpc_api::author::{error::FutureResult, hash::ExtrinsicOrHash, AuthorApi};
+use sc_transaction_pool_api::{TransactionPool, TxHash};
+
 use sp_core::{Bytes, Encode, H256};
-use sp_runtime::traits::{BlakeTwo256, Hash};
+use sp_runtime::traits::{BlakeTwo256, Block as BlockT, Hash};
 
 use cc_rpc_api::permastore::{
     error::{Error, InvalidCount, Result},
@@ -31,14 +39,24 @@ use cc_rpc_api::permastore::{
 use cp_permastore::{PermaStorage, CHUNK_SIZE};
 
 #[derive(Debug)]
-pub struct Permastore<T: PermaStorage> {
+pub struct Permastore<T, P, A, B> {
+    /// Permanent data storage.
     storage: Arc<RwLock<T>>,
+    /// Transaction pool.
+    pool: Arc<P>,
+    /// Authoring api.
+    author: A,
+    /// Block.
+    phatom: PhantomData<B>,
 }
 
-impl<T: PermaStorage> Permastore<T> {
-    pub fn new(storage: T) -> Self {
+impl<T, P, A, B> Permastore<T, P, A, B> {
+    pub fn new(storage: T, pool: Arc<P>, author: A) -> Self {
         Self {
             storage: Arc::new(RwLock::new(storage)),
+            pool,
+            author,
+            phatom: PhantomData::<B>,
         }
     }
 }
@@ -49,8 +67,32 @@ const MAX_UPLOAD_DATA_SIZE: u32 = 10 * 1024 * 1024;
 /// Maximum byte size of downloading transaction data directly. 12MiB
 const MAX_DOWNLOAD_DATA_SIZE: u32 = 12 * 1024 * 1024;
 
-impl<T: PermaStorage + 'static> PermastoreApi for Permastore<T> {
+impl<T, P, A, B> PermastoreApi<TxHash<P>> for Permastore<T, P, A, B>
+where
+    T: PermaStorage + 'static,
+    P: TransactionPool + Send + Sync + 'static,
+    B: BlockT,
+    A: AuthorApi<TxHash<P>, <B as BlockT>::Hash>,
+{
+    fn submit_extrinsic(&self, ext: Bytes, data: Bytes) -> FutureResult<TxHash<P>> {
+        if let Err(e) = self.submit(data) {
+            return Box::new(result(Err(sc_rpc_api::author::error::Error::Client(
+                Box::new(e),
+            ))));
+        }
+        self.author.submit_extrinsic(ext)
+    }
+
+    fn remove_extrinsic(
+        &self,
+        bytes_or_hash: Vec<ExtrinsicOrHash<TxHash<P>>>,
+    ) -> Result<Vec<TxHash<P>>> {
+        // FIXME: remove the transaction data directly or later?
+        Ok(self.author.remove_extrinsic(bytes_or_hash)?)
+    }
+
     // Can this be an attack as anyone can submit arbitrary data to the node?
+    // TODO: add tests for submit and retrieve?
     fn submit(&self, value: Bytes) -> Result<H256> {
         let data_size = value.deref().len() as u32;
         if data_size > MAX_UPLOAD_DATA_SIZE {

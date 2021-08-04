@@ -113,8 +113,9 @@ pub struct FullDeps<C, P, SC, B, S> {
 pub type IoHandler = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
 
 /// Instantiate all Full RPC extensions.
-pub fn create_full<C, P, SC, B, S>(
+pub fn create_full<C, P, SC, B, S, A>(
     deps: FullDeps<C, P, SC, B, S>,
+    author: A,
 ) -> jsonrpc_core::IoHandler<sc_rpc_api::Metadata>
 where
     C: ProvideRuntimeApi<Block>
@@ -129,10 +130,16 @@ where
     C::Api: BabeApi<Block>,
     C::Api: BlockBuilder<Block>,
     P: TransactionPool + 'static,
+    <P as TransactionPool>::Hash: serde::de::DeserializeOwned,
     SC: SelectChain<Block> + 'static,
     B: sc_client_api::Backend<Block> + Send + Sync + 'static,
     B::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashFor<Block>>,
     S: cp_permastore::PermaStorage + 'static,
+    A: sc_rpc_api::author::AuthorApi<
+        sc_transaction_pool_api::TxHash<P>,
+        <Block as sp_runtime::traits::Block>::Hash,
+        Metadata = sc_rpc_api::Metadata,
+    >,
 {
     use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
     use substrate_frame_rpc_system::{FullSystem, SystemApi};
@@ -164,7 +171,7 @@ where
 
     io.extend_with(SystemApi::to_delegate(FullSystem::new(
         client.clone(),
-        pool,
+        pool.clone(),
         deny_unsafe,
     )));
     io.extend_with(TransactionPaymentApi::to_delegate(TransactionPayment::new(
@@ -201,7 +208,7 @@ where
     ));
 
     io.extend_with(cc_rpc_api::permastore::PermastoreApi::to_delegate(
-        cc_rpc::permastore::Permastore::new(perma_storage),
+        cc_rpc::permastore::Permastore::<_, _, _, Block>::new(perma_storage, pool, author),
     ));
 
     io

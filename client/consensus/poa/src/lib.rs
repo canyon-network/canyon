@@ -53,9 +53,10 @@
 //! Normally, PoA needs to be used with other consensus algorithem like
 //! PoW or PoS together as it's not typically designed for solving the
 //! problem of selecting one from the validator set to author next block
-//! in an unpredictable or fair way. In another word, PoA is usually
-//! exploited as a precondition for PoW or PoS in order to encourage
-//! the miners to store more data locally.
+//! in an unpredictable or fair way. In another word, PoA is not intended
+//! for resolving the leader election problem, and is usually exploited
+//! as a precondition for PoW or PoS in order to encourage the miners to
+//! store more data locally.
 //!
 //! This crate implements the core algorithem of Proof of Access in
 //! [`construct_poa`] and provides the inherent data provider via
@@ -77,22 +78,19 @@ use std::marker::PhantomData;
 use std::sync::Arc;
 
 use codec::{Decode, Encode};
-use sp_runtime::DigestItem;
 use thiserror::Error;
 
+use sc_client_api::{backend::AuxStore, BlockBackend, BlockOf};
+use sc_consensus::{BlockCheckParams, BlockImport, BlockImportParams, ImportResult};
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder as BlockBuilderApi;
 use sp_blockchain::{well_known_cache_keys::Id as CacheKeyId, HeaderBackend, ProvideCache};
-use sp_consensus::{
-    BlockCheckParams, BlockImport, BlockImportParams, Error as ConsensusError, ImportResult,
-    SelectChain,
-};
+use sp_consensus::{Error as ConsensusError, SelectChain};
+use sp_runtime::DigestItem;
 use sp_runtime::{
     generic::BlockId,
     traits::{Block as BlockT, Header as HeaderT, NumberFor},
 };
-
-use sc_client_api::{backend::AuxStore, BlockBackend, BlockOf};
 
 use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
 use cc_datastore::TransactionDataBackend as TransactionDataBackendT;

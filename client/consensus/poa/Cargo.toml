@@ -21,6 +21,7 @@ sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "ca
 sp-trie = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 
 sc-client-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-consensus = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 
 canyon-primitives = { path = "../../../primitives" }
 cc-datastore = { path = "../../datastore" }

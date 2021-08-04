@@ -335,7 +335,6 @@ impl<T: Config> Pallet<T> {
         data_size: u32,
     ) -> Result<BalanceOf<T>, sp_runtime::DispatchError> {
         let fee = Self::calculate_storage_fee(data_size);
-        frame_support::log::info!(target: "runtime", "who: {:?}, Free: {:?}", who, T::Currency::free_balance(who));
         let treasury_account: T::AccountId = T::TreasuryPalletId::get().into_account();
         T::Currency::transfer(who, &treasury_account, fee, ExistenceRequirement::KeepAlive)?;
         Ok(fee)

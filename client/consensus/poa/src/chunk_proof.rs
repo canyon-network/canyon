@@ -41,7 +41,7 @@ impl ChunkProofVerifier {
         Self(chunk_proof)
     }
 
-    /// Checks if the chunk proof is valid given `chunk_size`.
+    /// Returns Ok(()) if the chunk proof is valid given `chunk_size`.
     pub fn verify(&self, chunk_size: usize) -> Result<(), VerifyError> {
         let chunk_root = self.0.chunk_root(chunk_size);
         verify_chunk_proof(
@@ -53,7 +53,7 @@ impl ChunkProofVerifier {
     }
 }
 
-/// Verifies the chunk matches given the `chunk_root` and `proof`.
+/// Verifies the chunk matches given `chunk_root` and `proof`.
 pub fn verify_chunk_proof(
     chunk_root: &H256,
     chunk: Vec<u8>,
@@ -67,7 +67,7 @@ pub fn verify_chunk_proof(
     )
 }
 
-/// A builder for creating a [`ChunkProof`] from the raw transaction data.
+/// A builder for creating a [`ChunkProof`] from the entire raw transaction data.
 #[derive(Debug, Clone)]
 pub struct ChunkProofBuilder {
     /// Raw bytes of entire transaction data.
@@ -93,6 +93,10 @@ impl ChunkProofBuilder {
     }
 
     /// Creates a [`ChunkProof`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if the building of chunks trie failed.
     pub fn build(&self) -> Result<ChunkProof, TrieError> {
         let mut target_chunk = Vec::with_capacity(self.chunk_size as usize);
 

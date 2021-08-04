@@ -57,6 +57,8 @@ pub enum Error {
     DataSizeTooLarge,
     #[error("invalid proof: ")]
     InvalidProof,
+    #[error("authoring api: {0}")]
+    AuthoringApiError(#[from] sc_rpc_api::author::error::Error),
 }
 
 const BASE_ERROR: i64 = 6000;
@@ -97,6 +99,11 @@ impl From<Error> for rpc::Error {
             Error::InvalidProof => rpc::Error {
                 code: rpc::ErrorCode::ServerError(BASE_ERROR + 6),
                 message: "chunk proof is invalid".into(),
+                data: None,
+            },
+            Error::AuthoringApiError(e) => rpc::Error {
+                code: rpc::ErrorCode::ServerError(BASE_ERROR + 7),
+                message: e.to_string(),
                 data: None,
             },
         }
