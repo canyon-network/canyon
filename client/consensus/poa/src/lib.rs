@@ -202,7 +202,7 @@ fn find_recall_tx(
 ) -> (ExtrinsicIndex, DataIndex) {
     log::trace!(
         target: "poa",
-        "Try locating the position of recall tx, recall_byte: {}, sized_extrinsics: {:?}",
+        "Locating the position of recall tx, recall_byte: {}, sized_extrinsics: {:?}",
         recall_byte, sized_extrinsics
     );
     match sized_extrinsics.binary_search_by_key(&recall_byte, |&(_, weave_size)| weave_size) {
