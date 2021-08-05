@@ -128,10 +128,10 @@ pub enum Error<Block: BlockT> {
     #[error("Client error: {0}")]
     Client(sp_blockchain::Error),
     /// Codec error.
-    #[error("Codec error")]
+    #[error("Codec error: {0}")]
     Codec(#[from] codec::Error),
     /// Blockchain error.
-    #[error("Blockchain error")]
+    #[error("Blockchain error: {0}")]
     BlockchainError(#[from] sp_blockchain::Error),
     /// Invalid ProofOfAccess.
     #[error("Invalid ProofOfAccess: {0:?}")]
