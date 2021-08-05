@@ -25,16 +25,13 @@ use canyon_primitives::ExtrinsicIndex;
 use cp_consensus_poa::encode_index;
 use cp_permastore::{TrieLayout, VerifyError};
 
-use crate::chunk_proof::TrieError;
+use crate::trie::{prepare_trie_proof, TrieError};
 
 /// Returns the calculated merkle proof given `extrinsic_index` and `extrinsics_root`.
 ///
 /// # Panics
 ///
-/// Panics in the following cases:
-///
-/// * the building of tx trie failed.
-/// * the calculated extrinsic root mismatches.
+/// Panics if the calculated extrinsic root mismatches.
 pub fn build_extrinsic_proof<Block: BlockT<Hash = canyon_primitives::Hash>>(
     extrinsic_index: ExtrinsicIndex,
     extrinsics_root: Block::Hash,
@@ -42,11 +39,11 @@ pub fn build_extrinsic_proof<Block: BlockT<Hash = canyon_primitives::Hash>>(
 ) -> Result<Vec<Vec<u8>>, TrieError> {
     let leaves = extrinsics.iter().map(|xt| xt.encode()).collect::<Vec<_>>();
 
-    let (db, calc_extrinsics_root) = crate::trie::prepare_trie_proof(leaves);
+    let (db, root) = prepare_trie_proof(leaves);
 
     assert_eq!(
-        extrinsics_root, calc_extrinsics_root,
-        "calculated `extrinsics_root` mismatches"
+        extrinsics_root, root,
+        "`extrinsics_root` mismatches the calculated root"
     );
 
     let proof = sp_trie::generate_trie_proof::<TrieLayout, _, _, _>(

@@ -21,7 +21,19 @@ use sp_trie::TrieMut;
 use cp_consensus_poa::encode_index;
 use cp_permastore::{Hasher, TrieLayout};
 
+/// Error type for building a trie proof.
+#[derive(Debug, thiserror::Error)]
+pub enum TrieError {
+    /// Trie error.
+    #[error(transparent)]
+    Trie(#[from] Box<dyn std::error::Error + Send + Sync>),
+}
+
 /// Prepares the components for building a trie proof given the final leaf nodes.
+///
+/// # Panics
+///
+/// Panics if the building of tx trie failed.
 pub fn prepare_trie_proof(leaves: Vec<Vec<u8>>) -> (sp_trie::MemoryDB<Hasher>, sp_core::H256) {
     let mut db = sp_trie::MemoryDB::<Hasher>::default();
     let mut root = sp_trie::empty_trie_root::<TrieLayout>();
