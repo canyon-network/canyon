@@ -99,8 +99,8 @@ use cp_poa::PoaApi;
 
 mod chunk_proof;
 mod inherent;
-mod tx_proof;
 mod trie;
+mod tx_proof;
 
 pub use self::chunk_proof::{verify_chunk_proof, ChunkProofBuilder, ChunkProofVerifier};
 pub use self::inherent::PoaInherentDataProvider;

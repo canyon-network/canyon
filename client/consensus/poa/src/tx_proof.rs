@@ -40,10 +40,7 @@ pub fn build_extrinsic_proof<Block: BlockT<Hash = canyon_primitives::Hash>>(
     extrinsics_root: Block::Hash,
     extrinsics: Vec<Block::Extrinsic>,
 ) -> Result<Vec<Vec<u8>>, TrieError> {
-    let leaves = extrinsics
-        .iter()
-        .map(|xt| xt.encode())
-        .collect::<Vec<_>>();
+    let leaves = extrinsics.iter().map(|xt| xt.encode()).collect::<Vec<_>>();
 
     let (db, calc_extrinsics_root) = crate::trie::prepare_trie_proof(leaves);
 
