@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
-use sp_trie::TrieMut;
+use sp_trie::{empty_trie_root, MemoryDB, TrieDBMut, TrieMut};
 
 use cp_consensus_poa::encode_index;
 use cp_permastore::{Hasher, TrieLayout};
@@ -33,21 +33,18 @@ pub enum TrieError {
 ///
 /// # Panics
 ///
-/// Panics if the building of tx trie failed.
-pub fn prepare_trie_proof(leaves: Vec<Vec<u8>>) -> (sp_trie::MemoryDB<Hasher>, sp_core::H256) {
-    let mut db = sp_trie::MemoryDB::<Hasher>::default();
-    let mut root = sp_trie::empty_trie_root::<TrieLayout>();
+/// Panics if the insertion of trie node failed.
+pub fn prepare_trie_proof(leaves: Vec<Vec<u8>>) -> (MemoryDB<Hasher>, sp_core::H256) {
+    let mut db = MemoryDB::<Hasher>::default();
+    let mut root = empty_trie_root::<TrieLayout>();
 
     {
-        let mut trie = sp_trie::TrieDBMut::<TrieLayout>::new(&mut db, &mut root);
+        let mut trie = TrieDBMut::<TrieLayout>::new(&mut db, &mut root);
 
         for (index, leaf) in leaves.iter().enumerate() {
             trie.insert(&encode_index(index as u32), &leaf)
                 .unwrap_or_else(|e| {
-                    panic!(
-                        "Failed to insert the trie node: {:?}, extrinsic index: {}",
-                        e, index
-                    )
+                    panic!("Failed to insert the trie node: {:?}, index: {}", e, index)
                 });
         }
 

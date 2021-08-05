@@ -49,7 +49,7 @@ pub fn build_extrinsic_proof<Block: BlockT<Hash = canyon_primitives::Hash>>(
     let proof = sp_trie::generate_trie_proof::<TrieLayout, _, _, _>(
         &db,
         extrinsics_root,
-        &[encode_index(extrinsic_index as u32)],
+        &[encode_index(extrinsic_index)],
     )
     .map_err(|e| TrieError::Trie(Box::new(e)))?;
 
