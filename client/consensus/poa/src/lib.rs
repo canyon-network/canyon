@@ -119,11 +119,11 @@ type Randomness = Vec<u8>;
 #[derive(Error, Debug)]
 pub enum Error<Block: BlockT> {
     /// No PoA seal in the header.
-    #[error("Header {0:?} has no PoA seal")]
-    HeaderUnsealed(Block::Hash),
+    #[error("Header {0:?} has no PoA digest")]
+    NoDigest(Block::Hash),
     /// Multiple PoA seals were found in the header.
-    #[error("Header {0:?} has multiple PoA seals")]
-    HeaderMultiSealed(Block::Hash),
+    #[error("Header {0:?} has multiple PoA digests")]
+    MultipleDigests(Block::Hash),
     /// Client error.
     #[error("Client error: {0}")]
     Client(sp_blockchain::Error),
@@ -498,26 +498,28 @@ where
     PoaBuilder::new(client, transaction_data_backend).build(parent)
 }
 
-/// Extracts PoA seal from a header that is expected to contain a poa proof.
+/// Extracts PoA digest from a header that should contain one.
 ///
-/// The header should have one and only one [`DigestItem::Seal(POA_ENGINE_ID, seal)`].
+/// The header should have one and only one [`DigestItem::PreRuntime(POA_ENGINE_ID, pre_runtime)`].
 fn fetch_poa<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<ProofOfAccess, Error<B>> {
+    use DigestItem::PreRuntime;
+
     let poa_seal = header
         .digest()
         .logs()
         .iter()
-        .filter(|digest_item| matches!(digest_item, DigestItem::Seal(id, _seal) if id == &POA_ENGINE_ID))
+        .filter(|digest_item| matches!(digest_item, PreRuntime(id, _seal) if id == &POA_ENGINE_ID))
         .collect::<Vec<_>>();
 
     match poa_seal.len() {
-        0 => Err(Error::<B>::HeaderUnsealed(hash)),
+        0 => Err(Error::<B>::NoDigest(hash)),
         1 => match poa_seal[0] {
-            DigestItem::Seal(_id, seal) => {
+            PreRuntime(_id, seal) => {
                 Decode::decode(&mut seal.as_slice()).map_err(Error::<B>::Codec)
             }
-            _ => unreachable!("Only items sealed using POA_ENGINE_ID has been filtered; qed"),
+            _ => unreachable!("Only items using POA_ENGINE_ID has been filtered; qed"),
         },
-        _ => Err(Error::<B>::HeaderMultiSealed(hash)),
+        _ => Err(Error::<B>::MultipleDigests(hash)),
     }
 }
 

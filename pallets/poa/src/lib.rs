@@ -31,7 +31,7 @@
 //!
 //! ### Inherent Extrinsics
 //!
-//! The Poa pallet creates the inherent extrinsic [`Call::process_poa_outcome`]
+//! The Poa pallet creates the inherent extrinsic [`Call::deposit`]
 //! when the inherent data contains a valid [`POA_INHERENT_IDENTIFIER`].
 
 // Ensure we're `no_std` when compiling for Wasm.
@@ -165,11 +165,10 @@ pub mod pallet {
     #[pallet::call]
     impl<T: Config> Pallet<T> {
         /// Handle the inherent data from the poa consensus.
-        #[pallet::weight((T::WeightInfo::process_poa_outcome(), DispatchClass::Mandatory))]
-        pub fn process_poa_outcome(
-            origin: OriginFor<T>,
-            poa_outcome: PoaOutcome,
-        ) -> DispatchResult {
+        ///
+        /// Deposit a consensus log if `poa_outcome` is valid.
+        #[pallet::weight((T::WeightInfo::deposit(), DispatchClass::Mandatory))]
+        pub fn deposit(origin: OriginFor<T>, poa_outcome: PoaOutcome) -> DispatchResult {
             ensure_none(origin)?;
 
             match poa_outcome {
@@ -179,12 +178,11 @@ pub mod pallet {
                         Error::<T>::InvalidProofOfAccess
                     );
 
-                    <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(
+                    Self::note_depth(poa.depth);
+                    <frame_system::Pallet<T>>::deposit_log(DigestItem::PreRuntime(
                         POA_ENGINE_ID,
                         poa.encode(),
                     ));
-
-                    Self::note_depth(poa.depth);
                 }
                 PoaOutcome::MaxDepthReached(_) => {
                     // Decrease the storage capacity?
@@ -237,12 +235,12 @@ pub mod pallet {
 
             // TODO: avoide double including the full ProofOfAccess struct in extrinsic
             // as it will be included in the header anyway?
-            Some(Call::process_poa_outcome(poa_outcome))
+            Some(Call::deposit(poa_outcome))
         }
 
         fn check_inherent(call: &Self::Call, _: &InherentData) -> Result<(), Self::Error> {
             match call {
-                Call::process_poa_outcome(PoaOutcome::Justification(poa)) => {
+                Call::deposit(PoaOutcome::Justification(poa)) => {
                     if poa.is_valid(&Self::poa_config()) {
                         Ok(())
                     } else {
@@ -254,7 +252,7 @@ pub mod pallet {
         }
 
         fn is_inherent(call: &Self::Call) -> bool {
-            matches!(call, Call::process_poa_outcome(..))
+            matches!(call, Call::deposit(..))
         }
 
         fn is_inherent_required(data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
