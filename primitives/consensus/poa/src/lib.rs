@@ -31,7 +31,7 @@ pub const POA_INHERENT_IDENTIFIER: InherentIdentifier = *b"poaproof";
 pub const POA_ENGINE_ID: ConsensusEngineId = *b"POA:";
 
 /// This struct includes the raw bytes of recall chunk as well as the chunk proof stuffs.
-#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
+#[derive(Clone, Eq, PartialEq, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 pub struct ChunkProof {
@@ -45,6 +45,23 @@ pub struct ChunkProof {
     ///
     /// Merkle path of chunks from `chunk` to the chunk root.
     pub proof: Vec<Vec<u8>>,
+}
+
+impl sp_std::fmt::Debug for ChunkProof {
+    #[cfg(feature = "std")]
+    fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+        let chunk_in_hex = format!("0x{}", sp_core::hexdisplay::HexDisplay::from(&self.chunk));
+        f.debug_struct("ChunkProof")
+            .field("chunk", &chunk_in_hex)
+            .field("chunk_index", &self.chunk_index)
+            .field("proof", &self.proof)
+            .finish()
+    }
+
+    #[cfg(not(feature = "std"))]
+    fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+        f.write_str("<wasm:stripped>")
+    }
 }
 
 /// An utility function to enocde chunk/extrinsic index as trie key.
@@ -86,6 +103,10 @@ impl ChunkProof {
             let chunks = self.chunk.chunks(chunk_size).map(|c| c.to_vec());
 
             for (index, chunk) in chunks.enumerate() {
+                if index == 0 {
+                    let chunk_in_hex = format!("0x{}", sp_core::hexdisplay::HexDisplay::from(&chunk));
+                    println!("----- chunks: {:?}", chunk_in_hex);
+                }
                 trie.insert(&encode_index(index as u32), &blake2_256(&chunk))
                     .unwrap_or_else(|e| {
                         panic!(
@@ -97,6 +118,8 @@ impl ChunkProof {
 
             trie.commit();
         }
+
+        println!("---------- chunk root: {:?}", chunk_root);
 
         chunk_root
     }

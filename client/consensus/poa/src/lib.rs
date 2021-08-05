@@ -142,6 +142,9 @@ pub enum Error<Block: BlockT> {
     /// Runtime api error.
     #[error(transparent)]
     ApiError(#[from] sp_api::ApiError),
+    /// Chunk root not found.
+    #[error("Chunk root not found for the recall extrinsic {0}#{1}")]
+    ChunkRootNotFound(BlockId<Block>, ExtrinsicIndex),
     /// Block not found.
     #[error("Block {0} not found")]
     BlockNotFound(BlockId<Block>),
@@ -223,7 +226,7 @@ pub struct RecallInfo<B: BlockT> {
 
 impl<B: BlockT<Hash = canyon_primitives::Hash>> RecallInfo<B> {
     /// Converts the recall info to a [`TxProofVerifier`].
-    pub fn into_tx_proof_verifier(self) -> TxProofVerifier<B> {
+    pub fn as_tx_proof_verifier(&self) -> TxProofVerifier<B> {
         let recall_extrinsic = self.extrinsics[self.recall_extrinsic_index as usize].clone();
         TxProofVerifier::new(
             recall_extrinsic,
@@ -429,6 +432,11 @@ where
                             );
                             continue;
                         }
+
+                        // chunk_proof::ChunkProofVerifier::new(chunk_proof.clone())
+                        // .verify(CHUNK_SIZE as usize)
+                        // .unwrap_or_else(|e| panic!("Failed to verify chunk proof: {:?}", e));
+
                         if let Ok(tx_proof) = build_extrinsic_proof::<Block>(
                             recall_extrinsic_index,
                             extrinsics_root,
@@ -608,6 +616,8 @@ where
             let header = block.post_header();
             let poa = fetch_poa::<B>(header, best_hash)?;
 
+            log::debug!(target: "poa::verify", "------------ fetched poa: {:?}", poa);
+
             let parent_hash = *block.header.parent_hash();
             let poa_config = self
                 .client
@@ -635,13 +645,31 @@ where
             let recall_block_number =
                 find_recall_block(BlockId::Hash(parent_hash), recall_byte, &self.client)?;
 
-            find_recall_info(recall_byte, recall_block_number, &self.client)?
-                .into_tx_proof_verifier()
+            log::debug!(target: "poa::verify", "Verifying tx proof");
+            let recall_info = find_recall_info(recall_byte, recall_block_number, &self.client)?;
+
+            recall_info
+                .as_tx_proof_verifier()
                 .verify(&tx_path)
                 .map_err(Error::<B>::VerifyFailed)?;
 
+            let chunk_root = self
+                .client
+                .runtime_api()
+                .chunk_root(
+                    &BlockId::Hash(parent_hash),
+                    recall_block_number,
+                    recall_info.recall_extrinsic_index,
+                )
+                .map_err(Error::<B>::ApiError)?
+                .ok_or(Error::<B>::ChunkRootNotFound(
+                    BlockId::Number(recall_block_number),
+                    recall_info.recall_extrinsic_index,
+                ))?;
+
+            log::debug!(target: "poa::verify", "Verifying chunk proof");
             chunk_proof::ChunkProofVerifier::new(chunk_proof)
-                .verify(CHUNK_SIZE as usize)
+                .verify(&chunk_root)
                 .map_err(Error::<B>::VerifyFailed)?;
         }
 

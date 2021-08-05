@@ -41,11 +41,10 @@ impl ChunkProofVerifier {
         Self(chunk_proof)
     }
 
-    /// Returns Ok(()) if the chunk proof is valid given `chunk_size`.
-    pub fn verify(&self, chunk_size: usize) -> Result<(), VerifyError> {
-        let chunk_root = self.0.chunk_root(chunk_size);
+    /// Returns `Ok(())` if the chunk proof matches given `chunk_root`.
+    pub fn verify(&self, chunk_root: &H256) -> Result<(), VerifyError> {
         verify_chunk_proof(
-            &chunk_root,
+            chunk_root,
             self.0.chunk.clone(),
             self.0.chunk_index,
             &self.0.proof,
@@ -112,6 +111,11 @@ impl ChunkProofBuilder {
                 .map(|c| c.to_vec());
 
             for (index, chunk) in chunks.enumerate() {
+                if index == 0 {
+                    let chunk_in_hex =
+                        format!("0x{}", sp_core::hexdisplay::HexDisplay::from(&chunk));
+                    println!("----- build chunks: {:?}", chunk_in_hex);
+                }
                 // Build the trie using chunk id.
                 trie.insert(&encode_index(index as u32), &blake2_256(&chunk))
                     .unwrap_or_else(|e| {
@@ -128,6 +132,8 @@ impl ChunkProofBuilder {
 
             trie.commit();
         }
+
+        println!("---------- consensus chunk root: {:?}", chunk_root);
 
         let proof = sp_trie::generate_trie_proof::<TrieLayout, _, _, _>(
             &db,
