@@ -23,7 +23,7 @@ use sp_trie::TrieMut;
 use cp_consensus_poa::{encode_index, ChunkProof};
 use cp_permastore::{Hasher, TrieLayout, VerifyError};
 
-/// Error type for chunk proof.
+/// Error type for building a trie proof.
 #[derive(Debug, thiserror::Error)]
 pub enum TrieError {
     /// Trie error.

@@ -52,7 +52,7 @@
 //!
 //! Normally, PoA needs to be used with other consensus algorithem like
 //! PoW or PoS together as it's not typically designed for solving the
-//! problem of selecting one from the validator set to author next block
+//! problem of selecting one from a set of validators to author next block
 //! in an unpredictable or fair way. In another word, PoA is not intended
 //! for resolving the leader election problem, and is usually exploited
 //! as a precondition for PoW or PoS in order to encourage the miners to
@@ -86,10 +86,10 @@ use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder as BlockBuilderApi;
 use sp_blockchain::{well_known_cache_keys::Id as CacheKeyId, HeaderBackend, ProvideCache};
 use sp_consensus::{Error as ConsensusError, SelectChain};
-use sp_runtime::DigestItem;
 use sp_runtime::{
     generic::BlockId,
     traits::{Block as BlockT, Header as HeaderT, NumberFor},
+    DigestItem,
 };
 
 use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
@@ -105,6 +105,7 @@ pub use self::chunk_proof::{verify_chunk_proof, ChunkProofBuilder, ChunkProofVer
 pub use self::inherent::PoaInherentDataProvider;
 pub use self::tx_proof::{build_extrinsic_proof, verify_extrinsic_proof, TxProofVerifier};
 
+// Re-exports of poa primitives.
 pub use cp_consensus_poa::{
     ChunkProof, PoaConfiguration, PoaOutcome, ProofOfAccess, POA_ENGINE_ID,
 };
@@ -136,7 +137,7 @@ pub enum Error<Block: BlockT> {
     #[error("Invalid ProofOfAccess: {0:?}")]
     InvalidProofOfAccess(ProofOfAccess),
     /// Failed to verify the merkle proof.
-    #[error("VerifyError error")]
+    #[error("VerifyError error: {0:?}")]
     VerifyFailed(#[from] cp_permastore::VerifyError),
     /// Runtime api error.
     #[error(transparent)]
