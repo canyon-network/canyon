@@ -433,10 +433,6 @@ where
                             continue;
                         }
 
-                        // chunk_proof::ChunkProofVerifier::new(chunk_proof.clone())
-                        // .verify(CHUNK_SIZE as usize)
-                        // .unwrap_or_else(|e| panic!("Failed to verify chunk proof: {:?}", e));
-
                         if let Ok(tx_proof) = build_extrinsic_proof::<Block>(
                             recall_extrinsic_index,
                             extrinsics_root,
@@ -616,8 +612,6 @@ where
             let header = block.post_header();
             let poa = fetch_poa::<B>(header, best_hash)?;
 
-            log::debug!(target: "poa::verify", "------------ fetched poa: {:?}", poa);
-
             let parent_hash = *block.header.parent_hash();
             let poa_config = self
                 .client
@@ -645,7 +639,6 @@ where
             let recall_block_number =
                 find_recall_block(BlockId::Hash(parent_hash), recall_byte, &self.client)?;
 
-            log::debug!(target: "poa::verify", "Verifying tx proof");
             let recall_info = find_recall_info(recall_byte, recall_block_number, &self.client)?;
 
             recall_info
@@ -667,7 +660,6 @@ where
                     recall_info.recall_extrinsic_index,
                 ))?;
 
-            log::debug!(target: "poa::verify", "Verifying chunk proof");
             chunk_proof::ChunkProofVerifier::new(chunk_proof)
                 .verify(&chunk_root)
                 .map_err(Error::<B>::VerifyFailed)?;

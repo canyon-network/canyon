@@ -103,10 +103,6 @@ impl ChunkProof {
             let chunks = self.chunk.chunks(chunk_size).map(|c| c.to_vec());
 
             for (index, chunk) in chunks.enumerate() {
-                if index == 0 {
-                    let chunk_in_hex = format!("0x{}", sp_core::hexdisplay::HexDisplay::from(&chunk));
-                    println!("----- chunks: {:?}", chunk_in_hex);
-                }
                 trie.insert(&encode_index(index as u32), &blake2_256(&chunk))
                     .unwrap_or_else(|e| {
                         panic!(
@@ -118,8 +114,6 @@ impl ChunkProof {
 
             trie.commit();
         }
-
-        println!("---------- chunk root: {:?}", chunk_root);
 
         chunk_root
     }

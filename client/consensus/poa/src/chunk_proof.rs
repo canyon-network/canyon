@@ -111,11 +111,6 @@ impl ChunkProofBuilder {
                 .map(|c| c.to_vec());
 
             for (index, chunk) in chunks.enumerate() {
-                if index == 0 {
-                    let chunk_in_hex =
-                        format!("0x{}", sp_core::hexdisplay::HexDisplay::from(&chunk));
-                    println!("----- build chunks: {:?}", chunk_in_hex);
-                }
                 // Build the trie using chunk id.
                 trie.insert(&encode_index(index as u32), &blake2_256(&chunk))
                     .unwrap_or_else(|e| {
@@ -132,8 +127,6 @@ impl ChunkProofBuilder {
 
             trie.commit();
         }
-
-        println!("---------- consensus chunk root: {:?}", chunk_root);
 
         let proof = sp_trie::generate_trie_proof::<TrieLayout, _, _, _>(
             &db,
