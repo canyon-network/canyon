@@ -85,38 +85,6 @@ impl ChunkProof {
     pub fn size(&self) -> usize {
         self.proof.iter().map(|p| p.len()).sum()
     }
-
-    /// Calculates the merkle root of the raw data `chunk`.
-    #[cfg(feature = "std")]
-    pub fn chunk_root(&self, chunk_size: usize) -> sp_core::H256 {
-        use sp_core::Blake2Hasher;
-        use sp_io::hashing::blake2_256;
-        use sp_trie::TrieMut;
-
-        let mut db = sp_trie::MemoryDB::<Blake2Hasher>::default();
-        let mut chunk_root = sp_trie::empty_trie_root::<sp_trie::Layout<Blake2Hasher>>();
-
-        {
-            let mut trie =
-                sp_trie::TrieDBMut::<sp_trie::Layout<Blake2Hasher>>::new(&mut db, &mut chunk_root);
-
-            let chunks = self.chunk.chunks(chunk_size).map(|c| c.to_vec());
-
-            for (index, chunk) in chunks.enumerate() {
-                trie.insert(&encode_index(index as u32), &blake2_256(&chunk))
-                    .unwrap_or_else(|e| {
-                        panic!(
-                            "Failed to insert the trie node: {:?}, chunk index: {}",
-                            e, index
-                        )
-                    });
-            }
-
-            trie.commit();
-        }
-
-        chunk_root
-    }
 }
 
 /// This struct is used to prove the random historical data access of block author.
