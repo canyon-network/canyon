@@ -362,6 +362,7 @@ where
     const IDENTIFIER: &'static str = "CheckStore";
     type AccountId = T::AccountId;
     type Call = <T as frame_system::Config>::Call;
+    // TODO: Sign the chunk root
     type AdditionalSigned = ();
     type Pre = ();
 

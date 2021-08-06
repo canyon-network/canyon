@@ -116,7 +116,7 @@ pub type IoHandler = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
 pub fn create_full<C, P, SC, B, S, A>(
     deps: FullDeps<C, P, SC, B, S>,
     author: A,
-) -> jsonrpc_core::IoHandler<sc_rpc_api::Metadata>
+) -> Result<jsonrpc_core::IoHandler<sc_rpc_api::Metadata>, Box<dyn std::error::Error + Send + Sync>>
 where
     C: ProvideRuntimeApi<Block>
         + HeaderBackend<Block>
@@ -204,14 +204,14 @@ where
             shared_authority_set,
             shared_epoch_changes,
             deny_unsafe,
-        ),
+        )?,
     ));
 
     io.extend_with(cc_rpc_api::permastore::PermastoreApi::to_delegate(
         cc_rpc::permastore::Permastore::<_, _, _, Block>::new(perma_storage, pool, author),
     ));
 
-    io
+    Ok(io)
 }
 
 /// Instantiate all Light RPC extensions.

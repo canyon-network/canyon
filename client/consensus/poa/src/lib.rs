@@ -52,7 +52,7 @@
 //!
 //! Normally, PoA needs to be used with other consensus algorithem like
 //! PoW or PoS together as it's not typically designed for solving the
-//! problem of selecting one from the validator set to author next block
+//! problem of selecting one from a set of validators to author next block
 //! in an unpredictable or fair way. In another word, PoA is not intended
 //! for resolving the leader election problem, and is usually exploited
 //! as a precondition for PoW or PoS in order to encourage the miners to
@@ -86,10 +86,10 @@ use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder as BlockBuilderApi;
 use sp_blockchain::{well_known_cache_keys::Id as CacheKeyId, HeaderBackend, ProvideCache};
 use sp_consensus::{Error as ConsensusError, SelectChain};
-use sp_runtime::DigestItem;
 use sp_runtime::{
     generic::BlockId,
     traits::{Block as BlockT, Header as HeaderT, NumberFor},
+    DigestItem,
 };
 
 use canyon_primitives::{DataIndex, Depth, ExtrinsicIndex};
@@ -99,12 +99,14 @@ use cp_poa::PoaApi;
 
 mod chunk_proof;
 mod inherent;
+mod trie;
 mod tx_proof;
 
 pub use self::chunk_proof::{verify_chunk_proof, ChunkProofBuilder, ChunkProofVerifier};
 pub use self::inherent::PoaInherentDataProvider;
 pub use self::tx_proof::{build_extrinsic_proof, verify_extrinsic_proof, TxProofVerifier};
 
+// Re-exports of poa primitives.
 pub use cp_consensus_poa::{
     ChunkProof, PoaConfiguration, PoaOutcome, ProofOfAccess, POA_ENGINE_ID,
 };
@@ -118,29 +120,32 @@ type Randomness = Vec<u8>;
 #[derive(Error, Debug)]
 pub enum Error<Block: BlockT> {
     /// No PoA seal in the header.
-    #[error("Header {0:?} has no PoA seal")]
-    HeaderUnsealed(Block::Hash),
+    #[error("Header {0:?} has no PoA digest")]
+    NoDigest(Block::Hash),
     /// Multiple PoA seals were found in the header.
-    #[error("Header {0:?} has multiple PoA seals")]
-    HeaderMultiSealed(Block::Hash),
+    #[error("Header {0:?} has multiple PoA digests")]
+    MultipleDigests(Block::Hash),
     /// Client error.
     #[error("Client error: {0}")]
     Client(sp_blockchain::Error),
     /// Codec error.
-    #[error("Codec error")]
+    #[error("Codec error: {0}")]
     Codec(#[from] codec::Error),
     /// Blockchain error.
-    #[error("Blockchain error")]
+    #[error("Blockchain error: {0}")]
     BlockchainError(#[from] sp_blockchain::Error),
     /// Invalid ProofOfAccess.
     #[error("Invalid ProofOfAccess: {0:?}")]
     InvalidProofOfAccess(ProofOfAccess),
     /// Failed to verify the merkle proof.
-    #[error("VerifyError error")]
+    #[error("VerifyError error: {0:?}")]
     VerifyFailed(#[from] cp_permastore::VerifyError),
     /// Runtime api error.
     #[error(transparent)]
     ApiError(#[from] sp_api::ApiError),
+    /// Chunk root not found.
+    #[error("Chunk root not found for the recall extrinsic {0}#{1}")]
+    ChunkRootNotFound(BlockId<Block>, ExtrinsicIndex),
     /// Block not found.
     #[error("Block {0} not found")]
     BlockNotFound(BlockId<Block>),
@@ -198,7 +203,7 @@ fn find_recall_tx(
 ) -> (ExtrinsicIndex, DataIndex) {
     log::trace!(
         target: "poa",
-        "Try locating the position of recall tx, recall_byte: {}, sized_extrinsics: {:?}",
+        "Locating the position of recall tx, recall_byte: {}, sized_extrinsics: {:?}",
         recall_byte, sized_extrinsics
     );
     match sized_extrinsics.binary_search_by_key(&recall_byte, |&(_, weave_size)| weave_size) {
@@ -222,7 +227,7 @@ pub struct RecallInfo<B: BlockT> {
 
 impl<B: BlockT<Hash = canyon_primitives::Hash>> RecallInfo<B> {
     /// Converts the recall info to a [`TxProofVerifier`].
-    pub fn into_tx_proof_verifier(self) -> TxProofVerifier<B> {
+    pub fn as_tx_proof_verifier(&self) -> TxProofVerifier<B> {
         let recall_extrinsic = self.extrinsics[self.recall_extrinsic_index as usize].clone();
         TxProofVerifier::new(
             recall_extrinsic,
@@ -428,6 +433,7 @@ where
                             );
                             continue;
                         }
+
                         if let Ok(tx_proof) = build_extrinsic_proof::<Block>(
                             recall_extrinsic_index,
                             extrinsics_root,
@@ -493,26 +499,28 @@ where
     PoaBuilder::new(client, transaction_data_backend).build(parent)
 }
 
-/// Extracts PoA seal from a header that is expected to contain a poa proof.
+/// Extracts PoA digest from a header that should contain one.
 ///
-/// The header should have one and only one [`DigestItem::Seal(POA_ENGINE_ID, seal)`].
+/// The header should have one and only one [`DigestItem::PreRuntime(POA_ENGINE_ID, pre_runtime)`].
 fn fetch_poa<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<ProofOfAccess, Error<B>> {
+    use DigestItem::PreRuntime;
+
     let poa_seal = header
         .digest()
         .logs()
         .iter()
-        .filter(|digest_item| matches!(digest_item, DigestItem::Seal(id, _seal) if id == &POA_ENGINE_ID))
+        .filter(|digest_item| matches!(digest_item, PreRuntime(id, _seal) if id == &POA_ENGINE_ID))
         .collect::<Vec<_>>();
 
     match poa_seal.len() {
-        0 => Err(Error::<B>::HeaderUnsealed(hash)),
+        0 => Err(Error::<B>::NoDigest(hash)),
         1 => match poa_seal[0] {
-            DigestItem::Seal(_id, seal) => {
+            PreRuntime(_id, seal) => {
                 Decode::decode(&mut seal.as_slice()).map_err(Error::<B>::Codec)
             }
-            _ => unreachable!("Only items sealed using POA_ENGINE_ID has been filtered; qed"),
+            _ => unreachable!("Only items using POA_ENGINE_ID has been filtered; qed"),
         },
-        _ => Err(Error::<B>::HeaderMultiSealed(hash)),
+        _ => Err(Error::<B>::MultipleDigests(hash)),
     }
 }
 
@@ -634,13 +642,29 @@ where
             let recall_block_number =
                 find_recall_block(BlockId::Hash(parent_hash), recall_byte, &self.client)?;
 
-            find_recall_info(recall_byte, recall_block_number, &self.client)?
-                .into_tx_proof_verifier()
+            let recall_info = find_recall_info(recall_byte, recall_block_number, &self.client)?;
+
+            recall_info
+                .as_tx_proof_verifier()
                 .verify(&tx_path)
                 .map_err(Error::<B>::VerifyFailed)?;
 
+            let chunk_root = self
+                .client
+                .runtime_api()
+                .chunk_root(
+                    &BlockId::Hash(parent_hash),
+                    recall_block_number,
+                    recall_info.recall_extrinsic_index,
+                )
+                .map_err(Error::<B>::ApiError)?
+                .ok_or(Error::<B>::ChunkRootNotFound(
+                    BlockId::Number(recall_block_number),
+                    recall_info.recall_extrinsic_index,
+                ))?;
+
             chunk_proof::ChunkProofVerifier::new(chunk_proof)
-                .verify(CHUNK_SIZE as usize)
+                .verify(&chunk_root)
                 .map_err(Error::<B>::VerifyFailed)?;
         }
 
