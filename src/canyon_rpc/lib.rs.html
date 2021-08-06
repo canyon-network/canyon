@@ -357,7 +357,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_full</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">SC</span>, <span class="ident">B</span>, <span class="ident">S</span>, <span class="ident">A</span><span class="op">&gt;</span>(
     <span class="ident">deps</span>: <span class="ident">FullDeps</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">SC</span>, <span class="ident">B</span>, <span class="ident">S</span><span class="op">&gt;</span>,
     <span class="ident">author</span>: <span class="ident">A</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">jsonrpc_core::IoHandler</span><span class="op">&lt;</span><span class="ident">sc_rpc_api::Metadata</span><span class="op">&gt;</span>
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jsonrpc_core::IoHandler</span><span class="op">&lt;</span><span class="ident">sc_rpc_api::Metadata</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">std::error::Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">C</span>: <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>
         <span class="op">+</span> <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>
@@ -445,14 +445,14 @@
             <span class="ident">shared_authority_set</span>,
             <span class="ident">shared_epoch_changes</span>,
             <span class="ident">deny_unsafe</span>,
-        ),
+        )<span class="question-mark">?</span>,
     ));
 
     <span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">cc_rpc_api::permastore::PermastoreApi::to_delegate</span>(
         <span class="ident">cc_rpc::permastore::Permastore</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">Block</span><span class="op">&gt;</span><span class="ident">::new</span>(<span class="ident">perma_storage</span>, <span class="ident">pool</span>, <span class="ident">author</span>),
     ));
 
-    <span class="ident">io</span>
+    <span class="prelude-val">Ok</span>(<span class="ident">io</span>)
 }
 
 <span class="doccomment">/// Instantiate all Light RPC extensions.</span>

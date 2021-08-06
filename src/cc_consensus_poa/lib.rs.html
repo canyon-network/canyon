@@ -650,6 +650,30 @@
 <span id="650">650</span>
 <span id="651">651</span>
 <span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
 </pre><pre class="rust">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -705,7 +729,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Normally, PoA needs to be used with other consensus algorithem like</span>
 <span class="doccomment">//! PoW or PoS together as it&#39;s not typically designed for solving the</span>
-<span class="doccomment">//! problem of selecting one from the validator set to author next block</span>
+<span class="doccomment">//! problem of selecting one from a set of validators to author next block</span>
 <span class="doccomment">//! in an unpredictable or fair way. In another word, PoA is not intended</span>
 <span class="doccomment">//! for resolving the leader election problem, and is usually exploited</span>
 <span class="doccomment">//! as a precondition for PoW or PoS in order to encourage the miners to</span>
@@ -739,10 +763,10 @@
 <span class="kw">use</span> <span class="ident">sp_block_builder::BlockBuilder</span> <span class="kw">as</span> <span class="ident">BlockBuilderApi</span>;
 <span class="kw">use</span> <span class="ident">sp_blockchain</span>::{<span class="ident">well_known_cache_keys::Id</span> <span class="kw">as</span> <span class="ident">CacheKeyId</span>, <span class="ident">HeaderBackend</span>, <span class="ident">ProvideCache</span>};
 <span class="kw">use</span> <span class="ident">sp_consensus</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">ConsensusError</span>, <span class="ident">SelectChain</span>};
-<span class="kw">use</span> <span class="ident">sp_runtime::DigestItem</span>;
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{
     <span class="ident">generic::BlockId</span>,
     <span class="ident">traits</span>::{<span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>, <span class="ident">Header</span> <span class="kw">as</span> <span class="ident">HeaderT</span>, <span class="ident">NumberFor</span>},
+    <span class="ident">DigestItem</span>,
 };
 
 <span class="kw">use</span> <span class="ident">canyon_primitives</span>::{<span class="ident">DataIndex</span>, <span class="ident">Depth</span>, <span class="ident">ExtrinsicIndex</span>};
@@ -752,12 +776,14 @@
 
 <span class="kw">mod</span> <span class="ident">chunk_proof</span>;
 <span class="kw">mod</span> <span class="ident">inherent</span>;
+<span class="kw">mod</span> <span class="ident">trie</span>;
 <span class="kw">mod</span> <span class="ident">tx_proof</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::chunk_proof</span>::{<span class="ident">verify_chunk_proof</span>, <span class="ident">ChunkProofBuilder</span>, <span class="ident">ChunkProofVerifier</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::inherent::PoaInherentDataProvider</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::tx_proof</span>::{<span class="ident">build_extrinsic_proof</span>, <span class="ident">verify_extrinsic_proof</span>, <span class="ident">TxProofVerifier</span>};
 
+<span class="comment">// Re-exports of poa primitives.</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">cp_consensus_poa</span>::{
     <span class="ident">ChunkProof</span>, <span class="ident">PoaConfiguration</span>, <span class="ident">PoaOutcome</span>, <span class="ident">ProofOfAccess</span>, <span class="ident">POA_ENGINE_ID</span>,
 };
@@ -771,29 +797,32 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Error</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">Block</span>: <span class="ident">BlockT</span><span class="op">&gt;</span> {
     <span class="doccomment">/// No PoA seal in the header.</span>
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Header {0:?} has no PoA seal&quot;</span>)]</span>
-    <span class="ident">HeaderUnsealed</span>(<span class="ident">Block::Hash</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Header {0:?} has no PoA digest&quot;</span>)]</span>
+    <span class="ident">NoDigest</span>(<span class="ident">Block::Hash</span>),
     <span class="doccomment">/// Multiple PoA seals were found in the header.</span>
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Header {0:?} has multiple PoA seals&quot;</span>)]</span>
-    <span class="ident">HeaderMultiSealed</span>(<span class="ident">Block::Hash</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Header {0:?} has multiple PoA digests&quot;</span>)]</span>
+    <span class="ident">MultipleDigests</span>(<span class="ident">Block::Hash</span>),
     <span class="doccomment">/// Client error.</span>
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Client error: {0}&quot;</span>)]</span>
     <span class="ident">Client</span>(<span class="ident">sp_blockchain::Error</span>),
     <span class="doccomment">/// Codec error.</span>
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Codec error&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Codec error: {0}&quot;</span>)]</span>
     <span class="ident">Codec</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">codec::Error</span>),
     <span class="doccomment">/// Blockchain error.</span>
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Blockchain error&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Blockchain error: {0}&quot;</span>)]</span>
     <span class="ident">BlockchainError</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">sp_blockchain::Error</span>),
     <span class="doccomment">/// Invalid ProofOfAccess.</span>
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Invalid ProofOfAccess: {0:?}&quot;</span>)]</span>
     <span class="ident">InvalidProofOfAccess</span>(<span class="ident">ProofOfAccess</span>),
     <span class="doccomment">/// Failed to verify the merkle proof.</span>
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;VerifyError error&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;VerifyError error: {0:?}&quot;</span>)]</span>
     <span class="ident">VerifyFailed</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">cp_permastore::VerifyError</span>),
     <span class="doccomment">/// Runtime api error.</span>
     <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
     <span class="ident">ApiError</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">sp_api::ApiError</span>),
+    <span class="doccomment">/// Chunk root not found.</span>
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Chunk root not found for the recall extrinsic {0}#{1}&quot;</span>)]</span>
+    <span class="ident">ChunkRootNotFound</span>(<span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>, <span class="ident">ExtrinsicIndex</span>),
     <span class="doccomment">/// Block not found.</span>
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Block {0} not found&quot;</span>)]</span>
     <span class="ident">BlockNotFound</span>(<span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>),
@@ -851,7 +880,7 @@
 ) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">ExtrinsicIndex</span>, <span class="ident">DataIndex</span>) {
     <span class="macro">log::trace!</span>(
         <span class="ident">target</span>: <span class="string">&quot;poa&quot;</span>,
-        <span class="string">&quot;Try locating the position of recall tx, recall_byte: {}, sized_extrinsics: {:?}&quot;</span>,
+        <span class="string">&quot;Locating the position of recall tx, recall_byte: {}, sized_extrinsics: {:?}&quot;</span>,
         <span class="ident">recall_byte</span>, <span class="ident">sized_extrinsics</span>
     );
     <span class="kw">match</span> <span class="ident">sized_extrinsics</span>.<span class="ident">binary_search_by_key</span>(<span class="kw-2">&amp;</span><span class="ident">recall_byte</span>, <span class="op">|</span><span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="ident">weave_size</span>)<span class="op">|</span> <span class="ident">weave_size</span>) {
@@ -875,7 +904,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">BlockT</span><span class="op">&lt;</span><span class="ident">Hash</span> <span class="op">=</span> <span class="ident">canyon_primitives::Hash</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">RecallInfo</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Converts the recall info to a [`TxProofVerifier`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_tx_proof_verifier</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TxProofVerifier</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_tx_proof_verifier</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TxProofVerifier</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">recall_extrinsic</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">extrinsics</span>[<span class="self">self</span>.<span class="ident">recall_extrinsic_index</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">clone</span>();
         <span class="ident">TxProofVerifier::new</span>(
             <span class="ident">recall_extrinsic</span>,
@@ -1081,6 +1110,7 @@
                             );
                             <span class="kw">continue</span>;
                         }
+
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">tx_proof</span>) <span class="op">=</span> <span class="ident">build_extrinsic_proof</span>::<span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>(
                             <span class="ident">recall_extrinsic_index</span>,
                             <span class="ident">extrinsics_root</span>,
@@ -1146,26 +1176,28 @@
     <span class="ident">PoaBuilder::new</span>(<span class="ident">client</span>, <span class="ident">transaction_data_backend</span>).<span class="ident">build</span>(<span class="ident">parent</span>)
 }
 
-<span class="doccomment">/// Extracts PoA seal from a header that is expected to contain a poa proof.</span>
+<span class="doccomment">/// Extracts PoA digest from a header that should contain one.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// The header should have one and only one [`DigestItem::Seal(POA_ENGINE_ID, seal)`].</span>
+<span class="doccomment">/// The header should have one and only one [`DigestItem::PreRuntime(POA_ENGINE_ID, pre_runtime)`].</span>
 <span class="kw">fn</span> <span class="ident">fetch_poa</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">BlockT</span><span class="op">&gt;</span>(<span class="ident">header</span>: <span class="ident">B::Header</span>, <span class="ident">hash</span>: <span class="ident">B::Hash</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ProofOfAccess</span>, <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">use</span> <span class="ident">DigestItem::PreRuntime</span>;
+
     <span class="kw">let</span> <span class="ident">poa_seal</span> <span class="op">=</span> <span class="ident">header</span>
         .<span class="ident">digest</span>()
         .<span class="ident">logs</span>()
         .<span class="ident">iter</span>()
-        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">digest_item</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">digest_item</span>, <span class="ident">DigestItem::Seal</span>(<span class="ident">id</span>, <span class="ident">_seal</span>) <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">POA_ENGINE_ID</span>))
+        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">digest_item</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">digest_item</span>, <span class="ident">PreRuntime</span>(<span class="ident">id</span>, <span class="ident">_seal</span>) <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">POA_ENGINE_ID</span>))
         .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
     <span class="kw">match</span> <span class="ident">poa_seal</span>.<span class="ident">len</span>() {
-        <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="ident">::HeaderUnsealed</span>(<span class="ident">hash</span>)),
+        <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="ident">::NoDigest</span>(<span class="ident">hash</span>)),
         <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">poa_seal</span>[<span class="number">0</span>] {
-            <span class="ident">DigestItem::Seal</span>(<span class="ident">_id</span>, <span class="ident">seal</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">PreRuntime</span>(<span class="ident">_id</span>, <span class="ident">seal</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">Decode::decode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">seal</span>.<span class="ident">as_slice</span>()).<span class="ident">map_err</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="ident">::Codec</span>)
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;Only items sealed using POA_ENGINE_ID has been filtered; qed&quot;</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;Only items using POA_ENGINE_ID has been filtered; qed&quot;</span>),
         },
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="ident">::HeaderMultiSealed</span>(<span class="ident">hash</span>)),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="ident">::MultipleDigests</span>(<span class="ident">hash</span>)),
     }
 }
 
@@ -1287,13 +1319,29 @@
             <span class="kw">let</span> <span class="ident">recall_block_number</span> <span class="op">=</span>
                 <span class="ident">find_recall_block</span>(<span class="ident">BlockId::Hash</span>(<span class="ident">parent_hash</span>), <span class="ident">recall_byte</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">client</span>)<span class="question-mark">?</span>;
 
-            <span class="ident">find_recall_info</span>(<span class="ident">recall_byte</span>, <span class="ident">recall_block_number</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">client</span>)<span class="question-mark">?</span>
-                .<span class="ident">into_tx_proof_verifier</span>()
+            <span class="kw">let</span> <span class="ident">recall_info</span> <span class="op">=</span> <span class="ident">find_recall_info</span>(<span class="ident">recall_byte</span>, <span class="ident">recall_block_number</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">client</span>)<span class="question-mark">?</span>;
+
+            <span class="ident">recall_info</span>
+                .<span class="ident">as_tx_proof_verifier</span>()
                 .<span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="ident">tx_path</span>)
                 .<span class="ident">map_err</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="ident">::VerifyFailed</span>)<span class="question-mark">?</span>;
 
+            <span class="kw">let</span> <span class="ident">chunk_root</span> <span class="op">=</span> <span class="self">self</span>
+                .<span class="ident">client</span>
+                .<span class="ident">runtime_api</span>()
+                .<span class="ident">chunk_root</span>(
+                    <span class="kw-2">&amp;</span><span class="ident">BlockId::Hash</span>(<span class="ident">parent_hash</span>),
+                    <span class="ident">recall_block_number</span>,
+                    <span class="ident">recall_info</span>.<span class="ident">recall_extrinsic_index</span>,
+                )
+                .<span class="ident">map_err</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="ident">::ApiError</span>)<span class="question-mark">?</span>
+                .<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="ident">::ChunkRootNotFound</span>(
+                    <span class="ident">BlockId::Number</span>(<span class="ident">recall_block_number</span>),
+                    <span class="ident">recall_info</span>.<span class="ident">recall_extrinsic_index</span>,
+                ))<span class="question-mark">?</span>;
+
             <span class="ident">chunk_proof::ChunkProofVerifier::new</span>(<span class="ident">chunk_proof</span>)
-                .<span class="ident">verify</span>(<span class="ident">CHUNK_SIZE</span> <span class="kw">as</span> <span class="ident">usize</span>)
+                .<span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="ident">chunk_root</span>)
                 .<span class="ident">map_err</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="ident">::VerifyFailed</span>)<span class="question-mark">?</span>;
         }
 

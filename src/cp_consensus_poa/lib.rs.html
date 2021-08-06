@@ -208,21 +208,6 @@
 <span id="208">208</span>
 <span id="209">209</span>
 <span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
-<span id="217">217</span>
-<span id="218">218</span>
-<span id="219">219</span>
-<span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
 </pre><pre class="rust">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -257,7 +242,7 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">POA_ENGINE_ID</span>: <span class="ident">ConsensusEngineId</span> <span class="op">=</span> <span class="kw-2">*</span><span class="string">b&quot;POA:&quot;</span>;
 
 <span class="doccomment">/// This struct includes the raw bytes of recall chunk as well as the chunk proof stuffs.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;camelCase&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ChunkProof</span> {
@@ -271,6 +256,23 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Merkle path of chunks from `chunk` to the chunk root.</span>
     <span class="kw">pub</span> <span class="ident">proof</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">sp_std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">ChunkProof</span> {
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sp_std::fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_std::fmt::Result</span> {
+        <span class="kw">let</span> <span class="ident">chunk_in_hex</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;0x{}&quot;</span>, <span class="ident">sp_core::hexdisplay::HexDisplay::from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">chunk</span>));
+        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;ChunkProof&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;chunk&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">chunk_in_hex</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;chunk_index&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">chunk_index</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;proof&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">proof</span>)
+            .<span class="ident">finish</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sp_std::fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_std::fmt::Result</span> {
+        <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;&lt;wasm:stripped&gt;&quot;</span>)
+    }
 }
 
 <span class="doccomment">/// An utility function to enocde chunk/extrinsic index as trie key.</span>
@@ -293,38 +295,6 @@
     <span class="doccomment">/// Returns the proof size in bytes.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">proof</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">len</span>()).<span class="ident">sum</span>()
-    }
-
-    <span class="doccomment">/// Calculates the merkle root of the raw data `chunk`.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">chunk_root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">chunk_size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_core::H256</span> {
-        <span class="kw">use</span> <span class="ident">sp_core::Blake2Hasher</span>;
-        <span class="kw">use</span> <span class="ident">sp_io::hashing::blake2_256</span>;
-        <span class="kw">use</span> <span class="ident">sp_trie::TrieMut</span>;
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">sp_trie::MemoryDB</span>::<span class="op">&lt;</span><span class="ident">Blake2Hasher</span><span class="op">&gt;</span><span class="ident">::default</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chunk_root</span> <span class="op">=</span> <span class="ident">sp_trie::empty_trie_root</span>::<span class="op">&lt;</span><span class="ident">sp_trie::Layout</span><span class="op">&lt;</span><span class="ident">Blake2Hasher</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-
-        {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trie</span> <span class="op">=</span>
-                <span class="ident">sp_trie::TrieDBMut</span>::<span class="op">&lt;</span><span class="ident">sp_trie::Layout</span><span class="op">&lt;</span><span class="ident">Blake2Hasher</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">db</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">chunk_root</span>);
-
-            <span class="kw">let</span> <span class="ident">chunks</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">chunk</span>.<span class="ident">chunks</span>(<span class="ident">chunk_size</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">to_vec</span>());
-
-            <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">chunk</span>) <span class="kw">in</span> <span class="ident">chunks</span>.<span class="ident">enumerate</span>() {
-                <span class="ident">trie</span>.<span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="ident">encode_index</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>), <span class="kw-2">&amp;</span><span class="ident">blake2_256</span>(<span class="kw-2">&amp;</span><span class="ident">chunk</span>))
-                    .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                        <span class="macro">panic!</span>(
-                            <span class="string">&quot;Failed to insert the trie node: {:?}, chunk index: {}&quot;</span>,
-                            <span class="ident">e</span>, <span class="ident">index</span>
-                        )
-                    });
-            }
-
-            <span class="ident">trie</span>.<span class="ident">commit</span>();
-        }
-
-        <span class="ident">chunk_root</span>
     }
 }
 

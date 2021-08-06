@@ -636,6 +636,9 @@
 <span id="636">636</span>
 <span id="637">637</span>
 <span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
 </pre><pre class="rust">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -698,7 +701,10 @@
         <span class="ident">sc_consensus::DefaultImportQueue</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">FullClient</span><span class="op">&gt;</span>,
         <span class="ident">sc_transaction_pool::FullPool</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">FullClient</span><span class="op">&gt;</span>,
         (
-            <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">canyon_rpc::DenyUnsafe</span>, <span class="ident">sc_rpc::SubscriptionTaskExecutor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">canyon_rpc::IoHandler</span>,
+            <span class="kw">impl</span> <span class="ident">Fn</span>(
+                <span class="ident">canyon_rpc::DenyUnsafe</span>,
+                <span class="ident">sc_rpc::SubscriptionTaskExecutor</span>,
+            ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">canyon_rpc::IoHandler</span>, <span class="ident">sc_service::Error</span><span class="op">&gt;</span>,
             (
                 <span class="ident">sc_consensus_babe::BabeBlockImport</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">FullClient</span>, <span class="ident">FullPoaBlockImport</span><span class="op">&gt;</span>,
                 <span class="ident">grandpa::LinkHalf</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">FullClient</span>, <span class="ident">FullSelectChain</span><span class="op">&gt;</span>,
@@ -856,7 +862,7 @@
                 <span class="ident">deny_unsafe</span>,
             );
 
-            <span class="ident">canyon_rpc::create_full</span>(<span class="ident">deps</span>, <span class="ident">author</span>)
+            <span class="ident">canyon_rpc::create_full</span>(<span class="ident">deps</span>, <span class="ident">author</span>).<span class="ident">map_err</span>(<span class="ident">Into::into</span>)
         };
 
         (<span class="ident">rpc_extensions_builder</span>, <span class="ident">rpc_setup</span>)

@@ -400,6 +400,7 @@
 <span id="400">400</span>
 <span id="401">401</span>
 <span id="402">402</span>
+<span id="403">403</span>
 </pre><pre class="rust">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -765,6 +766,7 @@
     <span class="kw">const</span> <span class="ident">IDENTIFIER</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;CheckStore&quot;</span>;
     <span class="kw">type</span> <span class="ident">AccountId</span> <span class="op">=</span> <span class="ident">T::AccountId</span>;
     <span class="kw">type</span> <span class="ident">Call</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Call</span>;
+    <span class="comment">// TODO: Sign the chunk root</span>
     <span class="kw">type</span> <span class="ident">AdditionalSigned</span> <span class="op">=</span> ();
     <span class="kw">type</span> <span class="ident">Pre</span> <span class="op">=</span> ();
 
