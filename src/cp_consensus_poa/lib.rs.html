@@ -246,16 +246,16 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;camelCase&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ChunkProof</span> {
+    <span class="doccomment">/// Trie nodes that compose the proof.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Merkle path of chunks from `chunk` to the chunk root.</span>
+    <span class="kw">pub</span> <span class="ident">proof</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Random data chunk that is proved to exist.</span>
     <span class="kw">pub</span> <span class="ident">chunk</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Index of `chunk` in the total chunks of that transaction data.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Required for verifing `proof`.</span>
     <span class="kw">pub</span> <span class="ident">chunk_index</span>: <span class="ident">u32</span>,
-    <span class="doccomment">/// Trie nodes that compose the proof.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Merkle path of chunks from `chunk` to the chunk root.</span>
-    <span class="kw">pub</span> <span class="ident">proof</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">sp_std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">ChunkProof</span> {
@@ -284,11 +284,11 @@
 
 <span class="kw">impl</span> <span class="ident">ChunkProof</span> {
     <span class="doccomment">/// Creates a new instance of [`ChunkProof`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">chunk</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">chunk_index</span>: <span class="ident">u32</span>, <span class="ident">proof</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">proof</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">chunk</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">chunk_index</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
+            <span class="ident">proof</span>,
             <span class="ident">chunk</span>,
             <span class="ident">chunk_index</span>,
-            <span class="ident">proof</span>,
         }
     }
 
