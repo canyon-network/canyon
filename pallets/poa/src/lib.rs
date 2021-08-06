@@ -74,8 +74,6 @@ pub use pallet::*;
 /// of a validator, which implies the storage capacity per validator.
 #[derive(RuntimeDebug, Clone, Eq, PartialEq, Encode, Decode, MaxEncodedLen)]
 pub struct DepthInfo<BlockNumber> {
-    /// Sum of all depths so far.
-    pub total_depth: Depth,
     /// Number of blocks authored by a validator since the weave is non-empty.
     ///
     /// The `blocks` here is not equal to the number of total blocks
@@ -83,6 +81,8 @@ pub struct DepthInfo<BlockNumber> {
     /// contruction is skipped when the weave is empty, the blocks
     /// authored in that period are not counted.
     pub blocks: BlockNumber,
+    /// Sum of all depths so far.
+    pub total_depth: Depth,
 }
 
 impl<BlockNumber: AtLeast32BitUnsigned + Copy> DepthInfo<BlockNumber> {
@@ -317,8 +317,8 @@ pub mod pallet {
                 HistoryDepth::<T>::insert(
                     &block_author,
                     DepthInfo {
-                        total_depth: depth,
                         blocks: 1u32.into(),
+                        total_depth: depth,
                     },
                 );
             }

@@ -35,16 +35,16 @@ pub const POA_ENGINE_ID: ConsensusEngineId = *b"POA:";
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 pub struct ChunkProof {
+    /// Trie nodes that compose the proof.
+    ///
+    /// Merkle path of chunks from `chunk` to the chunk root.
+    pub proof: Vec<Vec<u8>>,
     /// Random data chunk that is proved to exist.
     pub chunk: Vec<u8>,
     /// Index of `chunk` in the total chunks of that transaction data.
     ///
     /// Required for verifing `proof`.
     pub chunk_index: u32,
-    /// Trie nodes that compose the proof.
-    ///
-    /// Merkle path of chunks from `chunk` to the chunk root.
-    pub proof: Vec<Vec<u8>>,
 }
 
 impl sp_std::fmt::Debug for ChunkProof {
@@ -73,11 +73,11 @@ pub fn encode_index(input: u32) -> Vec<u8> {
 
 impl ChunkProof {
     /// Creates a new instance of [`ChunkProof`].
-    pub fn new(chunk: Vec<u8>, chunk_index: u32, proof: Vec<Vec<u8>>) -> Self {
+    pub fn new(proof: Vec<Vec<u8>>, chunk: Vec<u8>, chunk_index: u32) -> Self {
         Self {
+            proof,
             chunk,
             chunk_index,
-            proof,
         }
     }
 

@@ -55,6 +55,7 @@ sc-network = { git = "https://github.com/canyon-network/substrate", branch = "ca
 sc-offchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sc-rpc = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sc-service = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false  }
+sc-sync-state-rpc = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sc-telemetry = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sc-transaction-pool = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 grandpa = { package = "sc-finality-grandpa", git = "https://github.com/canyon-network/substrate", branch = "canyon" }
