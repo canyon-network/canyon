@@ -1,24 +1,40 @@
-name: CI to Docker hub
+name: docker
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - 'master'
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - 'master'
 
-  steps:
-      - name: Login to DockerHub
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: name/app
+      -
+        name: Login to DockerHub
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
-
-      - name: Build and push
-        id: docker_build
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Build and push
         uses: docker/build-push-action@v2
         with:
-          context: ./
-          file: ./Dockerfile
-          push: true
-          tags: canyonlabs/canyon:latest
-
-      - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
