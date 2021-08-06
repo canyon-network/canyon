@@ -59,7 +59,10 @@ pub fn new_partial(
         sc_consensus::DefaultImportQueue<Block, FullClient>,
         sc_transaction_pool::FullPool<Block, FullClient>,
         (
-            impl Fn(canyon_rpc::DenyUnsafe, sc_rpc::SubscriptionTaskExecutor) -> canyon_rpc::IoHandler,
+            impl Fn(
+                canyon_rpc::DenyUnsafe,
+                sc_rpc::SubscriptionTaskExecutor,
+            ) -> Result<canyon_rpc::IoHandler, sc_service::Error>,
             (
                 sc_consensus_babe::BabeBlockImport<Block, FullClient, FullPoaBlockImport>,
                 grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
@@ -217,7 +220,7 @@ pub fn new_partial(
                 deny_unsafe,
             );
 
-            canyon_rpc::create_full(deps, author)
+            canyon_rpc::create_full(deps, author).map_err(Into::into)
         };
 
         (rpc_extensions_builder, rpc_setup)

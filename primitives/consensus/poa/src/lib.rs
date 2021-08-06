@@ -31,7 +31,7 @@ pub const POA_INHERENT_IDENTIFIER: InherentIdentifier = *b"poaproof";
 pub const POA_ENGINE_ID: ConsensusEngineId = *b"POA:";
 
 /// This struct includes the raw bytes of recall chunk as well as the chunk proof stuffs.
-#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
+#[derive(Clone, Eq, PartialEq, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 pub struct ChunkProof {
@@ -45,6 +45,23 @@ pub struct ChunkProof {
     ///
     /// Merkle path of chunks from `chunk` to the chunk root.
     pub proof: Vec<Vec<u8>>,
+}
+
+impl sp_std::fmt::Debug for ChunkProof {
+    #[cfg(feature = "std")]
+    fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+        let chunk_in_hex = format!("0x{}", sp_core::hexdisplay::HexDisplay::from(&self.chunk));
+        f.debug_struct("ChunkProof")
+            .field("chunk", &chunk_in_hex)
+            .field("chunk_index", &self.chunk_index)
+            .field("proof", &self.proof)
+            .finish()
+    }
+
+    #[cfg(not(feature = "std"))]
+    fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+        f.write_str("<wasm:stripped>")
+    }
 }
 
 /// An utility function to enocde chunk/extrinsic index as trie key.
@@ -67,38 +84,6 @@ impl ChunkProof {
     /// Returns the proof size in bytes.
     pub fn size(&self) -> usize {
         self.proof.iter().map(|p| p.len()).sum()
-    }
-
-    /// Calculates the merkle root of the raw data `chunk`.
-    #[cfg(feature = "std")]
-    pub fn chunk_root(&self, chunk_size: usize) -> sp_core::H256 {
-        use sp_core::Blake2Hasher;
-        use sp_io::hashing::blake2_256;
-        use sp_trie::TrieMut;
-
-        let mut db = sp_trie::MemoryDB::<Blake2Hasher>::default();
-        let mut chunk_root = sp_trie::empty_trie_root::<sp_trie::Layout<Blake2Hasher>>();
-
-        {
-            let mut trie =
-                sp_trie::TrieDBMut::<sp_trie::Layout<Blake2Hasher>>::new(&mut db, &mut chunk_root);
-
-            let chunks = self.chunk.chunks(chunk_size).map(|c| c.to_vec());
-
-            for (index, chunk) in chunks.enumerate() {
-                trie.insert(&encode_index(index as u32), &blake2_256(&chunk))
-                    .unwrap_or_else(|e| {
-                        panic!(
-                            "Failed to insert the trie node: {:?}, chunk index: {}",
-                            e, index
-                        )
-                    });
-            }
-
-            trie.commit();
-        }
-
-        chunk_root
     }
 }
 

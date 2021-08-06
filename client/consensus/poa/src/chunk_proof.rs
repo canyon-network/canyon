@@ -23,13 +23,7 @@ use sp_trie::TrieMut;
 use cp_consensus_poa::{encode_index, ChunkProof};
 use cp_permastore::{Hasher, TrieLayout, VerifyError};
 
-/// Error type for chunk proof.
-#[derive(Debug, thiserror::Error)]
-pub enum TrieError {
-    /// Trie error.
-    #[error(transparent)]
-    Trie(#[from] Box<dyn std::error::Error + Send + Sync>),
-}
+use crate::trie::TrieError;
 
 /// A verifier for chunk proof.
 #[derive(Debug, Clone)]
@@ -41,11 +35,10 @@ impl ChunkProofVerifier {
         Self(chunk_proof)
     }
 
-    /// Returns Ok(()) if the chunk proof is valid given `chunk_size`.
-    pub fn verify(&self, chunk_size: usize) -> Result<(), VerifyError> {
-        let chunk_root = self.0.chunk_root(chunk_size);
+    /// Returns `Ok(())` if the chunk proof matches given `chunk_root`.
+    pub fn verify(&self, chunk_root: &H256) -> Result<(), VerifyError> {
         verify_chunk_proof(
-            &chunk_root,
+            chunk_root,
             self.0.chunk.clone(),
             self.0.chunk_index,
             &self.0.proof,
