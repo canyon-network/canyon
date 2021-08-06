@@ -23,6 +23,7 @@ use serde::{Deserialize, Serialize};
 
 use sc_chain_spec::ChainSpecExtension;
 use sc_service::ChainType;
+use sc_sync_state_rpc::LightSyncStateExtension;
 use sc_telemetry::TelemetryEndpoints;
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_babe::AuthorityId as BabeId;
@@ -62,6 +63,8 @@ pub struct Extensions {
     pub fork_blocks: sc_client_api::ForkBlocks<Block>,
     /// Known bad block hashes.
     pub bad_blocks: sc_client_api::BadBlocks<Block>,
+    /// Light sync state.
+    pub light_sync_state: LightSyncStateExtension,
 }
 
 /// Specialized `ChainSpec`.
