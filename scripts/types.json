@@ -23,7 +23,8 @@
       "maxDepth": "u32",
       "maxTxPath": "u32",
       "maxChunkPath": "u32"
-    },
+    }
+  },
   "DepthInfo": {
     "blocks": "BlockNumber",
     "totalDepth": "Depth"
