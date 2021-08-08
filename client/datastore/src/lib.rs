@@ -92,7 +92,7 @@ where
         self.offchain_storage.get(sp_offchain::STORAGE_PREFIX, key)
     }
 
-    /// Clear a storage entry under given key.
+    /// Removes the storage value under given key.
     fn remove(&mut self, key: &[u8]) {
         self.offchain_storage
             .remove(sp_offchain::STORAGE_PREFIX, key)

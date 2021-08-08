@@ -109,7 +109,7 @@ impl From<Error> for rpc::Error {
                 message: e.to_string(),
                 data: None,
             },
-			Error::UnsafeRpcCalled(e) => e.into(),
+            Error::UnsafeRpcCalled(e) => e.into(),
         }
     }
 }
