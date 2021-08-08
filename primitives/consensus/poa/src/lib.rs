@@ -39,8 +39,10 @@ pub struct ChunkProof {
     ///
     /// Merkle path of chunks from `chunk` to the chunk root.
     pub proof: Vec<Vec<u8>>,
+
     /// Random data chunk that is proved to exist.
     pub chunk: Vec<u8>,
+
     /// Index of `chunk` in the total chunks of that transaction data.
     ///
     /// Required for verifing `proof`.
@@ -60,7 +62,7 @@ impl sp_std::fmt::Debug for ChunkProof {
 
     #[cfg(not(feature = "std"))]
     fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
-        f.write_str("<wasm:stripped>")
+        f.write_str("ChunkProof { <wasm::stripped> }")
     }
 }
 
@@ -87,7 +89,7 @@ impl ChunkProof {
     }
 }
 
-/// This struct is used to prove the random historical data access of block author.
+/// This struct is used to prove the historical random data access of block author.
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
@@ -98,6 +100,33 @@ pub struct ProofOfAccess {
     pub tx_path: Vec<Vec<u8>>,
     /// Proof of the recall chunk.
     pub chunk_proof: ChunkProof,
+}
+
+/// Errors that can occur while checking the validity of [`ProofOfAccess`].
+#[derive(Clone, PartialEq, Eq, Encode, Decode)]
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "std", derive(Debug))]
+pub enum PoaValidityError {
+    /// Depth can not be zero.
+    TooSmallDepth,
+    /// Depth excceeds the maximum size specified in the config.
+    TooLargeDepth(u32, u32),
+    /// Tx path exceeds the maximum size specified in the config.
+    TooLargeTxPath(u32, u32),
+    /// Chunk path exceeds the maximum size specified in the config.
+    TooLargeChunkPath(u32, u32),
+}
+
+#[cfg(not(feature = "std"))]
+impl sp_std::fmt::Debug for PoaValidityError {
+    fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+        match self {
+            Self::TooSmallDepth => f.write_str("PoaValidityError::TooSmallDepth"),
+            Self::TooLargeDepth(_, _) => f.write_str("PoaValidityError::TooLargeDepth"),
+            Self::TooLargeTxPath(_, _) => f.write_str("PoaValidityError::TooLargeTxPath"),
+            Self::TooLargeChunkPath(_, _) => f.write_str("PoaValidityError::TooLargeChunkPath"),
+        }
+    }
 }
 
 impl ProofOfAccess {
@@ -121,17 +150,38 @@ impl ProofOfAccess {
     }
 
     /// Returns true if the proof is valid given `poa_config`.
-    pub fn is_valid(&self, poa_config: &PoaConfiguration) -> bool {
+    pub fn check_validity(&self, poa_config: &PoaConfiguration) -> Result<(), PoaValidityError> {
         let PoaConfiguration {
             max_depth,
             max_tx_path,
             max_chunk_path,
         } = poa_config;
 
-        self.depth > 0
-            && self.depth <= *max_depth
-            && self.tx_path_len() <= *max_tx_path as usize
-            && self.chunk_path_len() <= *max_chunk_path as usize
+        if self.depth == 0 {
+            return Err(PoaValidityError::TooSmallDepth);
+        }
+
+        if self.depth > *max_depth {
+            return Err(PoaValidityError::TooLargeChunkPath(self.depth, *max_depth));
+        }
+
+        let tx_path_len = self.tx_path_len();
+        if tx_path_len > *max_tx_path as usize {
+            return Err(PoaValidityError::TooLargeTxPath(
+                tx_path_len as u32,
+                *max_tx_path,
+            ));
+        }
+
+        let chunk_path_len = self.chunk_path_len();
+        if chunk_path_len > *max_chunk_path as usize {
+            return Err(PoaValidityError::TooLargeChunkPath(
+                chunk_path_len as u32,
+                *max_chunk_path,
+            ));
+        }
+
+        Ok(())
     }
 }
 
@@ -158,8 +208,11 @@ impl PoaOutcome {
     }
 }
 
+/// Maximum depth is 1000.
 const MAX_DEPTH: u32 = 1_000;
+/// Maximum byte size of tx path is 256 KiB.
 const MAX_TX_PATH: u32 = 256 * 1024;
+/// Maximu byte size of chunk path 256 KiB.
 const MAX_CHUNK_PATH: u32 = 256 * 1024;
 
 /// Configuration of the PoA consensus engine.
@@ -205,6 +258,6 @@ impl sp_std::fmt::Debug for PoaConfiguration {
 
     #[cfg(not(feature = "std"))]
     fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
-        f.write_str("<wasm:stripped>")
+        f.write_str("PoaConfiguration { <wasm::stripped> }")
     }
 }
