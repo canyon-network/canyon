@@ -50,6 +50,9 @@ pub struct Permastore<T, P, A, B> {
     /// Authoring api.
     author: A,
     /// Whether to deny unsafe calls
+    ///
+    /// TODO: since this is a pretty dangerous operation we might
+    /// need a more restricted way to prevent from the risks.
     deny_unsafe: DenyUnsafe,
     /// Block.
     phatom: PhantomData<B>,
