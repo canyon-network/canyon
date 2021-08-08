@@ -54,7 +54,7 @@ use sp_version::RuntimeVersion;
 
 use frame_support::{
     construct_runtime, parameter_types,
-    traits::{AllowAll, InstanceFilter, KeyOwnerProofSystem, LockIdentifier, U128CurrencyToVote},
+    traits::{Everything, InstanceFilter, KeyOwnerProofSystem, LockIdentifier, U128CurrencyToVote},
     weights::{
         constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
         DispatchClass, IdentityFee, Weight,
@@ -173,7 +173,7 @@ parameter_types! {
 const_assert!(NORMAL_DISPATCH_RATIO.deconstruct() >= AVERAGE_ON_INITIALIZE_RATIO.deconstruct());
 
 impl frame_system::Config for Runtime {
-    type BaseCallFilter = AllowAll;
+    type BaseCallFilter = Everything;
     type BlockWeights = RuntimeBlockWeights;
     type BlockLength = RuntimeBlockLength;
     type DbWeight = RocksDbWeight;
