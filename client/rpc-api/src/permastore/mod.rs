@@ -30,7 +30,7 @@ pub use self::gen_client::Client as OffchainClient;
 
 /// Canyon perma storage RPC API.
 #[rpc]
-pub trait PermastoreApi<Hash> {
+pub trait PermastoreApi<Hash, BlockHash> {
     /// Sepecialized `submit_extrinsic` for submitting the store extrinsic and transaction data.
     #[rpc(name = "permastore_submitExtrinsic")]
     fn submit_extrinsic(&self, ext: Bytes, data: Bytes) -> FutureResult<Hash>;
@@ -38,6 +38,10 @@ pub trait PermastoreApi<Hash> {
     /// Sepecialized `remove_extrinsic` for removing the extrinsic and data if any.
     #[rpc(name = "permastore_removeExtrinsic")]
     fn remove_extrinsic(&self, bytes_or_hash: Vec<ExtrinsicOrHash<Hash>>) -> Result<Vec<Hash>>;
+
+    /// Remove the data of a transaction.
+    #[rpc(name = "permastore_removeData")]
+    fn remove_data(&self, chunk_root: BlockHash) -> Result<bool>;
 
     /// Submit the whole data of a transaction.
     #[rpc(name = "permastore_submit")]
