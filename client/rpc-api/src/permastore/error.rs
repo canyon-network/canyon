@@ -59,6 +59,9 @@ pub enum Error {
     InvalidProof,
     #[error("authoring api: {0}")]
     AuthoringApiError(#[from] sc_rpc_api::author::error::Error),
+    /// Call to an unsafe RPC was denied.
+    #[error("unsafe api: {0}")]
+    UnsafeRpcCalled(#[from] sc_rpc_api::UnsafeRpcError),
 }
 
 const BASE_ERROR: i64 = 6000;
@@ -106,6 +109,7 @@ impl From<Error> for rpc::Error {
                 message: e.to_string(),
                 data: None,
             },
+            Error::UnsafeRpcCalled(e) => e.into(),
         }
     }
 }

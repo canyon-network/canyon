@@ -91,6 +91,12 @@ where
     fn retrieve(&self, key: &[u8]) -> Option<Vec<u8>> {
         self.offchain_storage.get(sp_offchain::STORAGE_PREFIX, key)
     }
+
+    /// Removes the storage value under given key.
+    fn remove(&mut self, key: &[u8]) {
+        self.offchain_storage
+            .remove(sp_offchain::STORAGE_PREFIX, key)
+    }
 }
 
 /// Error type for datastore.
