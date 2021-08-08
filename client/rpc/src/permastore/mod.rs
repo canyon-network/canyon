@@ -26,7 +26,10 @@ use std::sync::Arc;
 use jsonrpc_core::futures::future::result;
 use parking_lot::RwLock;
 
-use sc_rpc_api::author::{error::FutureResult, hash::ExtrinsicOrHash, AuthorApi};
+use sc_rpc_api::{
+    author::{error::FutureResult, hash::ExtrinsicOrHash, AuthorApi},
+    DenyUnsafe,
+};
 use sc_transaction_pool_api::{TransactionPool, TxHash};
 
 use sp_core::{Bytes, Encode, H256};
@@ -46,16 +49,19 @@ pub struct Permastore<T, P, A, B> {
     pool: Arc<P>,
     /// Authoring api.
     author: A,
+    /// Whether to deny unsafe calls
+    deny_unsafe: DenyUnsafe,
     /// Block.
     phatom: PhantomData<B>,
 }
 
 impl<T, P, A, B> Permastore<T, P, A, B> {
-    pub fn new(storage: T, pool: Arc<P>, author: A) -> Self {
+    pub fn new(storage: T, pool: Arc<P>, author: A, deny_unsafe: DenyUnsafe) -> Self {
         Self {
             storage: Arc::new(RwLock::new(storage)),
             pool,
             author,
+            deny_unsafe,
             phatom: PhantomData::<B>,
         }
     }
@@ -67,7 +73,7 @@ const MAX_UPLOAD_DATA_SIZE: u32 = 10 * 1024 * 1024;
 /// Maximum byte size of downloading transaction data directly. 12MiB
 const MAX_DOWNLOAD_DATA_SIZE: u32 = 12 * 1024 * 1024;
 
-impl<T, P, A, B> PermastoreApi<TxHash<P>> for Permastore<T, P, A, B>
+impl<T, P, A, B> PermastoreApi<TxHash<P>, <B as BlockT>::Hash> for Permastore<T, P, A, B>
 where
     T: PermaStorage + 'static,
     P: TransactionPool + Send + Sync + 'static,
@@ -89,6 +95,14 @@ where
     ) -> Result<Vec<TxHash<P>>> {
         // FIXME: remove the transaction data directly or later?
         Ok(self.author.remove_extrinsic(bytes_or_hash)?)
+    }
+
+    fn remove_data(&self, chunk_root: <B as BlockT>::Hash) -> Result<bool> {
+        self.deny_unsafe.check_if_safe()?;
+
+        self.storage.write().remove(chunk_root.encode().as_slice());
+
+        Ok(true)
     }
 
     // Can this be an attack as anyone can submit arbitrary data to the node?

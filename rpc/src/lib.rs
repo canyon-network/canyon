@@ -208,7 +208,7 @@ where
     ));
 
     io.extend_with(cc_rpc_api::permastore::PermastoreApi::to_delegate(
-        cc_rpc::permastore::Permastore::<_, _, _, Block>::new(perma_storage, pool, author),
+        cc_rpc::permastore::Permastore::<_, _, _, Block>::new(perma_storage, pool, author, deny_unsafe),
     ));
 
     Ok(io)
