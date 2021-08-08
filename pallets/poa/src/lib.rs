@@ -286,7 +286,7 @@ pub mod pallet {
     /// Poa Configuration.
     #[pallet::storage]
     #[pallet::getter(fn poa_config)]
-    pub(super) type PoaConfig<T: Config> = StorageValue<_, PoaConfiguration, ValueQuery>;
+    pub type PoaConfig<T: Config> = StorageValue<_, PoaConfiguration, ValueQuery>;
 
     /// Historical depth info for each validator.
     ///
@@ -297,7 +297,7 @@ pub mod pallet {
     /// The smaller the depth, the greater the storage capacity.
     #[pallet::storage]
     #[pallet::getter(fn history_depth)]
-    pub(super) type HistoryDepth<T: Config> =
+    pub type HistoryDepth<T: Config> =
         StorageMap<_, Blake2_128Concat, T::AccountId, DepthInfo<T::BlockNumber>>;
 
     /// Helper storage item of current block author for easier testing.
