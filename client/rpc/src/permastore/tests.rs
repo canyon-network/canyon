@@ -107,6 +107,7 @@ impl TestSetup {
             ))),
             pool: self.pool.clone(),
             author: self.author(),
+            deny_unsafe: DenyUnsafe::No,
             phatom: PhantomData::<Block>,
         }
     }
