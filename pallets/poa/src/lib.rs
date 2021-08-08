@@ -54,9 +54,7 @@ use frame_support::{
 };
 
 use canyon_primitives::Depth;
-use cp_consensus_poa::{
-    PoaConfiguration, PoaOutcome, POA_ENGINE_ID, POA_INHERENT_IDENTIFIER,
-};
+use cp_consensus_poa::{PoaConfiguration, PoaOutcome, POA_ENGINE_ID, POA_INHERENT_IDENTIFIER};
 
 #[cfg(any(feature = "runtime-benchmarks", test))]
 mod benchmarking;
