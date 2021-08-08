@@ -102,7 +102,7 @@ pub struct ProofOfAccess {
     pub chunk_proof: ChunkProof,
 }
 
-/// Errors that can occur while checking the validity of a poa config.
+/// Errors that can occur while checking the validity of [`ProofOfAccess`].
 #[derive(Clone, PartialEq, Eq, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "std", derive(Debug))]
