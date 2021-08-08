@@ -785,7 +785,7 @@
 
 <span class="comment">// Re-exports of poa primitives.</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">cp_consensus_poa</span>::{
-    <span class="ident">ChunkProof</span>, <span class="ident">PoaConfiguration</span>, <span class="ident">PoaOutcome</span>, <span class="ident">ProofOfAccess</span>, <span class="ident">POA_ENGINE_ID</span>,
+    <span class="ident">ChunkProof</span>, <span class="ident">PoaConfiguration</span>, <span class="ident">PoaOutcome</span>, <span class="ident">PoaValidityError</span>, <span class="ident">ProofOfAccess</span>, <span class="ident">POA_ENGINE_ID</span>,
 };
 
 <span class="doccomment">/// Minimum depth of PoA.</span>
@@ -813,7 +813,7 @@
     <span class="ident">BlockchainError</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">sp_blockchain::Error</span>),
     <span class="doccomment">/// Invalid ProofOfAccess.</span>
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Invalid ProofOfAccess: {0:?}&quot;</span>)]</span>
-    <span class="ident">InvalidProofOfAccess</span>(<span class="ident">ProofOfAccess</span>),
+    <span class="ident">InvalidPoa</span>(<span class="ident">PoaValidityError</span>),
     <span class="doccomment">/// Failed to verify the merkle proof.</span>
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;VerifyError error: {0:?}&quot;</span>)]</span>
     <span class="ident">VerifyFailed</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">cp_permastore::VerifyError</span>),
@@ -1135,9 +1135,10 @@
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="macro">log::warn!</span>(
                         <span class="ident">target</span>: <span class="string">&quot;poa&quot;</span>,
-                        <span class="string">&quot;Transaction data not found given block {} and extrinsic index {}&quot;</span>,
+                        <span class="string">&quot;Transaction data not found given block {} and extrinsic index {}, continuing next depth: {}&quot;</span>,
                         <span class="ident">recall_block_number</span>,
-                        <span class="ident">recall_extrinsic_index</span>
+                        <span class="ident">recall_extrinsic_index</span>,
+                        <span class="ident">depth</span> <span class="op">+</span> <span class="number">1</span>
                     );
                 }
                 <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -1150,7 +1151,7 @@
             }
         }
 
-        <span class="macro">log::warn!</span>(<span class="ident">target</span>: <span class="string">&quot;poa&quot;</span>, <span class="string">&quot;Reaching the max depth: {}&quot;</span>, <span class="ident">max_depth</span>);
+        <span class="macro">log::warn!</span>(<span class="ident">target</span>: <span class="string">&quot;poa&quot;</span>, <span class="string">&quot;Failed to create a poa as the max depth: {} has been reached&quot;</span>, <span class="ident">max_depth</span>);
 
         <span class="prelude-val">Ok</span>(<span class="ident">PoaOutcome::MaxDepthReached</span>(<span class="ident">max_depth</span>))
     }
@@ -1299,9 +1300,8 @@
                 .<span class="ident">poa_config</span>(<span class="kw-2">&amp;</span><span class="ident">BlockId::Hash</span>(<span class="ident">parent_hash</span>))
                 .<span class="ident">map_err</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="ident">::ApiError</span>)<span class="question-mark">?</span>;
 
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">poa</span>.<span class="ident">is_valid</span>(<span class="kw-2">&amp;</span><span class="ident">poa_config</span>) {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="ident">::InvalidProofOfAccess</span>(<span class="ident">poa</span>).<span class="ident">into</span>());
-            }
+            <span class="ident">poa</span>.<span class="ident">check_validity</span>(<span class="kw-2">&amp;</span><span class="ident">poa_config</span>)
+                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="ident">::InvalidPoa</span>(<span class="ident">e</span>))<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">weave_size</span> <span class="op">=</span> <span class="self">self</span>
                 .<span class="ident">client</span>
