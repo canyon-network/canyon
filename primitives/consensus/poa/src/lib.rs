@@ -110,11 +110,11 @@ pub enum PoaValidityError {
     /// Depth can not be zero.
     TooSmallDepth,
     /// Depth excceeds the maximum size specified in the config.
-    TooLargeDepth(u32),
+    TooLargeDepth(u32, u32),
     /// Tx path exceeds the maximum size specified in the config.
-    TooLargeTxPath(u32),
+    TooLargeTxPath(u32, u32),
     /// Chunk path exceeds the maximum size specified in the config.
-    TooLargeChunkPath(u32),
+    TooLargeChunkPath(u32, u32),
 }
 
 #[cfg(not(feature = "std"))]
@@ -122,9 +122,9 @@ impl sp_std::fmt::Debug for PoaValidityError {
     fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
         match self {
             Self::TooSmallDepth => f.write_str("PoaValidityError::TooSmallDepth"),
-            Self::TooLargeDepth(_) => f.write_str("PoaValidityError::TooLargeDepth"),
-            Self::TooLargeTxPath(_) => f.write_str("PoaValidityError::TooLargeTxPath"),
-            Self::TooLargeChunkPath(_) => f.write_str("PoaValidityError::TooLargeChunkPath"),
+            Self::TooLargeDepth(_, _) => f.write_str("PoaValidityError::TooLargeDepth"),
+            Self::TooLargeTxPath(_, _) => f.write_str("PoaValidityError::TooLargeTxPath"),
+            Self::TooLargeChunkPath(_, _) => f.write_str("PoaValidityError::TooLargeChunkPath"),
         }
     }
 }
@@ -162,15 +162,23 @@ impl ProofOfAccess {
         }
 
         if self.depth > *max_depth {
-            return Err(PoaValidityError::TooLargeChunkPath(*max_depth));
+            return Err(PoaValidityError::TooLargeChunkPath(self.depth, *max_depth));
         }
 
-        if self.tx_path_len() > *max_tx_path as usize {
-            return Err(PoaValidityError::TooLargeTxPath(*max_tx_path));
+        let tx_path_len = self.tx_path_len();
+        if tx_path_len > *max_tx_path as usize {
+            return Err(PoaValidityError::TooLargeTxPath(
+                tx_path_len as u32,
+                *max_tx_path,
+            ));
         }
 
-        if self.chunk_path_len() > *max_chunk_path as usize {
-            return Err(PoaValidityError::TooLargeChunkPath(*max_chunk_path));
+        let chunk_path_len = self.chunk_path_len();
+        if chunk_path_len > *max_chunk_path as usize {
+            return Err(PoaValidityError::TooLargeChunkPath(
+                chunk_path_len as u32,
+                *max_chunk_path,
+            ));
         }
 
         Ok(())
