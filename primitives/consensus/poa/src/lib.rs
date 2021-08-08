@@ -87,7 +87,7 @@ impl ChunkProof {
     }
 }
 
-/// This struct is used to prove the random historical data access of block author.
+/// This struct is used to prove the historical random data access of block author.
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
@@ -98,6 +98,28 @@ pub struct ProofOfAccess {
     pub tx_path: Vec<Vec<u8>>,
     /// Proof of the recall chunk.
     pub chunk_proof: ChunkProof,
+}
+
+/// Errors that can occur while checking the validity of a poa config.
+#[derive(Clone, PartialEq, Eq, Encode, Decode)]
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "std", derive(Debug))]
+pub enum PoaValidityError {
+    /// Depth can not be zero.
+    TooSmallDepth,
+    /// Depth excceeds the maximum size specified in the config.
+    TooLargeDepth(u32),
+    /// Tx path exceeds the maximum size specified in the config.
+    TooLargeTxPath(u32),
+    /// Chunk path exceeds the maximum size specified in the config.
+    TooLargeChunkPath(u32),
+}
+
+#[cfg(not(feature = "std"))]
+impl sp_std::fmt::Debug for PoaValidityError {
+    fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+        f.write_str("<wasm:stripped>")
+    }
 }
 
 impl ProofOfAccess {
@@ -121,17 +143,30 @@ impl ProofOfAccess {
     }
 
     /// Returns true if the proof is valid given `poa_config`.
-    pub fn is_valid(&self, poa_config: &PoaConfiguration) -> bool {
+    pub fn check_validity(&self, poa_config: &PoaConfiguration) -> Result<(), PoaValidityError> {
         let PoaConfiguration {
             max_depth,
             max_tx_path,
             max_chunk_path,
         } = poa_config;
 
-        self.depth > 0
-            && self.depth <= *max_depth
-            && self.tx_path_len() <= *max_tx_path as usize
-            && self.chunk_path_len() <= *max_chunk_path as usize
+        if self.depth == 0 {
+            return Err(PoaValidityError::TooSmallDepth);
+        }
+
+        if self.depth > *max_depth {
+            return Err(PoaValidityError::TooLargeChunkPath(*max_depth));
+        }
+
+        if self.tx_path_len() > *max_tx_path as usize {
+            return Err(PoaValidityError::TooLargeTxPath(*max_tx_path));
+        }
+
+        if self.chunk_path_len() > *max_chunk_path as usize {
+            return Err(PoaValidityError::TooLargeChunkPath(*max_chunk_path));
+        }
+
+        Ok(())
     }
 }
 

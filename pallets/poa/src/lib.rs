@@ -54,7 +54,9 @@ use frame_support::{
 };
 
 use canyon_primitives::Depth;
-use cp_consensus_poa::{PoaConfiguration, PoaOutcome, POA_ENGINE_ID, POA_INHERENT_IDENTIFIER};
+use cp_consensus_poa::{
+    PoaConfiguration, PoaOutcome, POA_ENGINE_ID, POA_INHERENT_IDENTIFIER,
+};
 
 #[cfg(any(feature = "runtime-benchmarks", test))]
 mod benchmarking;
@@ -173,10 +175,14 @@ pub mod pallet {
 
             match poa_outcome {
                 PoaOutcome::Justification(poa) => {
-                    ensure!(
-                        poa.is_valid(&Self::poa_config()),
+                    poa.check_validity(&Self::poa_config()).map_err(|e| {
+                        frame_support::log::error!(
+                            target: "runtime::poa",
+                            "Checking poa validity failed when creating the poa `deposit` inherent: {:?}",
+                            e,
+                        );
                         Error::<T>::InvalidProofOfAccess
-                    );
+                    })?;
 
                     Self::note_depth(poa.depth);
                     <frame_system::Pallet<T>>::deposit_log(DigestItem::PreRuntime(
@@ -241,11 +247,13 @@ pub mod pallet {
         fn check_inherent(call: &Self::Call, _: &InherentData) -> Result<(), Self::Error> {
             match call {
                 Call::deposit(PoaOutcome::Justification(poa)) => {
-                    if poa.is_valid(&Self::poa_config()) {
-                        Ok(())
-                    } else {
-                        Err(InherentError::InvalidProofOfAccess.into())
-                    }
+                    poa.check_validity(&Self::poa_config()).map_err(|e| {
+                        frame_support::log::error!(
+                            target: "runtime::poa",
+                            "Check inherent failed due to poa is invalid: {:?}", e,
+                        );
+                        InherentError::InvalidProofOfAccess.into()
+                    })
                 }
                 _ => Ok(()),
             }

@@ -108,7 +108,7 @@ pub use self::tx_proof::{build_extrinsic_proof, verify_extrinsic_proof, TxProofV
 
 // Re-exports of poa primitives.
 pub use cp_consensus_poa::{
-    ChunkProof, PoaConfiguration, PoaOutcome, ProofOfAccess, POA_ENGINE_ID,
+    ChunkProof, PoaConfiguration, PoaOutcome, PoaValidityError, ProofOfAccess, POA_ENGINE_ID,
 };
 
 /// Minimum depth of PoA.
@@ -136,7 +136,7 @@ pub enum Error<Block: BlockT> {
     BlockchainError(#[from] sp_blockchain::Error),
     /// Invalid ProofOfAccess.
     #[error("Invalid ProofOfAccess: {0:?}")]
-    InvalidProofOfAccess(ProofOfAccess),
+    InvalidPoa(PoaValidityError),
     /// Failed to verify the merkle proof.
     #[error("VerifyError error: {0:?}")]
     VerifyFailed(#[from] cp_permastore::VerifyError),
@@ -458,9 +458,10 @@ where
                 Ok(None) => {
                     log::warn!(
                         target: "poa",
-                        "Transaction data not found given block {} and extrinsic index {}",
+                        "Transaction data not found given block {} and extrinsic index {}, continuing next depth: {}",
                         recall_block_number,
-                        recall_extrinsic_index
+                        recall_extrinsic_index,
+                        depth + 1
                     );
                 }
                 Err(e) => {
@@ -473,7 +474,7 @@ where
             }
         }
 
-        log::warn!(target: "poa", "Reaching the max depth: {}", max_depth);
+        log::warn!(target: "poa", "Failed to create a poa as the max depth: {} has been reached", max_depth);
 
         Ok(PoaOutcome::MaxDepthReached(max_depth))
     }
@@ -622,9 +623,8 @@ where
                 .poa_config(&BlockId::Hash(parent_hash))
                 .map_err(Error::<B>::ApiError)?;
 
-            if !poa.is_valid(&poa_config) {
-                return Err(Error::<B>::InvalidProofOfAccess(poa).into());
-            }
+            poa.check_validity(&poa_config)
+                .map_err(|e| Error::<B>::InvalidPoa(e))?;
 
             let weave_size = self
                 .client
