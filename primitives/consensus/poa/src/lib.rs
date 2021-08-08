@@ -39,8 +39,10 @@ pub struct ChunkProof {
     ///
     /// Merkle path of chunks from `chunk` to the chunk root.
     pub proof: Vec<Vec<u8>>,
+
     /// Random data chunk that is proved to exist.
     pub chunk: Vec<u8>,
+
     /// Index of `chunk` in the total chunks of that transaction data.
     ///
     /// Required for verifing `proof`.
@@ -60,7 +62,7 @@ impl sp_std::fmt::Debug for ChunkProof {
 
     #[cfg(not(feature = "std"))]
     fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
-        f.write_str("<wasm:stripped>")
+        f.write_str("ChunkProof { <wasm::stripped> }")
     }
 }
 
@@ -118,7 +120,12 @@ pub enum PoaValidityError {
 #[cfg(not(feature = "std"))]
 impl sp_std::fmt::Debug for PoaValidityError {
     fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
-        f.write_str("<wasm:stripped>")
+        match self {
+            Self::TooSmallDepth => f.write_str("PoaValidityError::TooSmallDepth"),
+            Self::TooLargeDepth(_) => f.write_str("PoaValidityError::TooLargeDepth"),
+            Self::TooLargeTxPath(_) => f.write_str("PoaValidityError::TooLargeTxPath"),
+            Self::TooLargeChunkPath(_) => f.write_str("PoaValidityError::TooLargeChunkPath"),
+        }
     }
 }
 
@@ -193,8 +200,11 @@ impl PoaOutcome {
     }
 }
 
+/// Maximum depth is 1000.
 const MAX_DEPTH: u32 = 1_000;
+/// Maximum byte size of tx path is 256 KiB.
 const MAX_TX_PATH: u32 = 256 * 1024;
+/// Maximu byte size of chunk path 256 KiB.
 const MAX_CHUNK_PATH: u32 = 256 * 1024;
 
 /// Configuration of the PoA consensus engine.
@@ -240,6 +250,6 @@ impl sp_std::fmt::Debug for PoaConfiguration {
 
     #[cfg(not(feature = "std"))]
     fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
-        f.write_str("<wasm:stripped>")
+        f.write_str("PoaConfiguration { <wasm::stripped> }")
     }
 }
