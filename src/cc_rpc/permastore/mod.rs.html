@@ -139,6 +139,23 @@
 <span id="139">139</span>
 <span id="140">140</span>
 <span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
 </pre><pre class="rust">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -168,7 +185,10 @@
 <span class="kw">use</span> <span class="ident">jsonrpc_core::futures::future::result</span>;
 <span class="kw">use</span> <span class="ident">parking_lot::RwLock</span>;
 
-<span class="kw">use</span> <span class="ident">sc_rpc_api::author</span>::{<span class="ident">error::FutureResult</span>, <span class="ident">hash::ExtrinsicOrHash</span>, <span class="ident">AuthorApi</span>};
+<span class="kw">use</span> <span class="ident">sc_rpc_api</span>::{
+    <span class="ident">author</span>::{<span class="ident">error::FutureResult</span>, <span class="ident">hash::ExtrinsicOrHash</span>, <span class="ident">AuthorApi</span>},
+    <span class="ident">DenyUnsafe</span>,
+};
 <span class="kw">use</span> <span class="ident">sc_transaction_pool_api</span>::{<span class="ident">TransactionPool</span>, <span class="ident">TxHash</span>};
 
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">Bytes</span>, <span class="ident">Encode</span>, <span class="ident">H256</span>};
@@ -188,16 +208,22 @@
     <span class="ident">pool</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Authoring api.</span>
     <span class="ident">author</span>: <span class="ident">A</span>,
+    <span class="doccomment">/// Whether to deny unsafe calls</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// TODO: since this is a pretty dangerous operation we might</span>
+    <span class="doccomment">/// need a more restricted way to prevent from the risks.</span>
+    <span class="ident">deny_unsafe</span>: <span class="ident">DenyUnsafe</span>,
     <span class="doccomment">/// Block.</span>
     <span class="ident">phatom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">P</span>, <span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> <span class="ident">Permastore</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">P</span>, <span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">storage</span>: <span class="ident">T</span>, <span class="ident">pool</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>, <span class="ident">author</span>: <span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">storage</span>: <span class="ident">T</span>, <span class="ident">pool</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>, <span class="ident">author</span>: <span class="ident">A</span>, <span class="ident">deny_unsafe</span>: <span class="ident">DenyUnsafe</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">storage</span>: <span class="ident">Arc::new</span>(<span class="ident">RwLock::new</span>(<span class="ident">storage</span>)),
             <span class="ident">pool</span>,
             <span class="ident">author</span>,
+            <span class="ident">deny_unsafe</span>,
             <span class="ident">phatom</span>: <span class="ident">PhantomData</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
         }
     }
@@ -209,7 +235,7 @@
 <span class="doccomment">/// Maximum byte size of downloading transaction data directly. 12MiB</span>
 <span class="kw">const</span> <span class="ident">MAX_DOWNLOAD_DATA_SIZE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">12</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>;
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">P</span>, <span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> <span class="ident">PermastoreApi</span><span class="op">&lt;</span><span class="ident">TxHash</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Permastore</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">P</span>, <span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">P</span>, <span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> <span class="ident">PermastoreApi</span><span class="op">&lt;</span><span class="ident">TxHash</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>, <span class="op">&lt;</span><span class="ident">B</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Hash</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Permastore</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">P</span>, <span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">PermaStorage</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">P</span>: <span class="ident">TransactionPool</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
@@ -231,6 +257,14 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TxHash</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// FIXME: remove the transaction data directly or later?</span>
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">author</span>.<span class="ident">remove_extrinsic</span>(<span class="ident">bytes_or_hash</span>)<span class="question-mark">?</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">remove_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">chunk_root</span>: <span class="op">&lt;</span><span class="ident">B</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Hash</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">deny_unsafe</span>.<span class="ident">check_if_safe</span>()<span class="question-mark">?</span>;
+
+        <span class="self">self</span>.<span class="ident">storage</span>.<span class="ident">write</span>().<span class="ident">remove</span>(<span class="ident">chunk_root</span>.<span class="ident">encode</span>().<span class="ident">as_slice</span>());
+
+        <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
     }
 
     <span class="comment">// Can this be an attack as anyone can submit arbitrary data to the node?</span>

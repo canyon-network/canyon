@@ -365,7 +365,7 @@
 <span class="kw">impl</span> <span class="ident">PoaOutcome</span> {
     <span class="doccomment">/// Returns true if the poa inherent must be included in the block.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">require_inherent</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Justification</span>(..))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Justification</span>(..))
     }
 }
 

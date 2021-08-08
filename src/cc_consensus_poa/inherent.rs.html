@@ -123,7 +123,7 @@
         <span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Client</span><span class="op">&gt;</span>,
         <span class="ident">parent</span>: <span class="ident">Block::Hash</span>,
         <span class="ident">transaction_data_backend</span>: <span class="ident">TransactionDataBackend</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="kw">crate</span><span class="ident">::Error</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="kw">crate</span>::Error</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">Block</span>: <span class="ident">BlockT</span><span class="op">&lt;</span><span class="ident">Hash</span> <span class="op">=</span> <span class="ident">canyon_primitives::Hash</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
         <span class="ident">Client</span>: <span class="ident">BlockBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>
@@ -136,7 +136,7 @@
             <span class="op">+</span> <span class="ident">cp_poa::PoaApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
         <span class="ident">TransactionDataBackend</span>: <span class="ident">TransactionDataBackendT</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">poa_outcome</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw">crate</span><span class="ident">::construct_poa</span>(<span class="ident">client</span>, <span class="ident">parent</span>, <span class="ident">transaction_data_backend</span>) {
+        <span class="kw">let</span> <span class="ident">poa_outcome</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident"><span class="kw">crate</span>::construct_poa</span>(<span class="ident">client</span>, <span class="ident">parent</span>, <span class="ident">transaction_data_backend</span>) {
             <span class="prelude-val">Ok</span>(<span class="ident">outcome</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">outcome</span>,
             <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">log::error!</span>(<span class="ident">target</span>: <span class="string">&quot;poa&quot;</span>, <span class="string">&quot;Failed to construct poa: {:?}&quot;</span>, <span class="ident">e</span>);

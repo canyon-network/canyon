@@ -1534,7 +1534,7 @@
 
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
     <span class="ident">construct_runtime</span>, <span class="ident">parameter_types</span>,
-    <span class="ident">traits</span>::{<span class="ident">AllowAll</span>, <span class="ident">InstanceFilter</span>, <span class="ident">KeyOwnerProofSystem</span>, <span class="ident">LockIdentifier</span>, <span class="ident">U128CurrencyToVote</span>},
+    <span class="ident">traits</span>::{<span class="ident">Everything</span>, <span class="ident">InstanceFilter</span>, <span class="ident">KeyOwnerProofSystem</span>, <span class="ident">LockIdentifier</span>, <span class="ident">U128CurrencyToVote</span>},
     <span class="ident">weights</span>::{
         <span class="ident">constants</span>::{<span class="ident">BlockExecutionWeight</span>, <span class="ident">ExtrinsicBaseWeight</span>, <span class="ident">RocksDbWeight</span>, <span class="ident">WEIGHT_PER_SECOND</span>},
         <span class="ident">DispatchClass</span>, <span class="ident">IdentityFee</span>, <span class="ident">Weight</span>,
@@ -1653,7 +1653,7 @@
 <span class="macro">const_assert!</span>(<span class="ident">NORMAL_DISPATCH_RATIO</span>.<span class="ident">deconstruct</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">AVERAGE_ON_INITIALIZE_RATIO</span>.<span class="ident">deconstruct</span>());
 
 <span class="kw">impl</span> <span class="ident">frame_system::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-    <span class="kw">type</span> <span class="ident">BaseCallFilter</span> <span class="op">=</span> <span class="ident">AllowAll</span>;
+    <span class="kw">type</span> <span class="ident">BaseCallFilter</span> <span class="op">=</span> <span class="ident">Everything</span>;
     <span class="kw">type</span> <span class="ident">BlockWeights</span> <span class="op">=</span> <span class="ident">RuntimeBlockWeights</span>;
     <span class="kw">type</span> <span class="ident">BlockLength</span> <span class="op">=</span> <span class="ident">RuntimeBlockLength</span>;
     <span class="kw">type</span> <span class="ident">DbWeight</span> <span class="op">=</span> <span class="ident">RocksDbWeight</span>;
@@ -1728,7 +1728,7 @@
 }
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ProxyType</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Any</span>
+        <span class="ident"><span class="self">Self</span>::Any</span>
     }
 }
 <span class="kw">impl</span> <span class="ident">InstanceFilter</span><span class="op">&lt;</span><span class="ident">Call</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ProxyType</span> {
@@ -1811,18 +1811,18 @@
 
     <span class="kw">type</span> <span class="ident">KeyOwnerProofSystem</span> <span class="op">=</span> <span class="ident">Historical</span>;
 
-    <span class="kw">type</span> <span class="ident">KeyOwnerProof</span> <span class="op">=</span> <span class="op">&lt;</span><span class="self">Self</span><span class="ident">::KeyOwnerProofSystem</span> <span class="kw">as</span> <span class="ident">KeyOwnerProofSystem</span><span class="op">&lt;</span>(
+    <span class="kw">type</span> <span class="ident">KeyOwnerProof</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::KeyOwnerProofSystem</span> <span class="kw">as</span> <span class="ident">KeyOwnerProofSystem</span><span class="op">&lt;</span>(
         <span class="ident">KeyTypeId</span>,
         <span class="ident">pallet_babe::AuthorityId</span>,
     )<span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Proof</span>;
 
-    <span class="kw">type</span> <span class="ident">KeyOwnerIdentification</span> <span class="op">=</span> <span class="op">&lt;</span><span class="self">Self</span><span class="ident">::KeyOwnerProofSystem</span> <span class="kw">as</span> <span class="ident">KeyOwnerProofSystem</span><span class="op">&lt;</span>(
+    <span class="kw">type</span> <span class="ident">KeyOwnerIdentification</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::KeyOwnerProofSystem</span> <span class="kw">as</span> <span class="ident">KeyOwnerProofSystem</span><span class="op">&lt;</span>(
         <span class="ident">KeyTypeId</span>,
         <span class="ident">pallet_babe::AuthorityId</span>,
     )<span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::IdentificationTuple</span>;
 
     <span class="kw">type</span> <span class="ident">HandleEquivocation</span> <span class="op">=</span>
-        <span class="ident">pallet_babe::EquivocationHandler</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::KeyOwnerIdentification</span>, <span class="ident">Offences</span>, <span class="ident">ReportLongevity</span><span class="op">&gt;</span>;
+        <span class="ident">pallet_babe::EquivocationHandler</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::KeyOwnerIdentification</span>, <span class="ident">Offences</span>, <span class="ident">ReportLongevity</span><span class="op">&gt;</span>;
 
     <span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> ();
 }
@@ -1912,7 +1912,7 @@
 
 <span class="kw">impl</span> <span class="ident">pallet_session::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
     <span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
-    <span class="kw">type</span> <span class="ident">ValidatorId</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::AccountId</span>;
+    <span class="kw">type</span> <span class="ident">ValidatorId</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::AccountId</span>;
     <span class="kw">type</span> <span class="ident">ValidatorIdOf</span> <span class="op">=</span> <span class="ident">pallet_staking::StashOf</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
     <span class="kw">type</span> <span class="ident">ShouldEndSession</span> <span class="op">=</span> <span class="ident">Babe</span>;
     <span class="kw">type</span> <span class="ident">NextSessionRotation</span> <span class="op">=</span> <span class="ident">Babe</span>;
@@ -2302,7 +2302,7 @@
 <span class="kw">where</span>
     <span class="ident">Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">LocalCall</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">create_transaction</span><span class="op">&lt;</span><span class="ident">C</span>: <span class="ident">frame_system::offchain::AppCrypto</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Public</span>, <span class="self">Self</span><span class="ident">::Signature</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+    <span class="kw">fn</span> <span class="ident">create_transaction</span><span class="op">&lt;</span><span class="ident">C</span>: <span class="ident">frame_system::offchain::AppCrypto</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Public</span>, <span class="ident"><span class="self">Self</span>::Signature</span><span class="op">&gt;</span><span class="op">&gt;</span>(
         <span class="ident">call</span>: <span class="ident">Call</span>,
         <span class="ident">public</span>: <span class="op">&lt;</span><span class="ident">Signature</span> <span class="kw">as</span> <span class="ident">traits::Verify</span><span class="op">&gt;</span><span class="ident">::Signer</span>,
         <span class="ident">account</span>: <span class="ident">AccountId</span>,
@@ -2382,15 +2382,15 @@
     <span class="kw">type</span> <span class="ident">KeyOwnerProofSystem</span> <span class="op">=</span> <span class="ident">Historical</span>;
 
     <span class="kw">type</span> <span class="ident">KeyOwnerProof</span> <span class="op">=</span>
-        <span class="op">&lt;</span><span class="self">Self</span><span class="ident">::KeyOwnerProofSystem</span> <span class="kw">as</span> <span class="ident">KeyOwnerProofSystem</span><span class="op">&lt;</span>(<span class="ident">KeyTypeId</span>, <span class="ident">GrandpaId</span>)<span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Proof</span>;
+        <span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::KeyOwnerProofSystem</span> <span class="kw">as</span> <span class="ident">KeyOwnerProofSystem</span><span class="op">&lt;</span>(<span class="ident">KeyTypeId</span>, <span class="ident">GrandpaId</span>)<span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Proof</span>;
 
-    <span class="kw">type</span> <span class="ident">KeyOwnerIdentification</span> <span class="op">=</span> <span class="op">&lt;</span><span class="self">Self</span><span class="ident">::KeyOwnerProofSystem</span> <span class="kw">as</span> <span class="ident">KeyOwnerProofSystem</span><span class="op">&lt;</span>(
+    <span class="kw">type</span> <span class="ident">KeyOwnerIdentification</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::KeyOwnerProofSystem</span> <span class="kw">as</span> <span class="ident">KeyOwnerProofSystem</span><span class="op">&lt;</span>(
         <span class="ident">KeyTypeId</span>,
         <span class="ident">GrandpaId</span>,
     )<span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::IdentificationTuple</span>;
 
     <span class="kw">type</span> <span class="ident">HandleEquivocation</span> <span class="op">=</span> <span class="ident">pallet_grandpa::EquivocationHandler</span><span class="op">&lt;</span>
-        <span class="self">Self</span><span class="ident">::KeyOwnerIdentification</span>,
+        <span class="ident"><span class="self">Self</span>::KeyOwnerIdentification</span>,
         <span class="ident">Offences</span>,
         <span class="ident">ReportLongevity</span>,
     <span class="op">&gt;</span>;

@@ -109,6 +109,10 @@
 <span id="109">109</span>
 <span id="110">110</span>
 <span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
 </pre><pre class="rust">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -171,6 +175,9 @@
     <span class="ident">InvalidProof</span>,
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;authoring api: {0}&quot;</span>)]</span>
     <span class="ident">AuthoringApiError</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">sc_rpc_api::author::error::Error</span>),
+    <span class="doccomment">/// Call to an unsafe RPC was denied.</span>
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;unsafe api: {0}&quot;</span>)]</span>
+    <span class="ident">UnsafeRpcCalled</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">sc_rpc_api::UnsafeRpcError</span>),
 }
 
 <span class="kw">const</span> <span class="ident">BASE_ERROR</span>: <span class="ident">i64</span> <span class="op">=</span> <span class="number">6000</span>;
@@ -218,6 +225,7 @@
                 <span class="ident">message</span>: <span class="ident">e</span>.<span class="ident">to_string</span>(),
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             },
+            <span class="ident">Error::UnsafeRpcCalled</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">into</span>(),
         }
     }
 }

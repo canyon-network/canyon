@@ -203,7 +203,7 @@
 
     <span class="kw">mod</span> <span class="ident">app</span> {
         <span class="kw">use</span> <span class="ident">sp_application_crypto</span>::{<span class="ident">app_crypto</span>, <span class="ident">sr25519</span>};
-        <span class="macro">app_crypto!</span>(<span class="ident">sr25519</span>, <span class="kw">super</span><span class="ident">::KEY_TYPE</span>);
+        <span class="macro">app_crypto!</span>(<span class="ident">sr25519</span>, <span class="ident"><span class="kw">super</span>::KEY_TYPE</span>);
     }
 
     <span class="doccomment">/// Identity of the equivocation/misbehavior reporter.</span>

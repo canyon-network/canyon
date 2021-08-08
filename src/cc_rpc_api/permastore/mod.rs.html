@@ -47,6 +47,10 @@
 <span id="47">47</span>
 <span id="48">48</span>
 <span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
 </pre><pre class="rust">
 <span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
@@ -74,13 +78,13 @@
 
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">Bytes</span>, <span class="ident">H256</span>};
 
-<span class="kw">use</span> <span class="self">self</span><span class="ident">::error::Result</span>;
+<span class="kw">use</span> <span class="ident"><span class="self">self</span>::error::Result</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::gen_client::Client</span> <span class="kw">as</span> <span class="ident">OffchainClient</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::gen_client::Client</span> <span class="kw">as</span> <span class="ident">OffchainClient</span>;
 
 <span class="doccomment">/// Canyon perma storage RPC API.</span>
 <span class="attribute">#[<span class="ident">rpc</span>]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PermastoreApi</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PermastoreApi</span><span class="op">&lt;</span><span class="ident">Hash</span>, <span class="ident">BlockHash</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Sepecialized `submit_extrinsic` for submitting the store extrinsic and transaction data.</span>
     <span class="attribute">#[<span class="ident">rpc</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;permastore_submitExtrinsic&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">submit_extrinsic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ext</span>: <span class="ident">Bytes</span>, <span class="ident">data</span>: <span class="ident">Bytes</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FutureResult</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span>;
@@ -88,6 +92,10 @@
     <span class="doccomment">/// Sepecialized `remove_extrinsic` for removing the extrinsic and data if any.</span>
     <span class="attribute">#[<span class="ident">rpc</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;permastore_removeExtrinsic&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">remove_extrinsic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes_or_hash</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ExtrinsicOrHash</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+
+    <span class="doccomment">/// Remove the data of a transaction.</span>
+    <span class="attribute">#[<span class="ident">rpc</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;permastore_removeData&quot;</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">remove_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">chunk_root</span>: <span class="ident">BlockHash</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Submit the whole data of a transaction.</span>
     <span class="attribute">#[<span class="ident">rpc</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;permastore_submit&quot;</span>)]</span>
