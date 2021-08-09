@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'master'
+      - 'w3f-grant-2'
     tags:
       - 'v*'
   pull_request:
