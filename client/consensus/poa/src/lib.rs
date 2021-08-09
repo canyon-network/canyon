@@ -97,14 +97,14 @@ use cc_datastore::TransactionDataBackend as TransactionDataBackendT;
 use cp_permastore::{PermastoreApi, CHUNK_SIZE};
 use cp_poa::PoaApi;
 
-mod chunk_proof;
-mod inherent;
-mod trie;
-mod tx_proof;
-#[cfg(test)]
-mod tests;
 #[cfg(test)]
 mod babe_tests;
+mod chunk_proof;
+mod inherent;
+#[cfg(test)]
+mod tests;
+mod trie;
+mod tx_proof;
 
 pub use self::chunk_proof::{verify_chunk_proof, ChunkProofBuilder, ChunkProofVerifier};
 pub use self::inherent::PoaInherentDataProvider;
@@ -526,7 +526,9 @@ fn fetch_poa<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<ProofOfAcces
     match poa_seal.len() {
         0 => Err(Error::<B>::NoDigest(hash)),
         1 => match poa_seal[0] {
-            PreRuntime(_id, seal) => Decode::decode(&mut seal.as_slice()).map_err(Error::<B>::Codec),
+            PreRuntime(_id, seal) => {
+                Decode::decode(&mut seal.as_slice()).map_err(Error::<B>::Codec)
+            }
             _ => unreachable!("Only items using POA_ENGINE_ID has been filtered; qed"),
         },
         _ => Err(Error::<B>::MultipleDigests(hash)),
