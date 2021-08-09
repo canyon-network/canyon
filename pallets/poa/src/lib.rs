@@ -183,7 +183,7 @@ pub mod pallet {
                     })?;
 
                     Self::note_depth(poa.depth);
-                    <frame_system::Pallet<T>>::deposit_log(DigestItem::PreRuntime(
+                    <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(
                         POA_ENGINE_ID,
                         poa.encode(),
                     ));
