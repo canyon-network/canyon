@@ -31,11 +31,31 @@ cp-poa = { path = "../../../primitives/poa" }
 
 [dev-dependencies]
 criterion = "0.3"
+futures = "0.3.9"
+libp2p = { version = "0.37.1", default-features = false }
 rand = "0.8"
+tempfile = "3.1"
+rand_chacha = "0.2"
+parking_lot = "0.11"
 
 sc-block-builder = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-consensus-epochs = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-consensus-slots = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-keystore = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-network = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-network-test = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-service = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
+sp-application-crypto = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-consensus = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-keyring = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-keystore = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-timestamp = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 sp-state-machine = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-tracing = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+
 substrate-test-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 substrate-test-runtime-client = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
 
