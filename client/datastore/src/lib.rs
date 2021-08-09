@@ -73,7 +73,7 @@ where
     ///
     /// # Arguments
     ///
-    /// * `key`: chunk root of the transaction data.
+    /// * `key`: encoded chunk root of transaction data.
     /// * `value`: entire data of a transaction.
     ///
     /// NOTE: the maximum size of served value is 10MiB,
@@ -93,6 +93,10 @@ where
     }
 
     /// Removes the storage value under given key.
+    ///
+    /// # Arguments
+    ///
+    /// * `key`: encoded chunk root of transaction data.
     fn remove(&mut self, key: &[u8]) {
         self.offchain_storage
             .remove(sp_offchain::STORAGE_PREFIX, key)
@@ -157,22 +161,24 @@ where
             "Fetching chunk root at block_id: {}, extrinsic_index: {}",
             block_id, extrinsic_index,
         );
+
+        let block_number = self
+            .client
+            .block_number_from_id(&block_id)
+            .map_err(Box::new)?
+            .ok_or(Error::BlockNumberNotFound(block_id))?;
+
         let chunk_root = self
-            .chunk_root(
-                None,
-                self.client
-                    .block_number_from_id(&block_id)
-                    .map_err(Box::new)?
-                    .ok_or(Error::BlockNumberNotFound(block_id))?,
-                extrinsic_index,
-            )?
+            .chunk_root(None, block_number, extrinsic_index)?
             .ok_or(Error::ChunkRootIsNone(block_id, extrinsic_index))?;
+
         let key = chunk_root.encode();
         log::debug!(
             target: "datastore",
-            "Fetched chunk root: {:?}, database key: {:?}",
+            "Fetching the transaction data, chunk root: {:?}, database key: {:?}",
             chunk_root, key,
         );
+
         Ok(self.retrieve(&key))
     }
 }
