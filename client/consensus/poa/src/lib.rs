@@ -106,7 +106,7 @@ pub use self::chunk_proof::{verify_chunk_proof, ChunkProofBuilder, ChunkProofVer
 pub use self::inherent::PoaInherentDataProvider;
 pub use self::tx_proof::{build_extrinsic_proof, verify_extrinsic_proof, TxProofVerifier};
 
-// Re-exports of poa primitives.
+// Re-exports of the primitives of poa consensus.
 pub use cp_consensus_poa::{
     ChunkProof, PoaConfiguration, PoaOutcome, PoaValidityError, ProofOfAccess, POA_ENGINE_ID,
 };
@@ -183,6 +183,8 @@ fn make_bytes(h: [u8; 32]) -> [u8; 8] {
 }
 
 /// Returns the position of recall byte in the entire weave.
+///
+/// TODO: SPoRA
 pub fn calculate_challenge_byte(
     seed: Randomness,
     weave_size: DataIndex,
@@ -380,8 +382,12 @@ where
         } = self.client.runtime_api().poa_config(&parent_id)?;
 
         for depth in MIN_DEPTH..=max_depth {
-            log::debug!(target: "poa", "Attempting to generate poa at depth: {}", depth);
             let recall_byte = calculate_challenge_byte(parent.encode(), weave_size, depth);
+            log::debug!(
+                target: "poa",
+                "Attempting to generate poa at depth: {}, recall byte found: {}",
+                depth, recall_byte,
+            );
             let recall_block_number = self.find_recall_block(parent_id, recall_byte)?;
 
             log::debug!(
