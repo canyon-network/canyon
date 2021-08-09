@@ -522,9 +522,7 @@ fn fetch_poa<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<ProofOfAcces
     match poa_seal.len() {
         0 => Err(Error::<B>::NoDigest(hash)),
         1 => match poa_seal[0] {
-            Seal(_id, seal) => {
-                Decode::decode(&mut seal.as_slice()).map_err(Error::<B>::Codec)
-            }
+            Seal(_id, seal) => Decode::decode(&mut seal.as_slice()).map_err(Error::<B>::Codec),
             _ => unreachable!("Only items using POA_ENGINE_ID has been filtered; qed"),
         },
         _ => Err(Error::<B>::MultipleDigests(hash)),
@@ -630,7 +628,7 @@ where
                 .map_err(Error::<B>::ApiError)?;
 
             poa.check_validity(&poa_config)
-                .map_err(|e| Error::<B>::InvalidPoa(e))?;
+                .map_err(Error::<B>::InvalidPoa)?;
 
             let weave_size = self
                 .client
