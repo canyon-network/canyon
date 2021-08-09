@@ -337,6 +337,7 @@ impl TestNetFactory for BabeTestNet {
         let client = client.as_full().expect("only full clients are tested");
 
         let config = Config::get_or_compute(&*client).expect("config available");
+        // TODO: use poa_block_import
         let (block_import, link) = block_import(config, client.clone(), client.clone())
             .expect("can initialize block-import");
 
