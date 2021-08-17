@@ -10,7 +10,6 @@
     * [Store the data](#store-the-data)
         * [canyon-cli](#canyon-cli)
     * [Inspect the state](#inspect-the-state)
-    * [Sync the chain](#sync-the-chain)
 
 <!-- /TOC -->
 
@@ -170,4 +169,4 @@ block #515: 0xd4ff…f484, new_depth_info: DepthInfo { blocks: 427, total_depth:
 block #807: 0x02b8…7d19, new_depth_info: DepthInfo { blocks: 719, total_depth: 2564 }, estimated storage ratio: 0.280421
 ```
 
-### Sync the chain
+Eventually the estiamted storage ratio will be close to the theroretical value.
