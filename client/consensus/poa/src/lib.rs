@@ -33,11 +33,11 @@
 //!
 //! The general workflow of PoA is described briefly below:
 //!
-//! 1. Pick a random byte from the whole network storage (BlockWeave).
+//! 1. Pick a random byte from the whole network storage space, aka BlockWeave.
 //!     - The block weave can be seen as an ever growing gigantic array.
 //!     - Currently, the randome byte is determined by hashing
 //!       the parent header hash for N times(see [`calculate_challenge_byte`]),
-//!       which will be replaced with another hashing strategy in SPoRA.
+//!       which will be replaced with another strategy in SPoRA.
 //!
 //! 2. Locate the extrinsic in which the random byte is included.
 //!
@@ -46,17 +46,18 @@
 //!
 //!     - If the data does exist locally, create the two merkle proofs
 //!       of extrinsic and data chunks respectively.
-//!     - If not, repeat from Step 1 by choosing another random byte.
+//!     - If not, repeat from Step 1 by choosing another random byte
+//!       with N+1 hashing.
 //!
 //! ## Usage
 //!
-//! Normally, PoA needs to be used with other consensus algorithem like
-//! PoW or PoS together as it's not typically designed for solving the
-//! problem of selecting one from a set of validators to author next block
-//! in an unpredictable or fair way. In another word, PoA is not intended
-//! for resolving the leader election problem, and is usually exploited
-//! as a precondition for PoW or PoS in order to encourage the miners to
-//! store more data locally.
+//! Technically, PoA needs to be used with other traditional consensus
+//! algorithems like PoW or PoS together as it's not typically designed
+//! for solving the problem of selecting one from a set of validators
+//! to create next block in an unpredictable or fair way. In another word,
+//! PoA is not intended for resolving the leader election problem, and
+//! is usually exploited as a precondition for PoW or PoS in order to
+//! encourage the miners to store more data locally.
 //!
 //! This crate implements the core algorithem of Proof of Access in
 //! [`construct_poa`] and provides the inherent data provider via
@@ -64,12 +65,14 @@
 //! `BlockImport` trait, thus can be wrapped in another block importer.
 //!
 //! To use this engine, you can create an inhehrent extrinsic using the
-//! data provided by [`PoaInherentDataProvider`] in a pallet. Furthermore,
-//! you need to wrap the [`PurePoaBlockImport`] into your existing block
-//! import pipeline. Refer to the [Substrate docs][1] for more information
-//! about creating a nested `BlockImport`.
+//! data provided by [`PoaInherentDataProvider`] in a pallet, refer to
+//! [`pallet_poa::Call::deposit`] as an example.  Furthermore, you need
+//! to wrap the [`PurePoaBlockImport`] into your existing block import
+//! pipeline. Refer to the [Substrate docs][1] for more information about
+//! creating a nested `BlockImport`.
 //!
 //! [1]: https://substrate.dev/docs/en/knowledgebase/advanced/block-import
+//! [`pallet_poa::Call::deposit`]: ../pallet_poa/pallet/enum.Call.html#variant.deposit
 
 #![deny(missing_docs, unused_extern_crates)]
 
@@ -183,6 +186,8 @@ fn make_bytes(h: [u8; 32]) -> [u8; 8] {
 }
 
 /// Returns the position of recall byte in the entire weave.
+///
+/// Formula: `multihash(seed, depth) % weave_size`
 ///
 /// TODO: SPoRA
 pub fn calculate_challenge_byte(
@@ -510,21 +515,19 @@ where
 ///
 /// The header should have one and only one [`DigestItem::PreRuntime(POA_ENGINE_ID, pre_runtime)`].
 fn fetch_poa<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<ProofOfAccess, Error<B>> {
-    use DigestItem::PreRuntime;
+    use DigestItem::Seal;
 
     let poa_seal = header
         .digest()
         .logs()
         .iter()
-        .filter(|digest_item| matches!(digest_item, PreRuntime(id, _seal) if id == &POA_ENGINE_ID))
+        .filter(|digest_item| matches!(digest_item, Seal(id, _seal) if id == &POA_ENGINE_ID))
         .collect::<Vec<_>>();
 
     match poa_seal.len() {
         0 => Err(Error::<B>::NoDigest(hash)),
         1 => match poa_seal[0] {
-            PreRuntime(_id, seal) => {
-                Decode::decode(&mut seal.as_slice()).map_err(Error::<B>::Codec)
-            }
+            Seal(_id, seal) => Decode::decode(&mut seal.as_slice()).map_err(Error::<B>::Codec),
             _ => unreachable!("Only items using POA_ENGINE_ID has been filtered; qed"),
         },
         _ => Err(Error::<B>::MultipleDigests(hash)),
@@ -630,7 +633,7 @@ where
                 .map_err(Error::<B>::ApiError)?;
 
             poa.check_validity(&poa_config)
-                .map_err(|e| Error::<B>::InvalidPoa(e))?;
+                .map_err(Error::<B>::InvalidPoa)?;
 
             let weave_size = self
                 .client

@@ -49,6 +49,7 @@ type FullPoaBlockImport = cc_consensus_poa::PurePoaBlockImport<
     FullSelectChain,
 >;
 
+#[allow(clippy::type_complexity)]
 pub fn new_partial(
     config: &Configuration,
 ) -> Result<
@@ -87,7 +88,7 @@ pub fn new_partial(
 
     let (client, backend, keystore_container, task_manager) =
         sc_service::new_full_parts::<Block, RuntimeApi, Executor>(
-            &config,
+            config,
             telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
         )?;
     let client = Arc::new(client);

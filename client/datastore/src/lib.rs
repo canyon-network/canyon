@@ -24,6 +24,9 @@
 //! Currently, it is implemented on the top of offchain storage, which is a persistent
 //! local storage of each node.
 
+#[cfg(test)]
+mod tests;
+
 use std::sync::Arc;
 
 use codec::Encode;

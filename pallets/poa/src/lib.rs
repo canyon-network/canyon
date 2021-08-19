@@ -23,16 +23,18 @@
 //! can be used to estimate the actual storage capacity of a validator.
 //!
 //! we can say a validator tends to have stored 100% of the network
-//! data locally if it had produced N blocks with a total depth of N.
-//! The estimated result becomes increasingly accurate and reliable
-//! with more and more blocks being authored by that validator.
+//! data locally with a great chance if it had produced N blocks with
+//! a total depth of N.  The estimated result becomes increasingly
+//! accurate and reliable with more and more blocks being authored
+//! by that validator.
 //!
 //! ## Interface
 //!
 //! ### Inherent Extrinsics
 //!
 //! The Poa pallet creates the inherent extrinsic [`Call::deposit`]
-//! when the inherent data contains a valid [`POA_INHERENT_IDENTIFIER`].
+//! when the inherent data contains a valid [`POA_INHERENT_IDENTIFIER`],
+//! in which a new digest item will probably be deposited.
 
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -166,7 +168,7 @@ pub mod pallet {
     impl<T: Config> Pallet<T> {
         /// Handle the inherent data from the poa consensus.
         ///
-        /// Deposit a consensus log if `poa_outcome` is valid.
+        /// Deposit a consensus log if `poa_outcome` contains a valid `ProofOfAccess`.
         #[pallet::weight((T::WeightInfo::deposit(), DispatchClass::Mandatory))]
         pub fn deposit(origin: OriginFor<T>, poa_outcome: PoaOutcome) -> DispatchResult {
             ensure_none(origin)?;
@@ -183,7 +185,7 @@ pub mod pallet {
                     })?;
 
                     Self::note_depth(poa.depth);
-                    <frame_system::Pallet<T>>::deposit_log(DigestItem::PreRuntime(
+                    <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(
                         POA_ENGINE_ID,
                         poa.encode(),
                     ));
