@@ -17,6 +17,7 @@
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
 #![cfg_attr(not(feature = "std"), no_std)]
+#![allow(clippy::too_many_arguments)]
 
 pub use cp_consensus_poa::PoaConfiguration;
 
