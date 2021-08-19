@@ -1080,8 +1080,10 @@ dependencies = [
  "sp-api",
  "sp-blockchain",
  "sp-core",
+ "sp-keystore",
  "sp-offchain",
  "sp-runtime",
+ "substrate-test-runtime-client",
  "thiserror",
 ]
 
