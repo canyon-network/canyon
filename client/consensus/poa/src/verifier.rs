@@ -102,11 +102,10 @@ where
         &mut self,
         block: BlockImportParams<B, ()>,
     ) -> Result<(BlockImportParams<B, ()>, Option<Vec<(CacheKeyId, Vec<u8>)>>), String> {
-        // let hash = block.header.hash();
+        // let post_header = block.header.hash();
+        // self.checked_header(block.post_header())
         // let (checked_header, seal) = self.check_header(block.header)?;
 
-        todo!()
-
-        // Ok((block, None))
+        Ok((block, None))
     }
 }

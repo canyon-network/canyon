@@ -623,6 +623,10 @@ where
 
         let best_hash = best_header.hash();
 
+        log::debug!(target: "poa", "best_header.hash(): {:?}", best_hash);
+        log::debug!(target: "poa", "       parent_hash: {:?}", block.header.parent_hash());
+        log::debug!(target: "poa", "       post_hash(): {:?}", block.post_hash());
+
         let parent_hash = *block.header.parent_hash();
 
         verifier::PoaVerifier::new(self.client.clone()).check_header(
