@@ -49,6 +49,7 @@ type FullPoaBlockImport = cc_consensus_poa::PurePoaBlockImport<
     FullSelectChain,
 >;
 
+#[allow(clippy::type_complexity)]
 pub fn new_partial(
     config: &Configuration,
 ) -> Result<
