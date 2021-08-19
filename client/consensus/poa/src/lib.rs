@@ -628,7 +628,7 @@ where
                 .map_err(Error::<B>::ApiError)?;
 
             poa.check_validity(&poa_config)
-                .map_err(|e| Error::<B>::InvalidPoa(e))?;
+                .map_err(Error::<B>::InvalidPoa)?;
 
             let weave_size = self
                 .client
