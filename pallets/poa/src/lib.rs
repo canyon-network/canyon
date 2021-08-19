@@ -33,7 +33,8 @@
 //! ### Inherent Extrinsics
 //!
 //! The Poa pallet creates the inherent extrinsic [`Call::deposit`]
-//! when the inherent data contains a valid [`POA_INHERENT_IDENTIFIER`].
+//! when the inherent data contains a valid [`POA_INHERENT_IDENTIFIER`],
+//! in which a new digest item will probably be deposited.
 
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
