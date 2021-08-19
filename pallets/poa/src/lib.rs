@@ -168,7 +168,7 @@ pub mod pallet {
     impl<T: Config> Pallet<T> {
         /// Handle the inherent data from the poa consensus.
         ///
-        /// Deposit a consensus log if `poa_outcome` is valid.
+        /// Deposit a consensus log if `poa_outcome` contains a valid `ProofOfAccess`.
         #[pallet::weight((T::WeightInfo::deposit(), DispatchClass::Mandatory))]
         pub fn deposit(origin: OriginFor<T>, poa_outcome: PoaOutcome) -> DispatchResult {
             ensure_none(origin)?;
