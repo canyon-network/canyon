@@ -23,9 +23,10 @@
 //! can be used to estimate the actual storage capacity of a validator.
 //!
 //! we can say a validator tends to have stored 100% of the network
-//! data locally if it had produced N blocks with a total depth of N.
-//! The estimated result becomes increasingly accurate and reliable
-//! with more and more blocks being authored by that validator.
+//! data locally with a great chance if it had produced N blocks with
+//! a total depth of N.  The estimated result becomes increasingly
+//! accurate and reliable with more and more blocks being authored
+//! by that validator.
 //!
 //! ## Interface
 //!
@@ -183,7 +184,7 @@ pub mod pallet {
                     })?;
 
                     Self::note_depth(poa.depth);
-                    <frame_system::Pallet<T>>::deposit_log(DigestItem::PreRuntime(
+                    <frame_system::Pallet<T>>::deposit_log(DigestItem::Seal(
                         POA_ENGINE_ID,
                         poa.encode(),
                     ));
