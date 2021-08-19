@@ -108,6 +108,7 @@ mod inherent;
 mod tests;
 mod trie;
 mod tx_proof;
+mod verifier;
 
 pub use self::chunk_proof::{verify_chunk_proof, ChunkProofBuilder, ChunkProofVerifier};
 pub use self::inherent::PoaInherentDataProvider;
@@ -622,66 +623,13 @@ where
 
         let best_hash = best_header.hash();
 
-        if self
-            .client
-            .runtime_api()
-            .require_proof_of_access(&BlockId::Hash(best_hash))
-            .map_err(Error::<B>::ApiError)?
-        {
-            let header = block.post_header();
-            let poa = fetch_poa::<B>(header, best_hash)?;
+        let parent_hash = *block.header.parent_hash();
 
-            let parent_hash = *block.header.parent_hash();
-            let poa_config = self
-                .client
-                .runtime_api()
-                .poa_config(&BlockId::Hash(parent_hash))
-                .map_err(Error::<B>::ApiError)?;
-
-            poa.check_validity(&poa_config)
-                .map_err(Error::<B>::InvalidPoa)?;
-
-            let weave_size = self
-                .client
-                .runtime_api()
-                .weave_size(&BlockId::Hash(parent_hash))
-                .map_err(Error::<B>::ApiError)?;
-
-            let ProofOfAccess {
-                depth,
-                tx_path,
-                chunk_proof,
-            } = poa;
-
-            let recall_byte = calculate_challenge_byte(parent_hash.encode(), weave_size, depth);
-            let recall_block_number =
-                find_recall_block(BlockId::Hash(parent_hash), recall_byte, &self.client)?;
-
-            let recall_info = find_recall_info(recall_byte, recall_block_number, &self.client)?;
-
-            recall_info
-                .as_tx_proof_verifier()
-                .verify(&tx_path)
-                .map_err(Error::<B>::VerifyFailed)?;
-
-            let chunk_root = self
-                .client
-                .runtime_api()
-                .chunk_root(
-                    &BlockId::Hash(parent_hash),
-                    recall_block_number,
-                    recall_info.recall_extrinsic_index,
-                )
-                .map_err(Error::<B>::ApiError)?
-                .ok_or(Error::<B>::ChunkRootNotFound(
-                    BlockId::Number(recall_block_number),
-                    recall_info.recall_extrinsic_index,
-                ))?;
-
-            chunk_proof::ChunkProofVerifier::new(chunk_proof)
-                .verify(&chunk_root)
-                .map_err(Error::<B>::VerifyFailed)?;
-        }
+        verifier::PoaVerifier::new(self.client.clone()).check_header(
+            block.post_header(),
+            best_hash,
+            parent_hash,
+        )?;
 
         self.inner
             .import_block(block, new_cache)

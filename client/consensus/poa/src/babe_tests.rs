@@ -24,7 +24,7 @@ use sc_block_builder::{BlockBuilder, BlockBuilderProvider};
 use sc_client_api::{backend::TransactionFor, BlockchainEvents};
 use sc_consensus::{
     BlockCheckParams, BlockImport, BlockImportParams, BoxBlockImport, BoxJustificationImport,
-    ForkChoiceStrategy, ImportResult, Verifier,
+    ForkChoiceStrategy, ImportResult, LongestChain, Verifier,
 };
 use sc_consensus_babe::{
     authorship::claim_slot, block_import, find_pre_digest, start_babe, BabeEpochConfiguration,
@@ -68,6 +68,8 @@ use sp_timestamp::InherentDataProvider as TimestampInherentDataProvider;
 
 use substrate_test_runtime_client::SyncCryptoStorePtr;
 
+use crate::PurePoaBlockImport;
+
 type Item = DigestItem<Hash>;
 
 type Error = sp_blockchain::Error;
@@ -88,7 +90,11 @@ enum Stage {
 type Mutator = Arc<dyn Fn(&mut TestHeader, Stage) + Send + Sync>;
 
 type BabeBlockImport = PanickingBlockImport<
-    sc_consensus_babe::BabeBlockImport<TestBlock, TestClient, Arc<TestClient>>,
+    sc_consensus_babe::BabeBlockImport<
+        TestBlock,
+        PurePoaBlockImport<Block, TestClient, TestClient, TestSelectChain>,
+        Arc<TestClient>,
+    >,
 >;
 
 #[derive(Clone)]
@@ -262,8 +268,7 @@ pub struct BabeTestNet {
 type TestHeader = <TestBlock as BlockT>::Header;
 type TestExtrinsic = <TestBlock as BlockT>::Extrinsic;
 
-type TestSelectChain =
-    substrate_test_runtime_client::LongestChain<substrate_test_runtime_client::Backend, TestBlock>;
+type TestSelectChain = LongestChain<substrate_test_runtime_client::Backend, TestBlock>;
 
 pub struct TestVerifier {
     inner: BabeVerifier<
@@ -334,11 +339,22 @@ impl TestNetFactory for BabeTestNet {
         Option<BoxJustificationImport<Block>>,
         Option<PeerData>,
     ) {
-        let client = client.as_full().expect("only full clients are tested");
+        // let client = client.as_full().expect("only full clients are tested");
+
+        let (client, backend) = match client {
+            PeersClient::Full(ref inner_client, ref backend) => {
+                (inner_client.clone(), backend.clone())
+            }
+            _ => unreachable!("only full clients are tested"),
+        };
 
         let config = Config::get_or_compute(&*client).expect("config available");
+
+        let poa_block_import =
+            PurePoaBlockImport::new(client.clone(), client.clone(), LongestChain::new(backend));
+
         // TODO: use poa_block_import
-        let (block_import, link) = block_import(config, client.clone(), client.clone())
+        let (block_import, link) = block_import(config, Arc::new(poa_block_import), client.clone())
             .expect("can initialize block-import");
 
         let block_import = PanickingBlockImport(block_import);
@@ -385,6 +401,7 @@ impl TestNetFactory for BabeTestNet {
                         *timestamp,
                         Duration::from_secs(6),
                     );
+                    // TODO: add poa_inherent
 
                     Ok((timestamp, slot))
                 }),
