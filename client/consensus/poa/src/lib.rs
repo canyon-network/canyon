@@ -100,8 +100,12 @@ use cc_datastore::TransactionDataBackend as TransactionDataBackendT;
 use cp_permastore::{PermastoreApi, CHUNK_SIZE};
 use cp_poa::PoaApi;
 
+#[cfg(test)]
+mod babe_tests;
 mod chunk_proof;
 mod inherent;
+#[cfg(test)]
+mod tests;
 mod trie;
 mod tx_proof;
 
@@ -513,21 +517,23 @@ where
 
 /// Extracts PoA digest from a header that should contain one.
 ///
-/// The header should have one and only one [`DigestItem::Seal(POA_ENGINE_ID, pre_runtime)`].
+/// The header should have one and only one [`DigestItem::PreRuntime(POA_ENGINE_ID, pre_runtime)`].
 fn fetch_poa<B: BlockT>(header: B::Header, hash: B::Hash) -> Result<ProofOfAccess, Error<B>> {
-    use DigestItem::Seal;
+    use DigestItem::PreRuntime;
 
     let poa_seal = header
         .digest()
         .logs()
         .iter()
-        .filter(|digest_item| matches!(digest_item, Seal(id, _seal) if id == &POA_ENGINE_ID))
+        .filter(|digest_item| matches!(digest_item, PreRuntime(id, _seal) if id == &POA_ENGINE_ID))
         .collect::<Vec<_>>();
 
     match poa_seal.len() {
         0 => Err(Error::<B>::NoDigest(hash)),
         1 => match poa_seal[0] {
-            Seal(_id, seal) => Decode::decode(&mut seal.as_slice()).map_err(Error::<B>::Codec),
+            PreRuntime(_id, seal) => {
+                Decode::decode(&mut seal.as_slice()).map_err(Error::<B>::Codec)
+            }
             _ => unreachable!("Only items using POA_ENGINE_ID has been filtered; qed"),
         },
         _ => Err(Error::<B>::MultipleDigests(hash)),
