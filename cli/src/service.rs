@@ -26,21 +26,24 @@ use futures::prelude::*;
 
 use sc_client_api::{Backend, ExecutorProvider, RemoteBackend};
 use sc_consensus_babe::SlotProportion;
+use sc_executor::NativeElseWasmExecutor;
 use sc_network::{Event, NetworkService};
 use sc_service::{config::Configuration, error::Error as ServiceError, RpcHandlers, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sp_runtime::traits::Block as BlockT;
 
-use canyon_executor::Executor;
+use canyon_executor::ExecutorDispatch;
 use canyon_primitives::Block;
 use canyon_runtime::RuntimeApi;
 
-type FullClient = sc_service::TFullClient<Block, RuntimeApi, Executor>;
+type FullClient =
+    sc_service::TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<ExecutorDispatch>>;
 type FullBackend = sc_service::TFullBackend<Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 type FullGrandpaBlockImport =
     grandpa::GrandpaBlockImport<FullBackend, Block, FullClient, FullSelectChain>;
-type LightClient = sc_service::TLightClient<Block, RuntimeApi, Executor>;
+type LightClient =
+    sc_service::TLightClient<Block, RuntimeApi, NativeElseWasmExecutor<ExecutorDispatch>>;
 
 type FullPoaBlockImport = cc_consensus_poa::PurePoaBlockImport<
     Block,
@@ -86,10 +89,17 @@ pub fn new_partial(
         })
         .transpose()?;
 
+    let executor = NativeElseWasmExecutor::<ExecutorDispatch>::new(
+        config.wasm_method,
+        config.default_heap_pages,
+        config.max_runtime_instances,
+    );
+
     let (client, backend, keystore_container, task_manager) =
-        sc_service::new_full_parts::<Block, RuntimeApi, Executor>(
+        sc_service::new_full_parts::<Block, RuntimeApi, _>(
             config,
             telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
+            executor,
         )?;
     let client = Arc::new(client);
 
@@ -496,23 +506,23 @@ pub fn new_light_base(
         .clone()
         .filter(|x| !x.is_empty())
         .map(|endpoints| -> Result<_, sc_telemetry::Error> {
-            #[cfg(feature = "browser")]
-            let transport = Some(sc_telemetry::ExtTransport::new(
-                libp2p_wasm_ext::ffi::websocket_transport(),
-            ));
-            #[cfg(not(feature = "browser"))]
-            let transport = None;
-
-            let worker = TelemetryWorker::with_transport(16, transport)?;
+            let worker = TelemetryWorker::new(16)?;
             let telemetry = worker.handle().new_telemetry(endpoints);
             Ok((worker, telemetry))
         })
         .transpose()?;
 
+    let executor = NativeElseWasmExecutor::<ExecutorDispatch>::new(
+        config.wasm_method,
+        config.default_heap_pages,
+        config.max_runtime_instances,
+    );
+
     let (client, backend, keystore_container, mut task_manager, on_demand) =
-        sc_service::new_light_parts::<Block, RuntimeApi, Executor>(
+        sc_service::new_light_parts::<Block, RuntimeApi, _>(
             &config,
             telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
+            executor,
         )?;
 
     let mut telemetry = telemetry.map(|(worker, telemetry)| {

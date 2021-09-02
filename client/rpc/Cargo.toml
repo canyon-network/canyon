@@ -11,17 +11,18 @@ repository = "https://github.com/canyon-network/canyon/"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-jsonrpc-core = "15.1.0"
-jsonrpc-core-client = "15.1.0"
-jsonrpc-derive = "15.1.0"
+futures = "0.3.16"
+jsonrpc-core = "18.0.0"
+jsonrpc-core-client = "18.0.0"
+jsonrpc-derive = "18.0.0"
 log = "0.4"
 parking_lot = "0.11"
 
-sc-rpc-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sc-transaction-pool-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-rpc-api = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-transaction-pool-api = { git = "https://github.com/paritytech/substrate", branch = "master" }
 
-sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master" }
 
 cc-rpc-api = { path = "../rpc-api" }
 cp-permastore = { path = "../../primitives/permastore" }
@@ -29,12 +30,11 @@ cp-permastore = { path = "../../primitives/permastore" }
 [dev-dependencies]
 assert_matches = "1.3.0"
 codec = { package = "parity-scale-codec", version = "2.1" }
-futures = { version = "0.3.1", features = ["compat"] }
-jsonrpc-pubsub = "15.1.0"
+jsonrpc-pubsub = "18.0.0"
 
-sc-rpc = { git = "https://github.com/canyon-network/substrate", branch = "canyon", features = ["test-helpers"] }
-sc-transaction-pool = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-keystore = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-substrate-test-runtime-client = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sc-rpc = { git = "https://github.com/paritytech/substrate", features = ["test-helpers"] , branch = "master" }
+sc-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "master" }
+substrate-test-runtime-client = { git = "https://github.com/paritytech/substrate", branch = "master" }
 
 cc-datastore = { path = "../datastore", features = ["test-helpers"] }

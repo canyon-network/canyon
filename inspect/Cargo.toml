@@ -13,9 +13,11 @@ derive_more = "0.99"
 log = "0.4.8"
 structopt = "0.3.8"
 
-sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sc-cli = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sc-client-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
-sc-service = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sc-cli = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-executor = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-service = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+
+sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master" }

@@ -10,12 +10,12 @@ targets = ["x86_64-unknown-linux-gnu"]
 [dependencies]
 codec = { package = "parity-scale-codec", version = "2.1", default-features = false, features = ["derive"] }
 
-sp-application-crypto = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-inherents = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-application-crypto = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-inherents = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
 
-frame-system = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
 
 [features]
 default = ["std"]
