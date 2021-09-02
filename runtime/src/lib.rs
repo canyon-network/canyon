@@ -530,8 +530,7 @@ parameter_types! {
         .get(DispatchClass::Normal);
 }
 
-pub const MAX_NOMINATIONS: u32 =
-    <NposSolution16 as sp_npos_elections::NposSolution>::LIMIT as u32;
+pub const MAX_NOMINATIONS: u32 = <NposSolution16 as sp_npos_elections::NposSolution>::LIMIT as u32;
 
 sp_npos_elections::generate_solution_type!(
     #[compact]
