@@ -222,7 +222,7 @@ pub fn new_partial(
             use jsonrpc_pubsub::manager::SubscriptionManager;
 
             let task_executor = sc_rpc::SubscriptionTaskExecutor::new(spawn_handle.clone());
-            let subscriptions = SubscriptionManager::new(Arc::new(task_executor.clone()));
+            let subscriptions = SubscriptionManager::new(Arc::new(task_executor));
             let author = sc_rpc::author::Author::new(
                 client.clone(),
                 pool.clone(),

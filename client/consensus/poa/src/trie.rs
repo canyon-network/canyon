@@ -42,7 +42,7 @@ pub fn prepare_trie_proof(leaves: Vec<Vec<u8>>) -> (MemoryDB<Hasher>, sp_core::H
         let mut trie = TrieDBMut::<TrieLayout>::new(&mut db, &mut root);
 
         for (index, leaf) in leaves.iter().enumerate() {
-            trie.insert(&encode_index(index as u32), &leaf)
+            trie.insert(&encode_index(index as u32), leaf)
                 .unwrap_or_else(|e| {
                     panic!("Failed to insert the trie node: {:?}, index: {}", e, index)
                 });
