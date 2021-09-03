@@ -190,8 +190,7 @@
 <span id="190">190</span>
 <span id="191">191</span>
 <span id="192">192</span>
-</pre><pre class="rust">
-<span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
+</pre><pre class="rust"><code><span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
 <span class="comment">//</span>
 <span class="comment">// Copyright (c) 2021 Canyon Labs.</span>
@@ -212,7 +211,7 @@
 <span class="kw">use</span> <span class="ident">sc_cli</span>::{<span class="ident">ChainSpec</span>, <span class="prelude-ty">Result</span>, <span class="ident">Role</span>, <span class="ident">RuntimeVersion</span>, <span class="ident">SubstrateCli</span>};
 <span class="kw">use</span> <span class="ident">sc_service::PartialComponents</span>;
 
-<span class="kw">use</span> <span class="ident">canyon_executor::Executor</span>;
+<span class="kw">use</span> <span class="ident">canyon_executor::ExecutorDispatch</span>;
 <span class="kw">use</span> <span class="ident">canyon_runtime</span>::{<span class="ident">Block</span>, <span class="ident">RuntimeApi</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::service::new_partial</span>;
@@ -284,13 +283,13 @@
         <span class="prelude-val">Some</span>(<span class="ident">Subcommand::Inspect</span>(<span class="ident">cmd</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">cli</span>.<span class="ident">create_runner</span>(<span class="ident">cmd</span>)<span class="question-mark">?</span>;
 
-            <span class="ident">runner</span>.<span class="ident">sync_run</span>(<span class="op">|</span><span class="ident">config</span><span class="op">|</span> <span class="ident">cmd</span>.<span class="ident">run</span>::<span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span>(<span class="ident">config</span>))
+            <span class="ident">runner</span>.<span class="ident">sync_run</span>(<span class="op">|</span><span class="ident">config</span><span class="op">|</span> <span class="ident">cmd</span>.<span class="ident">run</span>::<span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">RuntimeApi</span>, <span class="ident">ExecutorDispatch</span><span class="op">&gt;</span>(<span class="ident">config</span>))
         }
         <span class="prelude-val">Some</span>(<span class="ident">Subcommand::Benchmark</span>(<span class="ident">cmd</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime-benchmarks&quot;</span>) {
                 <span class="kw">let</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">cli</span>.<span class="ident">create_runner</span>(<span class="ident">cmd</span>)<span class="question-mark">?</span>;
 
-                <span class="ident">runner</span>.<span class="ident">sync_run</span>(<span class="op">|</span><span class="ident">config</span><span class="op">|</span> <span class="ident">cmd</span>.<span class="ident">run</span>::<span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">Executor</span><span class="op">&gt;</span>(<span class="ident">config</span>))
+                <span class="ident">runner</span>.<span class="ident">sync_run</span>(<span class="op">|</span><span class="ident">config</span><span class="op">|</span> <span class="ident">cmd</span>.<span class="ident">run</span>::<span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">ExecutorDispatch</span><span class="op">&gt;</span>(<span class="ident">config</span>))
             } <span class="kw">else</span> {
                 <span class="prelude-val">Err</span>(<span class="string">&quot;Benchmarking wasn&#39;t enabled when building the node. \
                     You can enable it with `--features runtime-benchmarks`.&quot;</span>
@@ -378,12 +377,12 @@
                     <span class="ident">sc_service::TaskManager::new</span>(<span class="ident">config</span>.<span class="ident">task_executor</span>.<span class="ident">clone</span>(), <span class="ident">registry</span>)
                         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">sc_cli::Error::Service</span>(<span class="ident">sc_service::Error::Prometheus</span>(<span class="ident">e</span>)))<span class="question-mark">?</span>;
 
-                <span class="prelude-val">Ok</span>((<span class="ident">cmd</span>.<span class="ident">run</span>::<span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">Executor</span><span class="op">&gt;</span>(<span class="ident">config</span>), <span class="ident">task_manager</span>))
+                <span class="prelude-val">Ok</span>((<span class="ident">cmd</span>.<span class="ident">run</span>::<span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">ExecutorDispatch</span><span class="op">&gt;</span>(<span class="ident">config</span>), <span class="ident">task_manager</span>))
             })
         }
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="canyon_cli" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

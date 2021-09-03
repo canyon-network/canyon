@@ -318,8 +318,7 @@
 <span id="318">318</span>
 <span id="319">319</span>
 <span id="320">320</span>
-</pre><pre class="rust">
-<span class="comment">// This file is part of Canyon.</span>
+</pre><pre class="rust"><code><span class="comment">// This file is part of Canyon.</span>
 
 <span class="comment">// Copyright (C) 2021 Canyon Network.</span>
 <span class="comment">// License: GPL-3.0</span>
@@ -579,7 +578,7 @@
 
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">it</span>
             .<span class="ident">next</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;Extrinsic index missing: example \&quot;5:0\&quot;&quot;</span>)<span class="question-mark">?</span>
+            .<span class="ident">ok_or</span>(<span class="string">&quot;Extrinsic index missing: example \&quot;5:0\&quot;&quot;</span>)<span class="question-mark">?</span>
             .<span class="ident">parse</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Invalid index format: {}&quot;</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
 
@@ -639,7 +638,7 @@
         <span class="macro">assert_eq!</span>(<span class="ident">b3</span>, <span class="prelude-val">Ok</span>(<span class="ident">ExtrinsicAddress::Bytes</span>(<span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">0x12</span>, <span class="number">0x34</span>, <span class="number">0x5f</span>])));
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="canyon_inspect" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>
