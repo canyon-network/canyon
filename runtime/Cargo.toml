@@ -16,66 +16,66 @@ serde = { version = "1.0.102", optional = true }
 static_assertions = "1.1.0"
 
 # primitives
-sp-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-authority-discovery = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-block-builder = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-inherents = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-keyring = { git = "https://github.com/canyon-network/substrate", branch = "canyon", optional = true }
-sp-offchain = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-npos-elections = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-session = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-staking = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-std = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-transaction-pool = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-version = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-api = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-authority-discovery = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-block-builder = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-consensus-babe = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-inherents = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-keyring = { git = "https://github.com/paritytech/substrate", optional = true , branch = "master" }
+sp-offchain = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-npos-elections = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-session = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-staking = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-transaction-pool = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-version = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
 
 # frame dependencies
-frame-benchmarking = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false, optional = true }
-frame-election-provider-support = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-frame-executive = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-frame-support = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-frame-system = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-frame-system-benchmarking = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false, optional = true }
-frame-system-rpc-runtime-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-frame-try-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false, optional = true }
-pallet-assets = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-authority-discovery = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-authorship = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-babe = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-balances = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-bounties = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-collective = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-democracy = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-election-provider-multi-phase = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-elections-phragmen = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-gilt = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-grandpa = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-im-online = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-indices = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-identity = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-lottery = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-membership = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-multisig = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-offences = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-offences-benchmarking = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false, optional = true }
-pallet-proxy = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-randomness-collective-flip = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-session = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false, features = ["historical"] }
-pallet-session-benchmarking = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false, optional = true }
-pallet-staking = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-staking-reward-curve = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-scheduler = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-sudo = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-timestamp = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-tips = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-treasury = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-utility = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-transaction-payment = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-vesting = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, optional = true , branch = "master" }
+frame-election-provider-support = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+frame-executive = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+frame-support = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, optional = true , branch = "master" }
+frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+frame-try-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, optional = true , branch = "master" }
+pallet-assets = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-authority-discovery = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-authorship = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-babe = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-bounties = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-collective = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-election-provider-multi-phase = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-elections-phragmen = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-gilt = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-grandpa = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-im-online = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-indices = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-identity = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-lottery = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-membership = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-multisig = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-offences = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-offences-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, optional = true , branch = "master" }
+pallet-proxy = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-randomness-collective-flip = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-session = { git = "https://github.com/paritytech/substrate", default-features = false, features = ["historical"] , branch = "master" }
+pallet-session-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, optional = true , branch = "master" }
+pallet-staking = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-staking-reward-curve = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-sudo = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-timestamp = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-tips = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-treasury = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-vesting = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
 
 canyon-primitives = { path = "../primitives", default-features = false }
 cp-permastore = { path = "../primitives/permastore", default-features = false }
@@ -85,10 +85,10 @@ pallet-permastore = { path = "../pallets/permastore", default-features = false }
 pallet-poa = { path = "../pallets/poa", default-features = false }
 
 [build-dependencies]
-substrate-wasm-builder = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", branch = "master" }
 
 [dev-dependencies]
-sp-io = { git = "https://github.com/canyon-network/substrate", branch = "canyon" }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "master" }
 
 [features]
 default = ["std"]

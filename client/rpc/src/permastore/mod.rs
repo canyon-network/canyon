@@ -23,7 +23,7 @@ use std::marker::PhantomData;
 use std::ops::Deref;
 use std::sync::Arc;
 
-use jsonrpc_core::futures::future::result;
+use futures::future::FutureExt;
 use parking_lot::RwLock;
 
 use sc_rpc_api::{
@@ -85,9 +85,8 @@ where
 {
     fn submit_extrinsic(&self, ext: Bytes, data: Bytes) -> FutureResult<TxHash<P>> {
         if let Err(e) = self.submit(data) {
-            return Box::new(result(Err(sc_rpc_api::author::error::Error::Client(
-                Box::new(e),
-            ))));
+            return async move { Err(sc_rpc_api::author::error::Error::Client(Box::new(e))) }
+                .boxed();
         }
         self.author.submit_extrinsic(ext)
     }

@@ -11,20 +11,20 @@ targets = ["x86_64-unknown-linux-gnu"]
 codec = { package = "parity-scale-codec", version = "2.2", default-features = false, features = ["derive", "max-encoded-len"] }
 serde = { version = "1.0.101", optional = true }
 
-sp-io = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-sp-std = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-io = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
 
-frame-benchmarking = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false, optional = true }
-frame-support = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-frame-system = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
-pallet-balances = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, optional = true , branch = "master" }
+frame-support = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
 
 canyon-primitives = { path = "../../primitives/", default-features = false }
 cp-consensus-poa = { path = "../../primitives/consensus/poa", default-features = false }
 
 [dev-dependencies]
-sp-core = { git = "https://github.com/canyon-network/substrate", branch = "canyon", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
 
 [features]
 default = ["std"]

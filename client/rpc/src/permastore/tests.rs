@@ -22,8 +22,7 @@ use std::sync::Arc;
 
 use assert_matches::assert_matches;
 use codec::Encode;
-use futures::{compat::Future01CompatExt, executor};
-use jsonrpc_core::futures::{Future, Stream};
+use futures::{executor, StreamExt};
 use jsonrpc_pubsub::{manager::SubscriptionManager, SubscriptionId};
 use parking_lot::RwLock;
 
@@ -121,12 +120,12 @@ fn submit_transaction_should_not_cause_error() {
 
     let data = b"mocked data".to_vec();
     assert_matches!(
-        PermastoreApi::submit_extrinsic(&p, xt.clone().into(), data.clone().into()).wait(),
+        executor::block_on(PermastoreApi::submit_extrinsic(&p, xt.clone().into(), data.clone().into())),
         Ok(h2) if h == h2
     );
-    assert!(PermastoreApi::submit_extrinsic(&p, xt.into(), data.into())
-        .wait()
-        .is_err());
+    assert!(
+        executor::block_on(PermastoreApi::submit_extrinsic(&p, xt.into(), data.into())).is_err()
+    );
 }
 
 #[test]
@@ -137,12 +136,12 @@ fn submit_rich_transaction_should_not_cause_error() {
 
     let data = b"mocked data".to_vec();
     assert_matches!(
-        PermastoreApi::submit_extrinsic(&p, xt.clone().into(), data.clone().into()).wait(),
+        executor::block_on(PermastoreApi::submit_extrinsic(&p, xt.clone().into(), data.clone().into())),
         Ok(h2) if h == h2
     );
-    assert!(PermastoreApi::submit_extrinsic(&p, xt.into(), data.into())
-        .wait()
-        .is_err());
+    assert!(
+        executor::block_on(PermastoreApi::submit_extrinsic(&p, xt.into(), data.into())).is_err()
+    );
 }
 
 #[test]
@@ -160,7 +159,7 @@ fn should_watch_extrinsic() {
         uxt(AccountKeyring::Alice, 0).encode().into(),
     );
 
-    let id = executor::block_on(id_rx.compat()).unwrap().unwrap();
+    let id = executor::block_on(id_rx).unwrap().unwrap();
     assert_matches!(id, SubscriptionId::String(_));
 
     let id = match id {
@@ -178,10 +177,8 @@ fn should_watch_extrinsic() {
         };
         tx.into_signed_tx()
     };
-    AuthorApi::submit_extrinsic(&p, replacement.encode().into())
-        .wait()
-        .unwrap();
-    let (res, data) = executor::block_on(data.into_future().compat()).unwrap();
+    executor::block_on(AuthorApi::submit_extrinsic(&p, replacement.encode().into())).unwrap();
+    let (res, data) = executor::block_on(data.into_future());
 
     let expected = Some(format!(
         r#"{{"jsonrpc":"2.0","method":"test","params":{{"result":"ready","subscription":"{}"}}}}"#,
@@ -196,7 +193,7 @@ fn should_watch_extrinsic() {
         id,
     ));
 
-    let res = executor::block_on(data.into_future().compat()).unwrap().0;
+    let res = executor::block_on(data.into_future()).0;
     assert_eq!(res, expected);
 }
 
@@ -216,7 +213,7 @@ fn should_return_watch_validation_error() {
     );
 
     // then
-    let res = executor::block_on(id_rx.compat()).unwrap();
+    let res = executor::block_on(id_rx).unwrap();
     assert!(
         res.is_err(),
         "Expected the transaction to be rejected as invalid."
@@ -229,9 +226,12 @@ fn should_return_pending_extrinsics() {
 
     let ex = uxt(AccountKeyring::Alice, 0);
     let data = b"mocked data".to_vec();
-    PermastoreApi::submit_extrinsic(&p, ex.encode().into(), data.into())
-        .wait()
-        .unwrap();
+    executor::block_on(PermastoreApi::submit_extrinsic(
+        &p,
+        ex.encode().into(),
+        data.into(),
+    ))
+    .unwrap();
     assert_matches!(
         p.author.pending_extrinsics(),
         Ok(ref expected) if *expected == vec![Bytes(ex.encode())]
@@ -246,18 +246,11 @@ fn should_remove_extrinsics() {
     let data: Bytes = b"mocked data".to_vec().into();
 
     let ex1 = uxt(AccountKeyring::Alice, 0);
-    p.submit_extrinsic(ex1.encode().into(), data.clone())
-        .wait()
-        .unwrap();
+    executor::block_on(p.submit_extrinsic(ex1.encode().into(), data.clone())).unwrap();
     let ex2 = uxt(AccountKeyring::Alice, 1);
-    p.submit_extrinsic(ex2.encode().into(), data.clone())
-        .wait()
-        .unwrap();
+    executor::block_on(p.submit_extrinsic(ex2.encode().into(), data.clone())).unwrap();
     let ex3 = uxt(AccountKeyring::Bob, 0);
-    let hash3 = p
-        .submit_extrinsic(ex3.encode().into(), data)
-        .wait()
-        .unwrap();
+    let hash3 = executor::block_on(p.submit_extrinsic(ex3.encode().into(), data)).unwrap();
     assert_eq!(setup.pool.status().ready, 3);
 
     // now remove all 3

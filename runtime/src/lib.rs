@@ -530,12 +530,11 @@ parameter_types! {
         .get(DispatchClass::Normal);
 }
 
-pub const MAX_NOMINATIONS: u32 =
-    <NposCompactSolution16 as sp_npos_elections::CompactSolution>::LIMIT as u32;
+pub const MAX_NOMINATIONS: u32 = <NposSolution16 as sp_npos_elections::NposSolution>::LIMIT as u32;
 
 sp_npos_elections::generate_solution_type!(
     #[compact]
-    pub struct NposCompactSolution16::<
+    pub struct NposSolution16::<
         VoterIndex = u32,
         TargetIndex = u16,
         Accuracy = sp_runtime::PerU16,
@@ -564,7 +563,7 @@ impl pallet_election_provider_multi_phase::Config for Runtime {
     type RewardHandler = (); // nothing to do upon rewards
     type DataProvider = Staking;
     type OnChainAccuracy = Perbill;
-    type CompactSolution = NposCompactSolution16;
+    type Solution = NposSolution16;
     type Fallback = Fallback;
     type ForceOrigin = EnsureRootOrHalfCouncil;
     type BenchmarkingConfig = ();
@@ -592,6 +591,7 @@ impl pallet_democracy::Config for Runtime {
     type EnactmentPeriod = EnactmentPeriod;
     type LaunchPeriod = LaunchPeriod;
     type VotingPeriod = VotingPeriod;
+    type VoteLockingPeriod = EnactmentPeriod; // Same as EnactmentPeriod
     type MinimumDeposit = MinimumDeposit;
     /// A straight majority of the council can decide what their next motion is.
     type ExternalOrigin = EnsureProportionAtLeast<_1, _2, AccountId, CouncilCollective>;
@@ -816,6 +816,7 @@ parameter_types! {
     pub const ImOnlineUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
     /// We prioritize im-online heartbeats over election solution submission.
     pub const StakingUnsignedPriority: TransactionPriority = TransactionPriority::max_value() / 2;
+    pub const MaxAuthorities: u32 = 100;
 }
 
 impl<LocalCall> frame_system::offchain::CreateSignedTransaction<LocalCall> for Runtime
@@ -893,7 +894,9 @@ impl pallet_offences::Config for Runtime {
     type OnOffenceHandler = Staking;
 }
 
-impl pallet_authority_discovery::Config for Runtime {}
+impl pallet_authority_discovery::Config for Runtime {
+    type MaxAuthorities = MaxAuthorities;
+}
 
 impl pallet_grandpa::Config for Runtime {
     type Event = Event;
@@ -970,6 +973,9 @@ impl pallet_vesting::Config for Runtime {
     type BlockNumberToBalance = ConvertInto;
     type MinVestedTransfer = MinVestedTransfer;
     type WeightInfo = pallet_vesting::weights::SubstrateWeight<Runtime>;
+    // `VestingInfo` encode length is 36bytes. 28 schedules gets encoded as 1009 bytes, which is the
+    // highest number of schedules that encodes less than 2^10.
+    const MAX_VESTING_SCHEDULES: u32 = 28;
 }
 
 parameter_types! {
