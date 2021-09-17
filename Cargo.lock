@@ -1073,6 +1073,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "cc-network"
+version = "0.1.0"
+dependencies = [
+ "canyon-primitives",
+ "cp-permastore",
+ "futures 0.3.17",
+ "log",
+ "parity-scale-codec",
+ "sc-client-db",
+ "sc-network",
+ "sp-api",
+ "sp-blockchain",
+ "sp-core",
+ "sp-keystore",
+ "sp-offchain",
+ "sp-runtime",
+ "strum 0.21.0",
+ "substrate-test-runtime-client",
+ "thiserror",
+]
+
+[[package]]
 name = "cc-rpc"
 version = "0.1.0"
 dependencies = [
@@ -8265,6 +8287,9 @@ name = "strum"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aaf86bbcfd1fa9670b7a129f64fc0c9fcbbfe4f1bc4210e9e98fe71ffc12cde2"
+dependencies = [
+ "strum_macros 0.21.1",
+]
 
 [[package]]
 name = "strum_macros"
