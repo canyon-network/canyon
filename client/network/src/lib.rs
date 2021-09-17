@@ -24,19 +24,6 @@
 //! Currently, it is implemented on the top of offchain storage, which is a persistent
 //! local storage of each node.
 
-use std::sync::Arc;
-
-use codec::Encode;
-
-use sc_client_db::offchain::LocalStorage;
-use sp_api::ProvideRuntimeApi;
-use sp_blockchain::HeaderBackend;
-use sp_runtime::{
-    generic::BlockId,
-    offchain::OffchainStorage,
-    traits::{Block as BlockT, NumberFor},
-};
-
 pub mod protocol;
 
 pub mod reputation;

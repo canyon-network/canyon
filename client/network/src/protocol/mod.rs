@@ -37,16 +37,6 @@ const DEFAULT_REQUEST_TIMEOUT_CONNECTED: Duration = Duration::from_secs(1);
 /// Timeout for requesting availability chunks.
 pub const CHUNK_REQUEST_TIMEOUT: Duration = DEFAULT_REQUEST_TIMEOUT_CONNECTED;
 
-/// This timeout is based on what seems sensible from a time budget perspective, considering 6
-/// second block time. This is going to be tough, if we have multiple forks and large PoVs, but we
-/// only have so much time.
-const POV_REQUEST_TIMEOUT_CONNECTED: Duration = Duration::from_millis(1000);
-
-/// We want timeout statement requests fast, so we don't waste time on slow nodes. Responders will
-/// try their best to either serve within that timeout or return an error immediately. (We need to
-/// fit statement distribution within a block of 6 seconds.)
-const STATEMENTS_TIMEOUT: Duration = Duration::from_secs(1);
-
 /// We don't want a slow peer to slow down all the others, at the same time we want to get out the
 /// data quickly in full to at least some peers (as this will reduce load on us as they then can
 /// start serving the data). So this value is a tradeoff. 3 seems to be sensible. So we would need
@@ -64,11 +54,11 @@ impl Protocol {
         mpsc::Receiver<sc_network::config::IncomingRequest>,
         RequestResponseConfig,
     ) {
-        let p_name = self.into_protocol_name();
+        let protocol_name = self.into_protocol_name();
         let (tx, rx) = mpsc::channel(self.get_channel_size());
         let cfg = match self {
             Protocol::ChunkFetching => RequestResponseConfig {
-                name: p_name,
+                name: protocol_name,
                 max_request_size: 1_000,
                 max_response_size: 10 * 1024 * 1024,
                 // We are connected to all validators:
