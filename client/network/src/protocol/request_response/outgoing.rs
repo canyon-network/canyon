@@ -29,6 +29,7 @@ use super::{ChunkFetchingRequest, IsRequest, Protocol};
 pub enum Requests {
     /// Request a transaction chunk from a node.
     ChunkFetching(OutgoingRequest<ChunkFetchingRequest>),
+    // TODO: Check if the peers also hold the transaction data.
 }
 
 impl Requests {
@@ -129,7 +130,7 @@ where
     /// As this throws away type information, we also return the `Protocol` this encoded request
     /// adheres to.
     pub fn encode_request(self) -> (Protocol, OutgoingRequest<Vec<u8>>) {
-        let OutgoingRequest {
+        let Self {
             peer,
             payload,
             pending_response,

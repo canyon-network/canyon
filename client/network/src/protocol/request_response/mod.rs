@@ -56,8 +56,8 @@ pub enum ChunkFetchingResponse {
 impl From<Option<ChunkResponse>> for ChunkFetchingResponse {
     fn from(x: Option<ChunkResponse>) -> Self {
         match x {
-            Some(c) => ChunkFetchingResponse::Chunk(c),
-            None => ChunkFetchingResponse::NoSuchChunk,
+            Some(c) => Self::Chunk(c),
+            None => Self::NoSuchChunk,
         }
     }
 }
@@ -65,7 +65,7 @@ impl From<Option<ChunkResponse>> for ChunkFetchingResponse {
 ///
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct ChunkResponse {
-    /// The erasure-encoded chunk of data belonging to the candidate block.
+    /// The data chunk belonging to the transaction data.
     pub chunk: Vec<u8>,
     /// Proof for this chunk's branch in the Merkle tree.
     pub proof: Proof,

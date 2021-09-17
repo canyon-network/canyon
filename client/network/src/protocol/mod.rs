@@ -14,12 +14,12 @@ pub mod request_response;
 /// within protocols.
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, EnumIter)]
 pub enum Protocol {
-    /// Protocol for chunk fetching, used by availability distribution and availability recovery.
+    /// Protocol for data chunk fetching, used by transaction data sync.
     ChunkFetching,
 }
 
 /// Minimum bandwidth we expect for validators - 500Mbit/s is the recommendation, so approximately
-
+#[allow(dead_code)]
 const MIN_BANDWIDTH_BYTES: u64 = 50 * 1024 * 1024;
 
 /// Default request timeout in seconds.
@@ -69,7 +69,7 @@ impl Protocol {
         (rx, cfg)
     }
 
-    // Channel sizes for the supported protocols.
+    /// Channel sizes for the supported protocols.
     fn get_channel_size(self) -> usize {
         match self {
             // Hundreds of validators will start requesting their chunks once they see a candidate
