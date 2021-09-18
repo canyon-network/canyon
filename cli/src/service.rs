@@ -256,6 +256,21 @@ pub struct NewFullBase {
     pub transaction_pool: Arc<sc_transaction_pool::FullPool<Block, FullClient>>,
 }
 
+async fn on_new_transaction<E: codec::Codec>(
+    mut receiver: futures::channel::mpsc::UnboundedReceiver<E>,
+) {
+    while let Some(new_transaction) = receiver.next().await {
+        println!(
+            "====================== new_transaction: {:?}",
+            new_transaction.encode()
+        );
+        log::debug!(
+            "====================== new_transaction: {:?}",
+            new_transaction.encode()
+        );
+    }
+}
+
 /// Creates a full service from the configuration.
 pub fn new_full_base(
     mut config: Configuration,
@@ -287,6 +302,12 @@ pub fn new_full_base(
         import_setup.1.shared_authority_set().clone(),
     ));
 
+    let (new_transaction_sender, new_transaction_receiver) = futures::channel::mpsc::unbounded();
+    task_manager
+        .spawn_essential_handle()
+        .spawn_blocking("new-transaction-handler", async move {
+            on_new_transaction(new_transaction_receiver).await;
+        });
     let (network, system_rpc_tx, network_starter) =
         sc_service::build_network(sc_service::BuildNetworkParams {
             config: &config,
@@ -297,6 +318,7 @@ pub fn new_full_base(
             on_demand: None,
             block_announce_validator_builder: None,
             warp_sync: Some(warp_sync),
+            new_transaction_sender,
         })?;
 
     if config.offchain_worker.enabled {
@@ -591,6 +613,13 @@ pub fn new_light_base(
         grandpa_link.shared_authority_set().clone(),
     ));
 
+    let (new_transaction_sender, new_transaction_receiver) = futures::channel::mpsc::unbounded();
+    task_manager
+        .spawn_essential_handle()
+        .spawn_blocking("new-transaction-handler", async move {
+            on_new_transaction(new_transaction_receiver).await;
+        });
+
     let (network, system_rpc_tx, network_starter) =
         sc_service::build_network(sc_service::BuildNetworkParams {
             config: &config,
@@ -601,6 +630,7 @@ pub fn new_light_base(
             on_demand: Some(on_demand.clone()),
             block_announce_validator_builder: None,
             warp_sync: Some(warp_sync),
+            new_transaction_sender,
         })?;
     network_starter.start_network();
 

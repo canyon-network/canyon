@@ -11,18 +11,18 @@ log = "0.4"
 strum = { version = "0.21", features = ["derive"] }
 thiserror = "1.0"
 
-sp-api = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-offchain = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-api = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-core = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-offchain = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
 
-sc-client-db = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-network = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-client-db = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-network = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
 
 canyon-primitives = { path = "../../primitives" }
 cp-permastore = { path = "../../primitives/permastore" }
 
 [dev-dependencies]
-sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "master" }
-substrate-test-runtime-client = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-keystore = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+substrate-test-runtime-client = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }

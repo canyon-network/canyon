@@ -10,18 +10,18 @@ codec = { package = "parity-scale-codec", version = "2.1" }
 log = "0.4"
 thiserror = "1.0"
 
-sp-api = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-consensus = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-inherents = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-trie = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-api = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-blockchain = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-block-builder = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-consensus = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-core = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-inherents = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-io = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-trie = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
 
-sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-consensus = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-client-api = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-consensus = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
 
 canyon-primitives = { path = "../../../primitives" }
 cc-datastore = { path = "../../datastore" }
@@ -33,11 +33,11 @@ cp-poa = { path = "../../../primitives/poa" }
 criterion = "0.3"
 rand = "0.8"
 
-sc-block-builder = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-keyring = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-state-machine = { git = "https://github.com/paritytech/substrate", branch = "master" }
-substrate-test-runtime = { git = "https://github.com/paritytech/substrate", branch = "master" }
-substrate-test-runtime-client = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-block-builder = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-keyring = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-state-machine = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+substrate-test-runtime = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+substrate-test-runtime-client = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
 
 [[bench]]
 name = "benchmark"

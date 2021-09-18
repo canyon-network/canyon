@@ -38,7 +38,7 @@ path = "src/main.rs"
 required-features = ["canyon-cli/cli"]
 
 [dependencies]
-sc-cli = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-cli = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
 
 canyon-cli = { path = "cli" }
 

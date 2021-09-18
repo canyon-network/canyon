@@ -41,6 +41,7 @@
 #![deny(rustdoc::broken_intra_doc_links)]
 
 use codec::{Decode, Encode, MaxEncodedLen};
+use scale_info::TypeInfo;
 
 use sp_runtime::{
     generic::DigestItem,
@@ -74,7 +75,7 @@ pub use pallet::*;
 ///
 /// This struct is used for calculating the historical average depth
 /// of a validator, which implies the storage capacity per validator.
-#[derive(RuntimeDebug, Clone, Eq, PartialEq, Encode, Decode, MaxEncodedLen)]
+#[derive(RuntimeDebug, Clone, Eq, PartialEq, Encode, Decode, MaxEncodedLen, TypeInfo)]
 pub struct DepthInfo<BlockNumber> {
     /// Number of blocks authored by a validator since the weave is non-empty.
     ///
@@ -123,7 +124,7 @@ pub trait BlockAuthor<AccountId> {
 }
 
 /// Error type for the poa inherent.
-#[derive(RuntimeDebug, Clone, Encode, Decode)]
+#[derive(RuntimeDebug, Clone, Encode, Decode, TypeInfo)]
 pub enum InherentError {
     /// The poa entry included is invalid.
     InvalidProofOfAccess,
@@ -241,26 +242,26 @@ pub mod pallet {
 
             // TODO: avoide double including the full ProofOfAccess struct in extrinsic
             // as it will be included in the header anyway?
-            Some(Call::deposit(poa_outcome))
+            Some(Call::deposit { poa_outcome })
         }
 
         fn check_inherent(call: &Self::Call, _: &InherentData) -> Result<(), Self::Error> {
             match call {
-                Call::deposit(PoaOutcome::Justification(poa)) => {
-                    poa.check_validity(&Self::poa_config()).map_err(|e| {
-                        frame_support::log::error!(
-                            target: "runtime::poa",
-                            "Check inherent failed due to poa is invalid: {:?}", e,
-                        );
-                        InherentError::InvalidProofOfAccess.into()
-                    })
-                }
+                Call::deposit {
+                    poa_outcome: PoaOutcome::Justification(poa),
+                } => poa.check_validity(&Self::poa_config()).map_err(|e| {
+                    frame_support::log::error!(
+                        target: "runtime::poa",
+                        "Check inherent failed due to poa is invalid: {:?}", e,
+                    );
+                    InherentError::InvalidProofOfAccess.into()
+                }),
                 _ => Ok(()),
             }
         }
 
         fn is_inherent(call: &Self::Call) -> bool {
-            matches!(call, Call::deposit(..))
+            matches!(call, Call::deposit { .. })
         }
 
         fn is_inherent_required(data: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
@@ -275,7 +276,6 @@ pub mod pallet {
 
     /// Event for the poa pallet.
     #[pallet::event]
-    #[pallet::metadata(T::AccountId = "AccountId")]
     #[pallet::generate_deposit(pub(super) fn deposit_event)]
     pub enum Event<T: Config> {
         /// New poa configuration.

@@ -5,7 +5,7 @@ authors = ["Canyon Labs <https://github.com/canyon-network>"]
 edition = "2018"
 
 [dependencies]
-sp-api = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-api = { git = "https://github.com/canyon-network/substrate", default-features = false , branch = "initial-network" }
 
 cp-consensus-poa = { path = "../consensus/poa", default-features = false }
 

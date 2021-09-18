@@ -7,10 +7,10 @@ edition = "2018"
 [dependencies]
 codec = { package = "parity-scale-codec", version = "2.1", default-features = false, features = ["derive"] }
 
-sp-api = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
-sp-core = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
-sp-std = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
-sp-trie = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-api = { git = "https://github.com/canyon-network/substrate", default-features = false , branch = "initial-network" }
+sp-core = { git = "https://github.com/canyon-network/substrate", default-features = false , branch = "initial-network" }
+sp-std = { git = "https://github.com/canyon-network/substrate", default-features = false , branch = "initial-network" }
+sp-trie = { git = "https://github.com/canyon-network/substrate", default-features = false , branch = "initial-network" }
 
 [features]
 default = ["std"]

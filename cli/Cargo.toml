@@ -28,52 +28,52 @@ serde = { version = "1.0.102", features = ["derive"] }
 structopt = { version = "0.3.8", optional = true }
 
 # primitives
-sp-authority-discovery = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-authorship = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-consensus = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-consensus-babe = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-finality-grandpa = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-keyring = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-timestamp = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
-sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-authority-discovery = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-authorship = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-consensus = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-core = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-finality-grandpa = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-io = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-keyring = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-keystore = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-runtime = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sp-timestamp = { git = "https://github.com/canyon-network/substrate", default-features = false , branch = "initial-network" }
+sp-transaction-pool = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
 
 # client dependencies
-sc-authority-discovery = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-basic-authorship = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-chain-spec = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-client-db = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
-sc-consensus = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-consensus-babe = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-consensus-slots = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-consensus-uncles = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-executor = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-network = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-offchain = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-rpc = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-service = { git = "https://github.com/paritytech/substrate", default-features = false  , branch = "master" }
-sc-sync-state-rpc = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-telemetry = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "master" }
-grandpa = { package = "sc-finality-grandpa", git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-tracing = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-authority-discovery = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-basic-authorship = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-chain-spec = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-client-api = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-client-db = { git = "https://github.com/canyon-network/substrate", default-features = false , branch = "initial-network" }
+sc-consensus = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-consensus-slots = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-consensus-uncles = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-executor = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-network = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-offchain = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-rpc = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-service = { git = "https://github.com/canyon-network/substrate", default-features = false  , branch = "initial-network" }
+sc-sync-state-rpc = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-telemetry = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-transaction-pool = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+grandpa = { package = "sc-finality-grandpa", git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-tracing = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
 
 # frame dependencies
-pallet-authority-discovery = { git = "https://github.com/paritytech/substrate", branch = "master" }
-pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "master" }
-pallet-contracts = { git = "https://github.com/paritytech/substrate", branch = "master" }
-pallet-grandpa = { git = "https://github.com/paritytech/substrate", branch = "master" }
-pallet-im-online = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
-pallet-indices = { git = "https://github.com/paritytech/substrate", branch = "master" }
-pallet-staking = { git = "https://github.com/paritytech/substrate", branch = "master" }
-pallet-timestamp = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
-pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", branch = "master" }
-frame-support = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
-frame-system = { git = "https://github.com/paritytech/substrate", branch = "master" }
+pallet-authority-discovery = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+pallet-balances = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+pallet-contracts = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+pallet-grandpa = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+pallet-im-online = { git = "https://github.com/canyon-network/substrate", default-features = false , branch = "initial-network" }
+pallet-indices = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+pallet-staking = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+pallet-timestamp = { git = "https://github.com/canyon-network/substrate", default-features = false , branch = "initial-network" }
+pallet-transaction-payment = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+frame-support = { git = "https://github.com/canyon-network/substrate", default-features = false , branch = "initial-network" }
+frame-system = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
 
 # canyon-specific dependencies
 canyon-executor = { path = "../executor" }
@@ -88,14 +88,14 @@ pallet-permastore = { path = "../pallets/permastore" }
 pallet-poa = { path = "../pallets/poa" }
 
 # CLI-specific dependencies
-sc-cli = { git = "https://github.com/paritytech/substrate", optional = true , branch = "master" }
-frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", optional = true , branch = "master" }
-try-runtime-cli = { git = "https://github.com/paritytech/substrate", optional = true , branch = "master" }
+sc-cli = { git = "https://github.com/canyon-network/substrate", optional = true , branch = "initial-network" }
+frame-benchmarking-cli = { git = "https://github.com/canyon-network/substrate", optional = true , branch = "initial-network" }
+try-runtime-cli = { git = "https://github.com/canyon-network/substrate", optional = true , branch = "initial-network" }
 
 [target.'cfg(target_arch="x86_64")'.dependencies]
-sc-cli = { git = "https://github.com/paritytech/substrate", branch = "master", optional = true, features = ["wasmtime"] }
-sc-service = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false, features = ["wasmtime"] }
-sp-trie = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false, features = ["memory-tracker"] }
+sc-cli = { git = "https://github.com/canyon-network/substrate", branch = "initial-network", optional = true, features = ["wasmtime"] }
+sc-service = { git = "https://github.com/canyon-network/substrate", branch = "initial-network", default-features = false, features = ["wasmtime"] }
+sp-trie = { git = "https://github.com/canyon-network/substrate", branch = "initial-network", default-features = false, features = ["memory-tracker"] }
 
 canyon-executor = { path = "../executor", features = ["wasmtime"] }
 
@@ -110,21 +110,21 @@ serde_json = "1.0"
 soketto = "0.4.2"
 tempfile = "3.1.0"
 
-sc-consensus = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-consensus-babe = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-consensus-epochs = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-keystore = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-service-test = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-consensus = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-consensus-babe = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-consensus-epochs = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-keystore = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
+sc-service-test = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }
 
 [build-dependencies]
 structopt = { version = "0.3.8", optional = true }
 
-sc-cli = { git = "https://github.com/paritytech/substrate", optional = true , branch = "master" }
+sc-cli = { git = "https://github.com/canyon-network/substrate", optional = true , branch = "initial-network" }
 
-frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", optional = true , branch = "master" }
-substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", optional = true , branch = "master" }
-substrate-frame-cli = { git = "https://github.com/paritytech/substrate", optional = true , branch = "master" }
-try-runtime-cli = { git = "https://github.com/paritytech/substrate", optional = true , branch = "master" }
+frame-benchmarking-cli = { git = "https://github.com/canyon-network/substrate", optional = true , branch = "initial-network" }
+substrate-build-script-utils = { git = "https://github.com/canyon-network/substrate", optional = true , branch = "initial-network" }
+substrate-frame-cli = { git = "https://github.com/canyon-network/substrate", optional = true , branch = "initial-network" }
+try-runtime-cli = { git = "https://github.com/canyon-network/substrate", optional = true , branch = "initial-network" }
 
 canyon-inspect = { path = "../inspect", optional = true }
 
