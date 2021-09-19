@@ -34,7 +34,7 @@ use sp_runtime::traits::Block as BlockT;
 
 use canyon_executor::ExecutorDispatch;
 use canyon_primitives::Block;
-use canyon_runtime::RuntimeApi;
+use canyon_runtime::{Call, RuntimeApi};
 
 type FullClient =
     sc_service::TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<ExecutorDispatch>>;
@@ -259,15 +259,41 @@ pub struct NewFullBase {
 async fn on_new_transaction<E: codec::Codec>(
     mut receiver: futures::channel::mpsc::UnboundedReceiver<E>,
 ) {
+    use canyon_runtime::{PermastoreCall, UncheckedExtrinsic};
+    use codec::Decode;
+
     while let Some(new_transaction) = receiver.next().await {
-        println!(
-            "====================== new_transaction: {:?}",
-            new_transaction.encode()
-        );
         log::debug!(
-            "====================== new_transaction: {:?}",
+            target: "sync::data",
+            "====================== receive new_transaction: {:?}",
             new_transaction.encode()
         );
+        let encoded = new_transaction.encode();
+        let maybe_uxt: Result<UncheckedExtrinsic, codec::Error> =
+            Decode::decode(&mut encoded.as_slice());
+        match maybe_uxt {
+            Ok(uxt) => match uxt.function {
+                Call::Permastore(permastore_call) => match permastore_call {
+                    PermastoreCall::store { .. } => {
+                        log::debug!(target: "sync::data", "Should checkout the local storage and send the data sync request");
+                    }
+                    call @ _ => {
+                        log::debug!(target: "sync::data", "Ignoring permastore call: {:?}", call)
+                    }
+                },
+                Call::Balances(_) => {
+                    log::debug!(target: "sync::data", "Sending the test request-response......");
+                }
+                call @ _ => log::debug!(target: "sync::data", "Ignoring call: {:?}", call),
+            },
+            Err(e) => {
+                log::error!(
+                    target: "sync::data",
+                    "Failed to decode: {:?}, error: {:?}",
+                    encoded, e
+                );
+            }
+        }
     }
 }
 
