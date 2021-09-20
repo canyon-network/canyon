@@ -261,13 +261,10 @@ async fn on_new_transaction<E: codec::Codec>(
 ) {
     use canyon_runtime::{PermastoreCall, UncheckedExtrinsic};
     use codec::Decode;
+    use log::{debug, error};
 
     while let Some(new_transaction) = receiver.next().await {
-        log::debug!(
-            target: "sync::data",
-            "====================== receive new_transaction: {:?}",
-            new_transaction.encode()
-        );
+        debug!(target: "sync::data", "Received new_transaction: {:?}", new_transaction.encode());
         let encoded = new_transaction.encode();
         let maybe_uxt: Result<UncheckedExtrinsic, codec::Error> =
             Decode::decode(&mut encoded.as_slice());
@@ -275,23 +272,20 @@ async fn on_new_transaction<E: codec::Codec>(
             Ok(uxt) => match uxt.function {
                 Call::Permastore(permastore_call) => match permastore_call {
                     PermastoreCall::store { .. } => {
-                        log::debug!(target: "sync::data", "Should checkout the local storage and send the data sync request");
+                        debug!(target: "sync::data", "Should checkout the local storage and send the data sync request");
                     }
                     call @ _ => {
-                        log::debug!(target: "sync::data", "Ignoring permastore call: {:?}", call)
+                        debug!(target: "sync::data", "Ignoring permastore call: {:?}", call)
                     }
                 },
                 Call::Balances(_) => {
-                    log::debug!(target: "sync::data", "Sending the test request-response......");
+                    debug!(target: "sync::data", "Sending the test request-response......");
+                    // TODO: request transaction data
                 }
-                call @ _ => log::debug!(target: "sync::data", "Ignoring call: {:?}", call),
+                call @ _ => debug!(target: "sync::data", "Ignoring call: {:?}", call),
             },
             Err(e) => {
-                log::error!(
-                    target: "sync::data",
-                    "Failed to decode: {:?}, error: {:?}",
-                    encoded, e
-                );
+                error!(target: "sync::data", "Failed to decode: {:?}, error: {:?}", encoded, e);
             }
         }
     }
@@ -322,6 +316,8 @@ pub fn new_full_base(
         .network
         .extra_sets
         .push(grandpa::grandpa_peers_set_config());
+
+    // FIXME: add transaction data request-response protocol.
 
     let warp_sync = Arc::new(grandpa::warp_proof::NetworkProvider::new(
         backend.clone(),
