@@ -5,7 +5,7 @@ authors = ["Canyon Labs <https://github.com/canyon-network>"]
 edition = "2018"
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "2.1", default-features = false, features = ["derive"] }
+codec = { package = "parity-scale-codec", version = "2.3", default-features = false, features = ["derive"] }
 
 sp-api = { git = "https://github.com/canyon-network/substrate", default-features = false , branch = "initial-network" }
 sp-core = { git = "https://github.com/canyon-network/substrate", default-features = false , branch = "initial-network" }

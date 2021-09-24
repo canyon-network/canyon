@@ -5,7 +5,7 @@ authors = ["Canyon Labs <https://github.com/canyon-network>"]
 edition = "2018"
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "2.1", features = ["derive"] }
+codec = { package = "parity-scale-codec", version = "2.3", features = ["derive"] }
 futures = "0.3.16"
 log = "0.4"
 strum = { version = "0.21", features = ["derive"] }
