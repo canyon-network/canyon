@@ -84,6 +84,7 @@ canyon-runtime = { path = "../runtime" }
 
 cc-datastore = { path = "../client/datastore" }
 cc-consensus-poa = { path = "../client/consensus/poa" }
+cc-network = { path = "../client/network" }
 pallet-permastore = { path = "../pallets/permastore" }
 pallet-poa = { path = "../pallets/poa" }
 

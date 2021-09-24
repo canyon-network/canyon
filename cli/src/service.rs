@@ -22,6 +22,7 @@
 
 use std::sync::Arc;
 
+use cc_network::protocol::request_response::ChunkFetchingRequest;
 use futures::prelude::*;
 
 use sc_client_api::{Backend, ExecutorProvider, RemoteBackend};
@@ -256,38 +257,64 @@ pub struct NewFullBase {
     pub transaction_pool: Arc<sc_transaction_pool::FullPool<Block, FullClient>>,
 }
 
-async fn on_new_transaction<E: codec::Codec>(
-    mut receiver: futures::channel::mpsc::UnboundedReceiver<E>,
-) {
-    use canyon_runtime::{PermastoreCall, UncheckedExtrinsic};
-    use codec::Decode;
-    use log::{debug, error};
+use sc_network::{IfDisconnected, PeerId, RequestFailure};
 
-    while let Some(new_transaction) = receiver.next().await {
-        debug!(target: "sync::data", "Received new_transaction: {:?}", new_transaction.encode());
-        let encoded = new_transaction.encode();
-        let maybe_uxt: Result<UncheckedExtrinsic, codec::Error> =
-            Decode::decode(&mut encoded.as_slice());
-        match maybe_uxt {
-            Ok(uxt) => match uxt.function {
-                Call::Permastore(permastore_call) => match permastore_call {
-                    PermastoreCall::store { .. } => {
-                        debug!(target: "sync::data", "Should checkout the local storage and send the data sync request");
+pub struct NewTransactionHandle<E> {
+    pub network: Arc<NetworkService<Block, <Block as BlockT>::Hash>>,
+    pub receiver: futures::channel::mpsc::UnboundedReceiver<(PeerId, E)>,
+}
+
+impl<E: codec::Codec> NewTransactionHandle<E> {
+    pub async fn on_new_transaction(&mut self) {
+        use canyon_runtime::{PermastoreCall, UncheckedExtrinsic};
+        use codec::Decode;
+        use log::{debug, error};
+
+        while let Some((who, new_transaction)) = self.receiver.next().await {
+            debug!(target: "sync::data", "Received new_transaction: {:?}", new_transaction.encode());
+            let encoded = new_transaction.encode();
+            let maybe_uxt: Result<UncheckedExtrinsic, codec::Error> =
+                Decode::decode(&mut encoded.as_slice());
+            match maybe_uxt {
+                Ok(uxt) => match uxt.function {
+                    Call::Permastore(permastore_call) => match permastore_call {
+                        PermastoreCall::store { .. } => {
+                            debug!(target: "sync::data", "Should checkout the local storage and send the data sync request");
+                        }
+                        call @ _ => {
+                            debug!(target: "sync::data", "Ignoring permastore call: {:?}", call)
+                        }
+                    },
+                    Call::Balances(_) => {
+                        debug!(target: "sync::data", "Sending the test request-response......");
+                        match self.send_request(who).await {
+                            Ok(res) => debug!(target: "sync::data", "----------------- Received response: {:?}", res),
+                            Err(e) => error!(target: "sync::data", "------------------ Received error: {:?}", e),
+                        }
+                        // TODO: request transaction data
                     }
-                    call @ _ => {
-                        debug!(target: "sync::data", "Ignoring permastore call: {:?}", call)
-                    }
+                    call @ _ => debug!(target: "sync::data", "Ignoring call: {:?}", call),
                 },
-                Call::Balances(_) => {
-                    debug!(target: "sync::data", "Sending the test request-response......");
-                    // TODO: request transaction data
+                Err(e) => {
+                    error!(target: "sync::data", "Failed to decode: {:?}, error: {:?}", encoded, e);
                 }
-                call @ _ => debug!(target: "sync::data", "Ignoring call: {:?}", call),
-            },
-            Err(e) => {
-                error!(target: "sync::data", "Failed to decode: {:?}, error: {:?}", encoded, e);
             }
         }
+    }
+
+    async fn send_request(&self, target: PeerId) -> Result<Vec<u8>, RequestFailure> {
+        let chunk_fetching_protocol = cc_network::protocol::Protocol::ChunkFetching;
+
+        let request = b"mocked request".to_vec();
+
+        self.network
+            .request(
+                target,
+                chunk_fetching_protocol.get_protocol_name_static(),
+                request,
+                IfDisconnected::ImmediateError,
+            )
+            .await
     }
 }
 
@@ -299,6 +326,9 @@ pub fn new_full_base(
         &sc_consensus_babe::BabeLink<Block>,
     ),
 ) -> Result<NewFullBase, ServiceError> {
+    use cc_network::protocol::request_response::{IncomingRequest, IncomingRequestReceiver};
+    use sc_network::config::RequestResponseConfig;
+
     let sc_service::PartialComponents {
         client,
         backend,
@@ -318,6 +348,12 @@ pub fn new_full_base(
         .push(grandpa::grandpa_peers_set_config());
 
     // FIXME: add transaction data request-response protocol.
+    let (pov_req_receiver, cfg): (
+        IncomingRequestReceiver<ChunkFetchingRequest>,
+        RequestResponseConfig,
+    ) = IncomingRequest::get_config_receiver();
+
+    config.network.request_response_protocols.push(cfg);
 
     let warp_sync = Arc::new(grandpa::warp_proof::NetworkProvider::new(
         backend.clone(),
@@ -325,11 +361,6 @@ pub fn new_full_base(
     ));
 
     let (new_transaction_sender, new_transaction_receiver) = futures::channel::mpsc::unbounded();
-    task_manager
-        .spawn_essential_handle()
-        .spawn_blocking("new-transaction-handler", async move {
-            on_new_transaction(new_transaction_receiver).await;
-        });
     let (network, system_rpc_tx, network_starter) =
         sc_service::build_network(sc_service::BuildNetworkParams {
             config: &config,
@@ -342,6 +373,17 @@ pub fn new_full_base(
             warp_sync: Some(warp_sync),
             new_transaction_sender,
         })?;
+
+    let mut new_transaction_handle = NewTransactionHandle {
+        network: network.clone(),
+        receiver: new_transaction_receiver,
+    };
+
+    task_manager
+        .spawn_essential_handle()
+        .spawn_blocking("new-transaction-handler", async move {
+            new_transaction_handle.on_new_transaction().await;
+        });
 
     if config.offchain_worker.enabled {
         sc_service::build_offchain_workers(
@@ -636,12 +678,6 @@ pub fn new_light_base(
     ));
 
     let (new_transaction_sender, new_transaction_receiver) = futures::channel::mpsc::unbounded();
-    task_manager
-        .spawn_essential_handle()
-        .spawn_blocking("new-transaction-handler", async move {
-            on_new_transaction(new_transaction_receiver).await;
-        });
-
     let (network, system_rpc_tx, network_starter) =
         sc_service::build_network(sc_service::BuildNetworkParams {
             config: &config,
@@ -654,6 +690,18 @@ pub fn new_light_base(
             warp_sync: Some(warp_sync),
             new_transaction_sender,
         })?;
+
+    let mut new_transaction_handle = NewTransactionHandle {
+        network: network.clone(),
+        receiver: new_transaction_receiver,
+    };
+
+    task_manager
+        .spawn_essential_handle()
+        .spawn_blocking("new-transaction-handler", async move {
+            new_transaction_handle.on_new_transaction().await;
+        });
+
     network_starter.start_network();
 
     if config.offchain_worker.enabled {
