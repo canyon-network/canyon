@@ -12,7 +12,7 @@ repository = "https://github.com/canyon-network/canyon/"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "2.1" }
+codec = { package = "parity-scale-codec", version = "2.3" }
 trie-root = "0.16.0"
 
 sc-executor = { git = "https://github.com/paritytech/substrate", branch = "master" }

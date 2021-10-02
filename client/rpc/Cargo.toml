@@ -29,7 +29,7 @@ cp-permastore = { path = "../../primitives/permastore" }
 
 [dev-dependencies]
 assert_matches = "1.3.0"
-codec = { package = "parity-scale-codec", version = "2.1" }
+codec = { package = "parity-scale-codec", version = "2.3" }
 jsonrpc-pubsub = "18.0.0"
 
 sc-rpc = { git = "https://github.com/paritytech/substrate", features = ["test-helpers"] , branch = "master" }

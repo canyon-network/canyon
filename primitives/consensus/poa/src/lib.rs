@@ -19,6 +19,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use codec::{Decode, Encode, MaxEncodedLen};
+use scale_info::TypeInfo;
 
 use sp_inherents::InherentIdentifier;
 use sp_runtime::ConsensusEngineId;
@@ -31,7 +32,7 @@ pub const POA_INHERENT_IDENTIFIER: InherentIdentifier = *b"poaproof";
 pub const POA_ENGINE_ID: ConsensusEngineId = *b"POA:";
 
 /// This struct includes the raw bytes of recall chunk as well as the chunk proof stuffs.
-#[derive(Clone, Eq, PartialEq, Encode, Decode)]
+#[derive(Clone, Eq, PartialEq, Encode, Decode, TypeInfo)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 pub struct ChunkProof {
@@ -90,7 +91,7 @@ impl ChunkProof {
 }
 
 /// This struct is used to prove the historical random data access of block author.
-#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode, TypeInfo)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 pub struct ProofOfAccess {
@@ -103,7 +104,7 @@ pub struct ProofOfAccess {
 }
 
 /// Errors that can occur while checking the validity of [`ProofOfAccess`].
-#[derive(Clone, PartialEq, Eq, Encode, Decode)]
+#[derive(Clone, PartialEq, Eq, Encode, Decode, TypeInfo)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "std", derive(Debug))]
 pub enum PoaValidityError {
@@ -186,7 +187,7 @@ impl ProofOfAccess {
 }
 
 /// This struct represents the outcome of creating the inherent data of [`ProofOfAccess`].
-#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode, TypeInfo)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 pub enum PoaOutcome {
@@ -216,7 +217,7 @@ const MAX_TX_PATH: u32 = 256 * 1024;
 const MAX_CHUNK_PATH: u32 = 256 * 1024;
 
 /// Configuration of the PoA consensus engine.
-#[derive(Clone, Eq, PartialEq, Encode, Decode, MaxEncodedLen)]
+#[derive(Clone, Eq, PartialEq, Encode, Decode, MaxEncodedLen, TypeInfo)]
 pub struct PoaConfiguration {
     /// The maximum depth of attempting to generate a valid [`ProofOfAccess`].
     pub max_depth: u32,

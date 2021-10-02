@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 async-trait = "0.1.47"
-codec = { package = "parity-scale-codec", version = "2.1" }
+codec = { package = "parity-scale-codec", version = "2.3" }
 log = "0.4"
 thiserror = "1.0"
 
