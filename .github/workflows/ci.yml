@@ -13,7 +13,7 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-          components: rustfmt, rust-src
+          components: rust-src, rustfmt
       - uses: Swatinem/rust-cache@v1
       - uses: actions-rs/cargo@v1
         with:
@@ -30,11 +30,11 @@ jobs:
           profile: minimal
           target: wasm32-unknown-unknown
           toolchain: nightly
-          override: true
+          override: false
           components: rust-src, clippy
       - uses: Swatinem/rust-cache@v1
       # args: -- -D warnings
-      - run: cargo +stable clippy
+      - run: cargo clippy
 
   check:
     name: Check
