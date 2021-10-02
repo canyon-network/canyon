@@ -65,7 +65,7 @@ jobs:
           target: wasm32-unknown-unknown
           toolchain: nightly-2021-09-30
           override: true
-      - run: cargo test --workspace
+      - run: cargo +stable test --workspace
 
   benchmarks:
     name: Runtime Benchmarks
@@ -78,7 +78,7 @@ jobs:
           target: wasm32-unknown-unknown
           toolchain: nightly-2021-09-30
           override: true
-      - run: cargo build --features runtime-benchmarks
+      - run: cargo +stable build --features runtime-benchmarks
 
   all-ci:
     # This dummy job depends on all the mandatory checks.
