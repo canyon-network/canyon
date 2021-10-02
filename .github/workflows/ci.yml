@@ -33,10 +33,8 @@ jobs:
           override: true
           components: rust-src, clippy
       - uses: Swatinem/rust-cache@v1
-      - uses: actions-rs/cargo@v1
-        with:
-          command: +stable clippy
-          # args: -- -D warnings
+      # args: -- -D warnings
+      - run: cargo +stable clippy
 
   check:
     name: Check
@@ -50,9 +48,7 @@ jobs:
           toolchain: nightly
           override: true
       - uses: Swatinem/rust-cache@v1
-      - uses: actions-rs/cargo@v1
-        with:
-          command: +stable check
+      - run: cargo +stable check
 
   test:
     name: Test Suite
