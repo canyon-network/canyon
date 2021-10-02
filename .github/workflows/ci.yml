@@ -35,7 +35,7 @@ jobs:
       - uses: Swatinem/rust-cache@v1
       - uses: actions-rs/cargo@v1
         with:
-          command: clippy
+          command: +stable clippy
           # args: -- -D warnings
 
   check:
@@ -52,7 +52,7 @@ jobs:
       - uses: Swatinem/rust-cache@v1
       - uses: actions-rs/cargo@v1
         with:
-          command: check
+          command: +stable check
 
   test:
     name: Test Suite
