@@ -261,6 +261,7 @@
 <span id="261">261</span>
 <span id="262">262</span>
 <span id="263">263</span>
+<span id="264">264</span>
 </pre><pre class="rust"><code><span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
 <span class="comment">//</span>
@@ -282,6 +283,7 @@
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 
 <span class="kw">use</span> <span class="ident">codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>, <span class="ident">MaxEncodedLen</span>};
+<span class="kw">use</span> <span class="ident">scale_info::TypeInfo</span>;
 
 <span class="kw">use</span> <span class="ident">sp_inherents::InherentIdentifier</span>;
 <span class="kw">use</span> <span class="ident">sp_runtime::ConsensusEngineId</span>;
@@ -294,7 +296,7 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">POA_ENGINE_ID</span>: <span class="ident">ConsensusEngineId</span> <span class="op">=</span> <span class="kw-2">*</span><span class="string">b&quot;POA:&quot;</span>;
 
 <span class="doccomment">/// This struct includes the raw bytes of recall chunk as well as the chunk proof stuffs.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">TypeInfo</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;camelCase&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ChunkProof</span> {
@@ -353,7 +355,7 @@
 }
 
 <span class="doccomment">/// This struct is used to prove the historical random data access of block author.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">TypeInfo</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;camelCase&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProofOfAccess</span> {
@@ -366,7 +368,7 @@
 }
 
 <span class="doccomment">/// Errors that can occur while checking the validity of [`ProofOfAccess`].</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">TypeInfo</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">derive</span>(<span class="ident">Debug</span>))]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PoaValidityError</span> {
@@ -449,7 +451,7 @@
 }
 
 <span class="doccomment">/// This struct represents the outcome of creating the inherent data of [`ProofOfAccess`].</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">TypeInfo</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;camelCase&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PoaOutcome</span> {
@@ -479,7 +481,7 @@
 <span class="kw">const</span> <span class="ident">MAX_CHUNK_PATH</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">256</span> <span class="op">*</span> <span class="number">1024</span>;
 
 <span class="doccomment">/// Configuration of the PoA consensus engine.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">MaxEncodedLen</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">MaxEncodedLen</span>, <span class="ident">TypeInfo</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PoaConfiguration</span> {
     <span class="doccomment">/// The maximum depth of attempting to generate a valid [`ProofOfAccess`].</span>
     <span class="kw">pub</span> <span class="ident">max_depth</span>: <span class="ident">u32</span>,

@@ -1483,6 +1483,77 @@
 <span id="1483">1483</span>
 <span id="1484">1484</span>
 <span id="1485">1485</span>
+<span id="1486">1486</span>
+<span id="1487">1487</span>
+<span id="1488">1488</span>
+<span id="1489">1489</span>
+<span id="1490">1490</span>
+<span id="1491">1491</span>
+<span id="1492">1492</span>
+<span id="1493">1493</span>
+<span id="1494">1494</span>
+<span id="1495">1495</span>
+<span id="1496">1496</span>
+<span id="1497">1497</span>
+<span id="1498">1498</span>
+<span id="1499">1499</span>
+<span id="1500">1500</span>
+<span id="1501">1501</span>
+<span id="1502">1502</span>
+<span id="1503">1503</span>
+<span id="1504">1504</span>
+<span id="1505">1505</span>
+<span id="1506">1506</span>
+<span id="1507">1507</span>
+<span id="1508">1508</span>
+<span id="1509">1509</span>
+<span id="1510">1510</span>
+<span id="1511">1511</span>
+<span id="1512">1512</span>
+<span id="1513">1513</span>
+<span id="1514">1514</span>
+<span id="1515">1515</span>
+<span id="1516">1516</span>
+<span id="1517">1517</span>
+<span id="1518">1518</span>
+<span id="1519">1519</span>
+<span id="1520">1520</span>
+<span id="1521">1521</span>
+<span id="1522">1522</span>
+<span id="1523">1523</span>
+<span id="1524">1524</span>
+<span id="1525">1525</span>
+<span id="1526">1526</span>
+<span id="1527">1527</span>
+<span id="1528">1528</span>
+<span id="1529">1529</span>
+<span id="1530">1530</span>
+<span id="1531">1531</span>
+<span id="1532">1532</span>
+<span id="1533">1533</span>
+<span id="1534">1534</span>
+<span id="1535">1535</span>
+<span id="1536">1536</span>
+<span id="1537">1537</span>
+<span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
+<span id="1543">1543</span>
+<span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
 </pre><pre class="rust"><code><span class="comment">// SPDX-License-Identifier: GPL-3.0-or-later</span>
 <span class="comment">// This file is part of Canyon.</span>
 <span class="comment">//</span>
@@ -1509,6 +1580,7 @@
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::identity_op</span>)]</span>
 
 <span class="kw">use</span> <span class="ident">codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>, <span class="ident">MaxEncodedLen</span>};
+<span class="kw">use</span> <span class="ident">scale_info::TypeInfo</span>;
 <span class="kw">use</span> <span class="ident">static_assertions::const_assert</span>;
 
 <span class="kw">use</span> <span class="ident">sp_api::impl_runtime_apis</span>;
@@ -1578,6 +1650,9 @@
 <span class="doccomment">/// Constant values used within the runtime.</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">constants</span>;
 <span class="kw">use</span> <span class="ident">constants</span>::{<span class="ident">currency</span>::<span class="kw-2">*</span>, <span class="ident">time</span>::<span class="kw-2">*</span>};
+
+<span class="doccomment">/// Generated voter bag information.</span>
+<span class="kw">mod</span> <span class="ident">voter_bags</span>;
 
 <span class="comment">// Make the WASM binary available.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
@@ -1722,7 +1797,17 @@
 
 <span class="doccomment">/// The type used to represent the kinds of proxying allowed.</span>
 <span class="attribute">#[<span class="ident">derive</span>(
-    <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">MaxEncodedLen</span>,
+    <span class="ident">Copy</span>,
+    <span class="ident">Clone</span>,
+    <span class="ident">Eq</span>,
+    <span class="ident">PartialEq</span>,
+    <span class="ident">Ord</span>,
+    <span class="ident">PartialOrd</span>,
+    <span class="ident">Encode</span>,
+    <span class="ident">Decode</span>,
+    <span class="ident">RuntimeDebug</span>,
+    <span class="ident">MaxEncodedLen</span>,
+    <span class="ident">TypeInfo</span>,
 )]</span>
 <span class="attribute">#[<span class="ident">max_encoded_len_mod</span>(<span class="ident">frame_support::max_encoded_len</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ProxyType</span> {
@@ -1743,8 +1828,8 @@
             <span class="ident">ProxyType::NonTransfer</span> <span class="op">=</span><span class="op">&gt;</span> <span class="op">!</span><span class="macro">matches!</span>(
                 <span class="ident">c</span>,
                 <span class="ident">Call::Balances</span>(..)
-                    <span class="op">|</span> <span class="ident">Call::Vesting</span>(<span class="ident">pallet_vesting::Call::vested_transfer</span>(..))
-                    <span class="op">|</span> <span class="ident">Call::Indices</span>(<span class="ident">pallet_indices::Call::transfer</span>(..))
+                    <span class="op">|</span> <span class="ident">Call::Vesting</span>(<span class="ident">pallet_vesting::Call::vested_transfer</span> { .. })
+                    <span class="op">|</span> <span class="ident">Call::Indices</span>(<span class="ident">pallet_indices::Call::transfer</span> { .. })
             ),
             <span class="ident">ProxyType::Governance</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">matches!</span>(
                 <span class="ident">c</span>,
@@ -1830,6 +1915,7 @@
         <span class="ident">pallet_babe::EquivocationHandler</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::KeyOwnerIdentification</span>, <span class="ident">Offences</span>, <span class="ident">ReportLongevity</span><span class="op">&gt;</span>;
 
     <span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> ();
+    <span class="kw">type</span> <span class="ident">MaxAuthorities</span> <span class="op">=</span> <span class="ident">MaxAuthorities</span>;
 }
 
 <span class="macro">parameter_types!</span> {
@@ -1954,6 +2040,11 @@
 }
 
 <span class="kw">use</span> <span class="ident">frame_election_provider_support::onchain</span>;
+<span class="kw">impl</span> <span class="ident">onchain::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+    <span class="kw">type</span> <span class="ident">Accuracy</span> <span class="op">=</span> <span class="ident">Perbill</span>;
+    <span class="kw">type</span> <span class="ident">DataProvider</span> <span class="op">=</span> <span class="ident">Staking</span>;
+}
+
 <span class="kw">impl</span> <span class="ident">pallet_staking::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
     <span class="kw">const</span> <span class="ident">MAX_NOMINATIONS</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">MAX_NOMINATIONS</span>;
     <span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
@@ -1977,9 +2068,10 @@
     <span class="kw">type</span> <span class="ident">NextNewSession</span> <span class="op">=</span> <span class="ident">Session</span>;
     <span class="kw">type</span> <span class="ident">MaxNominatorRewardedPerValidator</span> <span class="op">=</span> <span class="ident">MaxNominatorRewardedPerValidator</span>;
     <span class="kw">type</span> <span class="ident">ElectionProvider</span> <span class="op">=</span> <span class="ident">ElectionProviderMultiPhase</span>;
-    <span class="kw">type</span> <span class="ident">GenesisElectionProvider</span> <span class="op">=</span> <span class="ident">onchain::OnChainSequentialPhragmen</span><span class="op">&lt;</span>
-        <span class="ident">pallet_election_provider_multi_phase::OnChainConfig</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
-    <span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">GenesisElectionProvider</span> <span class="op">=</span> <span class="ident">onchain::OnChainSequentialPhragmen</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="comment">// Alternatively, use pallet_staking::UseNominatorsMap&lt;Runtime&gt; to just use the nominators map.</span>
+    <span class="comment">// Note that the aforementioned does not scale to a very large number of nominators.</span>
+    <span class="kw">type</span> <span class="ident">SortedListProvider</span> <span class="op">=</span> <span class="ident">BagsList</span>;
     <span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_staking::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
@@ -1994,15 +2086,10 @@
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SignedDepositBase</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">DOLLARS</span>;
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SignedDepositByte</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">CENTS</span>;
 
-    <span class="comment">// fallback: no need to do on-chain phragmen initially.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">Fallback</span>: <span class="ident">pallet_election_provider_multi_phase::FallbackStrategy</span> <span class="op">=</span>
-        <span class="ident">pallet_election_provider_multi_phase::FallbackStrategy::OnChain</span>;
-
     <span class="kw">pub</span> <span class="ident">SolutionImprovementThreshold</span>: <span class="ident">Perbill</span> <span class="op">=</span> <span class="ident">Perbill::from_rational</span>(<span class="number">1u32</span>, <span class="number">10_000</span>);
 
     <span class="comment">// miner configs</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MultiPhaseUnsignedPriority</span>: <span class="ident">TransactionPriority</span> <span class="op">=</span> <span class="ident">StakingUnsignedPriority::get</span>() <span class="op">-</span> <span class="number">1u64</span>;
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinerMaxIterations</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">10</span>;
     <span class="kw">pub</span> <span class="ident">MinerMaxWeight</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">RuntimeBlockWeights::get</span>()
         .<span class="ident">get</span>(<span class="ident">DispatchClass::Normal</span>)
         .<span class="ident">max_extrinsic</span>.<span class="ident">expect</span>(<span class="string">&quot;Normal extrinsics have a weight limit configured; qed&quot;</span>)
@@ -2013,9 +2100,12 @@
         <span class="kw-2">*</span><span class="ident">RuntimeBlockLength::get</span>()
         .<span class="ident">max</span>
         .<span class="ident">get</span>(<span class="ident">DispatchClass::Normal</span>);
-}
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAX_NOMINATIONS</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">NposSolution16</span> <span class="kw">as</span> <span class="ident">sp_npos_elections::NposSolution</span><span class="op">&gt;</span><span class="ident">::LIMIT</span> <span class="kw">as</span> <span class="ident">u32</span>;
+    <span class="comment">// BagsList allows a practically unbounded count of nominators to participate in NPoS elections.</span>
+    <span class="comment">// To ensure we respect memory limits when using the BagsList this must be set to a number of</span>
+    <span class="comment">// voters we know can fit into a single vec allocation.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">VoterSnapshotPerBlock</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">10_000</span>;
+}
 
 <span class="macro">sp_npos_elections::generate_solution_type!</span>(
     <span class="attribute">#[<span class="ident">compact</span>]</span>
@@ -2026,6 +2116,34 @@
     <span class="op">&gt;</span>(<span class="number">16</span>)
 );
 
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAX_NOMINATIONS</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">NposSolution16</span> <span class="kw">as</span> <span class="ident">sp_npos_elections::NposSolution</span><span class="op">&gt;</span><span class="ident">::LIMIT</span> <span class="kw">as</span> <span class="ident">u32</span>;
+
+<span class="doccomment">/// Maximum number of iterations for balancing that will be executed in the embedded OCW</span>
+<span class="doccomment">/// miner of election provider multi phase.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINER_MAX_ITERATIONS</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">10</span>;
+
+<span class="doccomment">/// A source of random balance for NposSolver, which is meant to be run by the OCW election miner.</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OffchainRandomBalancing</span>;
+<span class="kw">impl</span> <span class="ident">frame_support::pallet_prelude::Get</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">sp_npos_elections::ExtendedBalance</span>)<span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">for</span> <span class="ident">OffchainRandomBalancing</span>
+{
+    <span class="kw">fn</span> <span class="ident">get</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">sp_npos_elections::ExtendedBalance</span>)<span class="op">&gt;</span> {
+        <span class="kw">use</span> <span class="ident">sp_runtime::traits::TrailingZeroInput</span>;
+        <span class="kw">let</span> <span class="ident">iters</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">MINER_MAX_ITERATIONS</span> {
+            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">max</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">seed</span> <span class="op">=</span> <span class="ident">sp_io::offchain::random_seed</span>();
+                <span class="kw">let</span> <span class="ident">random</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="ident">::decode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TrailingZeroInput::new</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>))
+                    .<span class="ident">expect</span>(<span class="string">&quot;input is padded with zeroes; qed&quot;</span>)
+                    <span class="op">%</span> <span class="ident">max</span>.<span class="ident">saturating_add</span>(<span class="number">1</span>);
+                <span class="ident">random</span> <span class="kw">as</span> <span class="ident">usize</span>
+            }
+        };
+
+        <span class="prelude-val">Some</span>((<span class="ident">iters</span>, <span class="number">0</span>))
+    }
+}
+
 <span class="kw">impl</span> <span class="ident">pallet_election_provider_multi_phase::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
     <span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
     <span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
@@ -2034,7 +2152,6 @@
     <span class="kw">type</span> <span class="ident">UnsignedPhase</span> <span class="op">=</span> <span class="ident">UnsignedPhase</span>;
     <span class="kw">type</span> <span class="ident">SolutionImprovementThreshold</span> <span class="op">=</span> <span class="ident">SolutionImprovementThreshold</span>;
     <span class="kw">type</span> <span class="ident">OffchainRepeat</span> <span class="op">=</span> <span class="ident">OffchainRepeat</span>;
-    <span class="kw">type</span> <span class="ident">MinerMaxIterations</span> <span class="op">=</span> <span class="ident">MinerMaxIterations</span>;
     <span class="kw">type</span> <span class="ident">MinerMaxWeight</span> <span class="op">=</span> <span class="ident">MinerMaxWeight</span>;
     <span class="kw">type</span> <span class="ident">MinerMaxLength</span> <span class="op">=</span> <span class="ident">MinerMaxLength</span>;
     <span class="kw">type</span> <span class="ident">MinerTxPriority</span> <span class="op">=</span> <span class="ident">MultiPhaseUnsignedPriority</span>;
@@ -2047,12 +2164,28 @@
     <span class="kw">type</span> <span class="ident">SlashHandler</span> <span class="op">=</span> (); <span class="comment">// burn slashes</span>
     <span class="kw">type</span> <span class="ident">RewardHandler</span> <span class="op">=</span> (); <span class="comment">// nothing to do upon rewards</span>
     <span class="kw">type</span> <span class="ident">DataProvider</span> <span class="op">=</span> <span class="ident">Staking</span>;
-    <span class="kw">type</span> <span class="ident">OnChainAccuracy</span> <span class="op">=</span> <span class="ident">Perbill</span>;
     <span class="kw">type</span> <span class="ident">Solution</span> <span class="op">=</span> <span class="ident">NposSolution16</span>;
-    <span class="kw">type</span> <span class="ident">Fallback</span> <span class="op">=</span> <span class="ident">Fallback</span>;
+    <span class="kw">type</span> <span class="ident">Fallback</span> <span class="op">=</span> <span class="ident">pallet_election_provider_multi_phase::NoFallback</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Solver</span> <span class="op">=</span> <span class="ident">frame_election_provider_support::SequentialPhragmen</span><span class="op">&lt;</span>
+        <span class="ident">AccountId</span>,
+        <span class="ident">pallet_election_provider_multi_phase::SolutionAccuracyOf</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
+        <span class="ident">OffchainRandomBalancing</span>,
+    <span class="op">&gt;</span>;
     <span class="kw">type</span> <span class="ident">ForceOrigin</span> <span class="op">=</span> <span class="ident">EnsureRootOrHalfCouncil</span>;
     <span class="kw">type</span> <span class="ident">BenchmarkingConfig</span> <span class="op">=</span> ();
     <span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_election_provider_multi_phase::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">VoterSnapshotPerBlock</span> <span class="op">=</span> <span class="ident">VoterSnapshotPerBlock</span>;
+}
+
+<span class="macro">parameter_types!</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BagThresholds</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u64</span>] <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">voter_bags::THRESHOLDS</span>;
+}
+
+<span class="kw">impl</span> <span class="ident">pallet_bags_list::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+    <span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
+    <span class="kw">type</span> <span class="ident">VoteWeightProvider</span> <span class="op">=</span> <span class="ident">Staking</span>;
+    <span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_bags_list::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">BagThresholds</span> <span class="op">=</span> <span class="ident">BagThresholds</span>;
 }
 
 <span class="macro">parameter_types!</span> {
@@ -2302,6 +2435,9 @@
     <span class="doccomment">/// We prioritize im-online heartbeats over election solution submission.</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">StakingUnsignedPriority</span>: <span class="ident">TransactionPriority</span> <span class="op">=</span> <span class="ident">TransactionPriority::max_value</span>() <span class="op">/</span> <span class="number">2</span>;
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxAuthorities</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxKeys</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">10_000</span>;
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxPeerInHeartbeats</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">10_000</span>;
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxPeerDataEncodingSize</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1_000</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">LocalCall</span><span class="op">&gt;</span> <span class="ident">frame_system::offchain::CreateSignedTransaction</span><span class="op">&lt;</span><span class="ident">LocalCall</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span>
@@ -2371,6 +2507,9 @@
     <span class="kw">type</span> <span class="ident">ReportUnresponsiveness</span> <span class="op">=</span> <span class="ident">Offences</span>;
     <span class="kw">type</span> <span class="ident">UnsignedPriority</span> <span class="op">=</span> <span class="ident">ImOnlineUnsignedPriority</span>;
     <span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_im_online::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">MaxKeys</span> <span class="op">=</span> <span class="ident">MaxKeys</span>;
+    <span class="kw">type</span> <span class="ident">MaxPeerInHeartbeats</span> <span class="op">=</span> <span class="ident">MaxPeerInHeartbeats</span>;
+    <span class="kw">type</span> <span class="ident">MaxPeerDataEncodingSize</span> <span class="op">=</span> <span class="ident">MaxPeerDataEncodingSize</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_offences::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -2404,6 +2543,7 @@
     <span class="op">&gt;</span>;
 
     <span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> ();
+    <span class="kw">type</span> <span class="ident">MaxAuthorities</span> <span class="op">=</span> <span class="ident">MaxAuthorities</span>;
 }
 
 <span class="macro">parameter_types!</span> {
@@ -2587,6 +2727,8 @@
         <span class="ident">Poa</span>: <span class="ident">pallet_poa</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Inherent</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">34</span>,
 
         <span class="ident">Sudo</span>: <span class="ident">pallet_sudo</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">35</span>,
+
+        <span class="ident">BagsList</span>: <span class="ident">pallet_bags_list</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">36</span>,
     }
 );
 
@@ -2647,7 +2789,7 @@
 
     <span class="kw">impl</span> <span class="ident">sp_api::Metadata</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
         <span class="kw">fn</span> <span class="ident">metadata</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OpaqueMetadata</span> {
-            <span class="ident">Runtime::metadata</span>().<span class="ident">into</span>()
+            <span class="ident">OpaqueMetadata::new</span>(<span class="ident">Runtime::metadata</span>().<span class="ident">into</span>())
         }
     }
 
@@ -2732,7 +2874,7 @@
                 <span class="ident">slot_duration</span>: <span class="ident">Babe::slot_duration</span>(),
                 <span class="ident">epoch_length</span>: <span class="ident">EpochDuration::get</span>(),
                 <span class="ident">c</span>: <span class="ident">BABE_GENESIS_EPOCH_CONFIG</span>.<span class="ident">c</span>,
-                <span class="ident">genesis_authorities</span>: <span class="ident">Babe::authorities</span>(),
+                <span class="ident">genesis_authorities</span>: <span class="ident">Babe::authorities</span>().<span class="ident">to_vec</span>(),
                 <span class="ident">randomness</span>: <span class="ident">Babe::randomness</span>(),
                 <span class="ident">allowed_slots</span>: <span class="ident">BABE_GENESIS_EPOCH_CONFIG</span>.<span class="ident">allowed_slots</span>,
             }
