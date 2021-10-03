@@ -44,6 +44,7 @@
 #![deny(rustdoc::broken_intra_doc_links)]
 
 use codec::{Decode, Encode};
+use scale_info::TypeInfo;
 
 use sp_runtime::{
     traits::{AccountIdConversion, DispatchInfoOf, SaturatedConversion, SignedExtension},
@@ -192,12 +193,6 @@ pub mod pallet {
 
     /// Event for the Permastore pallet.
     #[pallet::event]
-    #[pallet::metadata(
-        T::AccountId = "AccountId",
-        T::BlockNumber = "BlockNumber",
-        T::Hash = "Hash",
-        ExtrinsicIndex = "u32"
-    )]
     #[pallet::generate_deposit(pub(super) fn deposit_event)]
     pub enum Event<T: Config> {
         /// New storage order. [who, chunk_root]
@@ -346,7 +341,8 @@ impl<T: Config> Pallet<T> {
 /// A signed extension that checks for the `store` call.
 ///
 /// It ensures the transaction data has been stored locally.
-#[derive(Encode, Decode, Clone, Eq, PartialEq)]
+#[derive(Encode, Decode, Clone, Eq, PartialEq, TypeInfo)]
+#[scale_info(skip_type_params(T))]
 pub struct CheckStore<T: Config + Send + Sync>(PhantomData<T>);
 
 impl<T: Config + Send + Sync> sp_std::fmt::Debug for CheckStore<T> {
@@ -377,7 +373,12 @@ where
         _info: &DispatchInfoOf<Self::Call>,
         _len: usize,
     ) -> TransactionValidity {
-        if let Some(Call::store(data_size, chunk_root, ..)) = call.is_sub_type() {
+        if let Some(Call::store {
+            data_size,
+            chunk_root,
+            ..
+        }) = call.is_sub_type()
+        {
             // TODO:
             //
             // 1. Check the balance is enough to pay the storage fee according to the data size.

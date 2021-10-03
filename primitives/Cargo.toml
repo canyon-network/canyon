@@ -8,7 +8,8 @@ edition = "2018"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "2.1", default-features = false, features = ["derive"] }
+codec = { package = "parity-scale-codec", version = "2.3", default-features = false, features = ["derive"] }
+scale-info = { version = "1.0", default-features = false, features = ["derive"] }
 
 sp-application-crypto = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
@@ -21,6 +22,7 @@ frame-system = { git = "https://github.com/paritytech/substrate", default-featur
 default = ["std"]
 std = [
 	"codec/std",
+	"scale-info/std",
 	"sp-application-crypto/std",
 	"sp-core/std",
 	"sp-inherents/std",
