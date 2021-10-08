@@ -288,8 +288,12 @@ impl<E: codec::Codec> NewTransactionHandle<E> {
                     Call::Balances(_) => {
                         debug!(target: "sync::data", "Sending the test request-response......");
                         match self.send_request(who).await {
-                            Ok(res) => debug!(target: "sync::data", "----------------- Received response: {:?}", res),
-                            Err(e) => error!(target: "sync::data", "------------------ Received error: {:?}", e),
+                            Ok(res) => {
+                                debug!(target: "sync::data", "----------------- Received response: {:?}", res)
+                            }
+                            Err(e) => {
+                                error!(target: "sync::data", "------------------ Received error: {:?}", e)
+                            }
                         }
                         // TODO: request transaction data
                     }
@@ -303,15 +307,20 @@ impl<E: codec::Codec> NewTransactionHandle<E> {
     }
 
     async fn send_request(&self, target: PeerId) -> Result<Vec<u8>, RequestFailure> {
+        use codec::Encode;
+
         let chunk_fetching_protocol = cc_network::protocol::Protocol::ChunkFetching;
 
-        let request = b"mocked request".to_vec();
+        let request = ChunkFetchingRequest {
+            chunks_root: sp_core::H256::default(),
+            index: 0,
+        };
 
         self.network
             .request(
                 target,
                 chunk_fetching_protocol.get_protocol_name_static(),
-                request,
+                request.encode(),
                 IfDisconnected::ImmediateError,
             )
             .await

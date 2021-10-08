@@ -20,9 +20,9 @@ sp-trie = { git = "https://github.com/canyon-network/substrate", default-feature
 [features]
 default = ["std"]
 std = [
-	"serde",
-	"scale-info/std",
 	"codec/std",
+	"scale-info/std",
+	"serde",
 	"sp-api/std",
 	"sp-core/std",
 	"sp-inherents/std",

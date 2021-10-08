@@ -22,7 +22,7 @@ frame-system = { git = "https://github.com/canyon-network/substrate", default-fe
 default = ["std"]
 std = [
 	"codec/std",
-    "scale-info/std",
+	"scale-info/std",
 	"sp-application-crypto/std",
 	"sp-core/std",
 	"sp-inherents/std",

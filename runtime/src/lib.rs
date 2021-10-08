@@ -361,6 +361,7 @@ impl pallet_babe::Config for Runtime {
         pallet_babe::EquivocationHandler<Self::KeyOwnerIdentification, Offences, ReportLongevity>;
 
     type WeightInfo = ();
+    type MaxAuthorities = MaxAuthorities;
 }
 
 parameter_types! {
@@ -576,7 +577,7 @@ impl frame_support::pallet_prelude::Get<Option<(usize, sp_npos_elections::Extend
         use sp_runtime::traits::TrailingZeroInput;
         let iters = match MINER_MAX_ITERATIONS {
             0 => 0,
-            max @ _ => {
+            max => {
                 let seed = sp_io::offchain::random_seed();
                 let random = <u32>::decode(&mut TrailingZeroInput::new(&seed))
                     .expect("input is padded with zeroes; qed")
@@ -880,6 +881,9 @@ parameter_types! {
     /// We prioritize im-online heartbeats over election solution submission.
     pub const StakingUnsignedPriority: TransactionPriority = TransactionPriority::max_value() / 2;
     pub const MaxAuthorities: u32 = 100;
+    pub const MaxKeys: u32 = 10_000;
+    pub const MaxPeerInHeartbeats: u32 = 10_000;
+    pub const MaxPeerDataEncodingSize: u32 = 1_000;
 }
 
 impl<LocalCall> frame_system::offchain::CreateSignedTransaction<LocalCall> for Runtime
@@ -949,6 +953,9 @@ impl pallet_im_online::Config for Runtime {
     type ReportUnresponsiveness = Offences;
     type UnsignedPriority = ImOnlineUnsignedPriority;
     type WeightInfo = pallet_im_online::weights::SubstrateWeight<Runtime>;
+    type MaxKeys = MaxKeys;
+    type MaxPeerInHeartbeats = MaxPeerInHeartbeats;
+    type MaxPeerDataEncodingSize = MaxPeerDataEncodingSize;
 }
 
 impl pallet_offences::Config for Runtime {
@@ -982,6 +989,7 @@ impl pallet_grandpa::Config for Runtime {
     >;
 
     type WeightInfo = ();
+    type MaxAuthorities = MaxAuthorities;
 }
 
 parameter_types! {
@@ -1312,7 +1320,7 @@ impl_runtime_apis! {
                 slot_duration: Babe::slot_duration(),
                 epoch_length: EpochDuration::get(),
                 c: BABE_GENESIS_EPOCH_CONFIG.c,
-                genesis_authorities: Babe::authorities(),
+                genesis_authorities: Babe::authorities().to_vec(),
                 randomness: Babe::randomness(),
                 allowed_slots: BABE_GENESIS_EPOCH_CONFIG.allowed_slots,
             }
