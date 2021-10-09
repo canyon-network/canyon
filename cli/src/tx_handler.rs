@@ -25,6 +25,15 @@ impl<E: Codec> NewTransactionHandle<E> {
                     Call::Permastore(permastore_call) => match permastore_call {
                         PermastoreCall::store { .. } => {
                             debug!(target: "sync::data", "Should checkout the local storage and send the data sync request");
+                            debug!(target: "sync::data", "Sending the data sync request");
+                            match self.send_request(who).await {
+                                Ok(res) => {
+                                    debug!(target: "sync::data", "----------------- Received response: {:?}", res)
+                                }
+                                Err(e) => {
+                                    error!(target: "sync::data", "------------------ Received error: {:?}", e)
+                                }
+                            }
                         }
                         call @ _ => {
                             debug!(target: "sync::data", "Ignoring permastore call: {:?}", call)

@@ -42,6 +42,78 @@ sc-cli = { git = "https://github.com/canyon-network/substrate", branch = "initia
 
 canyon-cli = { path = "cli" }
 
+[patch."https://github.com/canyon-network/substrate"]
+sc-block-builder = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/block-builder" }
+sc-cli = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/cli" }
+sc-chain-spec = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/chain-spec" }
+sc-client-api = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/api" }
+sc-client-db = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/db" }
+sc-consensus = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/consensus/common" }
+sc-consensus-babe = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/consensus/babe" }
+sc-consensus-babe-rpc = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/consensus/babe/rpc" }
+sc-consensus-epochs = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/consensus/epochs" }
+sc-consensus-slots = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/consensus/slots" }
+sc-executor = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/executor" }
+sc-finality-grandpa = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/finality-grandpa" }
+sc-finality-grandpa-rpc = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/finality-grandpa/rpc" }
+sc-keystore = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/keystore" }
+sc-network = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/network" }
+sc-offchain = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/offchain" }
+sc-rpc = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/rpc" }
+sc-rpc-api = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/rpc-api" }
+sc-service = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/service" }
+sc-sync-state-rpc = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/sync-state-rpc" }
+sc-telemetry = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/telemetry" }
+sc-transaction-pool = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/transaction-pool" }
+sc-transaction-pool-api = { path = "/home/xlc/src/github.com/canyon-network/substrate/client/transaction-pool/api" }
+
+sp-api = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/api" }
+sp-application-crypto = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/application-crypto" }
+sp-arithmetic = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/arithmetic" }
+sp-authorship = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/authorship" }
+sp-block-builder = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/block-builder" }
+sp-blockchain = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/blockchain" }
+sp-consensus = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/consensus/common" }
+sp-consensus-babe = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/consensus/babe" }
+sp-core = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/core" }
+sp-externalities = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/externalities" }
+sp-finality-grandpa = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/finality-grandpa" }
+sp-io = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/io" }
+sp-inherents = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/inherents" }
+sp-keystore = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/keystore" }
+sp-npos-elections = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/npos-elections" }
+sp-offchain = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/offchain" }
+sp-runtime = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/runtime" }
+sp-session = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/session" }
+sp-state-machine = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/state-machine" }
+sp-staking = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/staking" }
+sp-std = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/std" }
+sp-trie = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/trie" }
+sp-timestamp = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/timestamp" }
+sp-transaction-pool = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/transaction-pool" }
+sp-version = { path = "/home/xlc/src/github.com/canyon-network/substrate/primitives/version" }
+
+frame-benchmarking = { path = "/home/xlc/src/github.com/canyon-network/substrate/frame/benchmarking" }
+frame-support = { path = "/home/xlc/src/github.com/canyon-network/substrate/frame/support" }
+frame-system = { path = "/home/xlc/src/github.com/canyon-network/substrate/frame/system" }
+frame-system-rpc-runtime-api = { path = "/home/xlc/src/github.com/canyon-network/substrate/frame/system/rpc/runtime-api" }
+pallet-authorship = { path = "/home/xlc/src/github.com/canyon-network/substrate/frame/authorship" }
+pallet-balances = { path = "/home/xlc/src/github.com/canyon-network/substrate/frame/balances" }
+pallet-babe = { path = "/home/xlc/src/github.com/canyon-network/substrate/frame/babe" }
+pallet-contracts = { path = "/home/xlc/src/github.com/canyon-network/substrate/frame/contracts" }
+pallet-grandpa = { path = "/home/xlc/src/github.com/canyon-network/substrate/frame/grandpa" }
+pallet-im-online = { path = "/home/xlc/src/github.com/canyon-network/substrate/frame/im-online" }
+pallet-indices = { path = "/home/xlc/src/github.com/canyon-network/substrate/frame/indices" }
+pallet-session = { path = "/home/xlc/src/github.com/canyon-network/substrate/frame/session" }
+pallet-timestamp = { path = "/home/xlc/src/github.com/canyon-network/substrate/frame/timestamp" }
+pallet-transaction-payment = { path = "/home/xlc/src/github.com/canyon-network/substrate/frame/transaction-payment" }
+pallet-treasury = { path = "/home/xlc/src/github.com/canyon-network/substrate/frame/treasury" }
+
+substrate-frame-rpc-system = { path = "/home/xlc/src/github.com/canyon-network/substrate/utils/frame/rpc/system" }
+substrate-test-client = { path = "/home/xlc/src/github.com/canyon-network/substrate/test-utils/client" }
+substrate-test-runtime = { path = "/home/xlc/src/github.com/canyon-network/substrate/test-utils/runtime" }
+substrate-test-runtime-client = { path = "/home/xlc/src/github.com/canyon-network/substrate/test-utils/runtime/client" }
+
 [features]
 runtime-benchmarks = ["canyon-cli/runtime-benchmarks"]
 try-runtime = ["canyon-cli/try-runtime"]
