@@ -33,7 +33,7 @@ It will decrease the total issuance of the system by the <code>TransferFee</code
 If the sender’s account is below the existential deposit as a result
 of the transfer, the account will be reaped.</p>
 <p>The dispatch origin for this call must be <code>Signed</code> by the transactor.</p>
-<h1 id="" class="section-header"><a href="#"><weight></a></h1>
+<h2 id="" class="section-header"><a href="#"><weight></a></h2>
 <ul>
 <li>Dependent on arguments but not critical, given proper implementations for input config
 types. See related functions below.</li>
@@ -55,13 +55,13 @@ that the transfer will not kill the origin account.</li>
 <li>DB Weight: 1 Read and 1 Write to destination account</li>
 <li>Origin account is already in memory, so no DB operations for them.</li>
 </ul>
-<h1 id="-1" class="section-header"><a href="#-1"></weight></a></h1></div><div class="sub-variant" id="variant.transfer.fields"><h3>Fields of <b>transfer</b></h3><div><span id="variant.transfer.field.dest" class="variant small-section-header"><a href="#variant.transfer.field.dest" class="anchor field"></a><code>dest:&nbsp;&lt;&lt;T as Config&gt;::Lookup as StaticLookup&gt;::Source</code></span><span id="variant.transfer.field.value" class="variant small-section-header"><a href="#variant.transfer.field.value" class="anchor field"></a><code>value:&nbsp;&lt;T as Config&lt;I&gt;&gt;::Balance</code></span></div></div><div id="variant.set_balance" class="variant small-section-header"><a href="#variant.set_balance" class="anchor field"></a><code>set_balance</code></div><div class="docblock"><p>Set the balances of a given account.</p>
+<h2 id="-1" class="section-header"><a href="#-1"></weight></a></h2></div><div class="sub-variant" id="variant.transfer.fields"><h3>Fields of <b>transfer</b></h3><div><span id="variant.transfer.field.dest" class="variant small-section-header"><a href="#variant.transfer.field.dest" class="anchor field"></a><code>dest:&nbsp;&lt;&lt;T as Config&gt;::Lookup as StaticLookup&gt;::Source</code></span><span id="variant.transfer.field.value" class="variant small-section-header"><a href="#variant.transfer.field.value" class="anchor field"></a><code>value:&nbsp;&lt;T as Config&lt;I&gt;&gt;::Balance</code></span></div></div><div id="variant.set_balance" class="variant small-section-header"><a href="#variant.set_balance" class="anchor field"></a><code>set_balance</code></div><div class="docblock"><p>Set the balances of a given account.</p>
 <p>This will alter <code>FreeBalance</code> and <code>ReservedBalance</code> in storage. it will
 also decrease the total issuance of the system (<code>TotalIssuance</code>).
 If the new free or reserved balance is below the existential deposit,
 it will reset the account nonce (<code>frame_system::AccountNonce</code>).</p>
 <p>The dispatch origin for this call is <code>root</code>.</p>
-<h1 id="-2" class="section-header"><a href="#-2"><weight></a></h1>
+<h2 id="-2" class="section-header"><a href="#-2"><weight></a></h2>
 <ul>
 <li>Independent of the arguments.</li>
 <li>Contains a limited number of reads and writes.</li>
@@ -76,17 +76,17 @@ it will reset the account nonce (<code>frame_system::AccountNonce</code>).</p>
 </li>
 <li>DB Weight: 1 Read, 1 Write to <code>who</code></li>
 </ul>
-<h1 id="-3" class="section-header"><a href="#-3"></weight></a></h1></div><div class="sub-variant" id="variant.set_balance.fields"><h3>Fields of <b>set_balance</b></h3><div><span id="variant.set_balance.field.who" class="variant small-section-header"><a href="#variant.set_balance.field.who" class="anchor field"></a><code>who:&nbsp;&lt;&lt;T as Config&gt;::Lookup as StaticLookup&gt;::Source</code></span><span id="variant.set_balance.field.new_free" class="variant small-section-header"><a href="#variant.set_balance.field.new_free" class="anchor field"></a><code>new_free:&nbsp;&lt;T as Config&lt;I&gt;&gt;::Balance</code></span><span id="variant.set_balance.field.new_reserved" class="variant small-section-header"><a href="#variant.set_balance.field.new_reserved" class="anchor field"></a><code>new_reserved:&nbsp;&lt;T as Config&lt;I&gt;&gt;::Balance</code></span></div></div><div id="variant.force_transfer" class="variant small-section-header"><a href="#variant.force_transfer" class="anchor field"></a><code>force_transfer</code></div><div class="docblock"><p>Exactly as <code>transfer</code>, except the origin must be root and the source account may be
+<h2 id="-3" class="section-header"><a href="#-3"></weight></a></h2></div><div class="sub-variant" id="variant.set_balance.fields"><h3>Fields of <b>set_balance</b></h3><div><span id="variant.set_balance.field.who" class="variant small-section-header"><a href="#variant.set_balance.field.who" class="anchor field"></a><code>who:&nbsp;&lt;&lt;T as Config&gt;::Lookup as StaticLookup&gt;::Source</code></span><span id="variant.set_balance.field.new_free" class="variant small-section-header"><a href="#variant.set_balance.field.new_free" class="anchor field"></a><code>new_free:&nbsp;&lt;T as Config&lt;I&gt;&gt;::Balance</code></span><span id="variant.set_balance.field.new_reserved" class="variant small-section-header"><a href="#variant.set_balance.field.new_reserved" class="anchor field"></a><code>new_reserved:&nbsp;&lt;T as Config&lt;I&gt;&gt;::Balance</code></span></div></div><div id="variant.force_transfer" class="variant small-section-header"><a href="#variant.force_transfer" class="anchor field"></a><code>force_transfer</code></div><div class="docblock"><p>Exactly as <code>transfer</code>, except the origin must be root and the source account may be
 specified.</p>
-<h1 id="-4" class="section-header"><a href="#-4"><weight></a></h1>
+<h2 id="-4" class="section-header"><a href="#-4"><weight></a></h2>
 <ul>
 <li>Same as transfer, but additional read and write because the source account is not
 assumed to be in the overlay.</li>
 </ul>
-<h1 id="-5" class="section-header"><a href="#-5"></weight></a></h1></div><div class="sub-variant" id="variant.force_transfer.fields"><h3>Fields of <b>force_transfer</b></h3><div><span id="variant.force_transfer.field.source" class="variant small-section-header"><a href="#variant.force_transfer.field.source" class="anchor field"></a><code>source:&nbsp;&lt;&lt;T as Config&gt;::Lookup as StaticLookup&gt;::Source</code></span><span id="variant.force_transfer.field.dest" class="variant small-section-header"><a href="#variant.force_transfer.field.dest" class="anchor field"></a><code>dest:&nbsp;&lt;&lt;T as Config&gt;::Lookup as StaticLookup&gt;::Source</code></span><span id="variant.force_transfer.field.value" class="variant small-section-header"><a href="#variant.force_transfer.field.value" class="anchor field"></a><code>value:&nbsp;&lt;T as Config&lt;I&gt;&gt;::Balance</code></span></div></div><div id="variant.transfer_keep_alive" class="variant small-section-header"><a href="#variant.transfer_keep_alive" class="anchor field"></a><code>transfer_keep_alive</code></div><div class="docblock"><p>Same as the <a href="struct.Pallet.html#method.transfer"><code>transfer</code></a> call, but with a check that the transfer will not kill the
+<h2 id="-5" class="section-header"><a href="#-5"></weight></a></h2></div><div class="sub-variant" id="variant.force_transfer.fields"><h3>Fields of <b>force_transfer</b></h3><div><span id="variant.force_transfer.field.source" class="variant small-section-header"><a href="#variant.force_transfer.field.source" class="anchor field"></a><code>source:&nbsp;&lt;&lt;T as Config&gt;::Lookup as StaticLookup&gt;::Source</code></span><span id="variant.force_transfer.field.dest" class="variant small-section-header"><a href="#variant.force_transfer.field.dest" class="anchor field"></a><code>dest:&nbsp;&lt;&lt;T as Config&gt;::Lookup as StaticLookup&gt;::Source</code></span><span id="variant.force_transfer.field.value" class="variant small-section-header"><a href="#variant.force_transfer.field.value" class="anchor field"></a><code>value:&nbsp;&lt;T as Config&lt;I&gt;&gt;::Balance</code></span></div></div><div id="variant.transfer_keep_alive" class="variant small-section-header"><a href="#variant.transfer_keep_alive" class="anchor field"></a><code>transfer_keep_alive</code></div><div class="docblock"><p>Same as the <a href="struct.Pallet.html#method.transfer"><code>transfer</code></a> call, but with a check that the transfer will not kill the
 origin account.</p>
 <p>99% of the time you want <a href="struct.Pallet.html#method.transfer"><code>transfer</code></a> instead.</p>
-<h1 id="-6" class="section-header"><a href="#-6"><weight></a></h1>
+<h2 id="-6" class="section-header"><a href="#-6"><weight></a></h2>
 <ul>
 <li>Cheaper than transfer because account cannot be killed.</li>
 <li>Base Weight: 51.4 µs</li>
