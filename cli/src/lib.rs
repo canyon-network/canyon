@@ -33,6 +33,7 @@ mod service;
 mod cli;
 #[cfg(feature = "cli")]
 mod command;
+mod tx_handler;
 
 #[cfg(feature = "cli")]
 pub use cli::*;

@@ -257,76 +257,6 @@ pub struct NewFullBase {
     pub transaction_pool: Arc<sc_transaction_pool::FullPool<Block, FullClient>>,
 }
 
-use sc_network::{IfDisconnected, PeerId, RequestFailure};
-
-pub struct NewTransactionHandle<E> {
-    pub network: Arc<NetworkService<Block, <Block as BlockT>::Hash>>,
-    pub receiver: futures::channel::mpsc::UnboundedReceiver<(PeerId, E)>,
-}
-
-impl<E: codec::Codec> NewTransactionHandle<E> {
-    pub async fn on_new_transaction(&mut self) {
-        use canyon_runtime::{PermastoreCall, UncheckedExtrinsic};
-        use codec::Decode;
-        use log::{debug, error};
-
-        while let Some((who, new_transaction)) = self.receiver.next().await {
-            debug!(target: "sync::data", "Received new_transaction: {:?}", new_transaction.encode());
-            let encoded = new_transaction.encode();
-            let maybe_uxt: Result<UncheckedExtrinsic, codec::Error> =
-                Decode::decode(&mut encoded.as_slice());
-            match maybe_uxt {
-                Ok(uxt) => match uxt.function {
-                    Call::Permastore(permastore_call) => match permastore_call {
-                        PermastoreCall::store { .. } => {
-                            debug!(target: "sync::data", "Should checkout the local storage and send the data sync request");
-                        }
-                        call @ _ => {
-                            debug!(target: "sync::data", "Ignoring permastore call: {:?}", call)
-                        }
-                    },
-                    Call::Balances(_) => {
-                        debug!(target: "sync::data", "Sending the test request-response......");
-                        match self.send_request(who).await {
-                            Ok(res) => {
-                                debug!(target: "sync::data", "----------------- Received response: {:?}", res)
-                            }
-                            Err(e) => {
-                                error!(target: "sync::data", "------------------ Received error: {:?}", e)
-                            }
-                        }
-                        // TODO: request transaction data
-                    }
-                    call @ _ => debug!(target: "sync::data", "Ignoring call: {:?}", call),
-                },
-                Err(e) => {
-                    error!(target: "sync::data", "Failed to decode: {:?}, error: {:?}", encoded, e);
-                }
-            }
-        }
-    }
-
-    async fn send_request(&self, target: PeerId) -> Result<Vec<u8>, RequestFailure> {
-        use codec::Encode;
-
-        let chunk_fetching_protocol = cc_network::protocol::Protocol::ChunkFetching;
-
-        let request = ChunkFetchingRequest {
-            chunks_root: sp_core::H256::default(),
-            index: 0,
-        };
-
-        self.network
-            .request(
-                target,
-                chunk_fetching_protocol.get_protocol_name_static(),
-                request.encode(),
-                IfDisconnected::ImmediateError,
-            )
-            .await
-    }
-}
-
 /// Creates a full service from the configuration.
 pub fn new_full_base(
     mut config: Configuration,
@@ -383,7 +313,7 @@ pub fn new_full_base(
             new_transaction_sender,
         })?;
 
-    let mut new_transaction_handle = NewTransactionHandle {
+    let mut new_transaction_handle = crate::tx_handler::NewTransactionHandle {
         network: network.clone(),
         receiver: new_transaction_receiver,
     };
@@ -700,7 +630,7 @@ pub fn new_light_base(
             new_transaction_sender,
         })?;
 
-    let mut new_transaction_handle = NewTransactionHandle {
+    let mut new_transaction_handle = crate::tx_handler::NewTransactionHandle {
         network: network.clone(),
         receiver: new_transaction_receiver,
     };
