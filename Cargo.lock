@@ -796,6 +796,7 @@ dependencies = [
  "substrate-build-script-utils",
  "substrate-frame-cli",
  "tempfile",
+ "thiserror",
  "try-runtime-cli",
 ]
 

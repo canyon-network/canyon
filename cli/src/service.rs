@@ -287,7 +287,7 @@ pub fn new_full_base(
         .push(grandpa::grandpa_peers_set_config());
 
     // FIXME: add transaction data request-response protocol.
-    let (pov_req_receiver, cfg): (
+    let (chunk_fetching_req_receiver, cfg): (
         IncomingRequestReceiver<ChunkFetchingRequest>,
         RequestResponseConfig,
     ) = IncomingRequest::get_config_receiver();
@@ -322,6 +322,12 @@ pub fn new_full_base(
         .spawn_essential_handle()
         .spawn_blocking("new-transaction-handler", async move {
             new_transaction_handle.on_new_transaction().await;
+        });
+
+    task_manager
+        .spawn_essential_handle()
+        .spawn_blocking("data-request-handler", async move {
+            crate::data_request_handler::DataRequestHandler::new(chunk_fetching_req_receiver).run().await;
         });
 
     if config.offchain_worker.enabled {

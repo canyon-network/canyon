@@ -25,7 +25,7 @@ use super::{IsRequest, Protocol};
 pub mod incoming;
 pub mod outgoing;
 
-pub use incoming::{IncomingRequest, IncomingRequestReceiver};
+pub use incoming::{IncomingRequest, IncomingRequestReceiver, OutgoingResponseSender};
 pub use outgoing::{OutgoingRequest, OutgoingResult, Recipient, Requests, ResponseSender};
 
 ///

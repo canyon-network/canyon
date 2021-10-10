@@ -1,6 +1,6 @@
 use canyon_primitives::Block;
 use canyon_runtime::{Call, PermastoreCall, UncheckedExtrinsic};
-use cc_network::protocol::request_response::ChunkFetchingRequest;
+use cc_network::protocol::request_response::{ChunkFetchingResponse, ChunkFetchingRequest};
 use codec::{Codec, Decode, Encode};
 use futures::prelude::*;
 use log::{debug, error};
@@ -25,13 +25,19 @@ impl<E: Codec> NewTransactionHandle<E> {
                     Call::Permastore(permastore_call) => match permastore_call {
                         PermastoreCall::store { .. } => {
                             debug!(target: "sync::data", "Should checkout the local storage and send the data sync request");
-                            debug!(target: "sync::data", "Sending the data sync request");
+                            debug!(target: "sync::data", "Sending the data chunks request");
                             match self.send_request(who).await {
                                 Ok(res) => {
-                                    debug!(target: "sync::data", "----------------- Received response: {:?}", res)
+                                    let chunk_fetching_response = ChunkFetchingResponse::decode(&mut res.as_slice());
+                                    debug!(
+                                        target: "sync::data",
+                                        "Received raw response: {:?}, chunk_fetching_response: {:?}",
+                                        res, chunk_fetching_response,
+                                    );
+                                    // TODO: store the fetched data chunks
                                 }
                                 Err(e) => {
-                                    error!(target: "sync::data", "------------------ Received error: {:?}", e)
+                                    error!(target: "sync::data", "Received error: {:?}", e)
                                 }
                             }
                         }
@@ -39,18 +45,7 @@ impl<E: Codec> NewTransactionHandle<E> {
                             debug!(target: "sync::data", "Ignoring permastore call: {:?}", call)
                         }
                     },
-                    Call::Balances(_) => {
-                        debug!(target: "sync::data", "Sending the test request-response......");
-                        match self.send_request(who).await {
-                            Ok(res) => {
-                                debug!(target: "sync::data", "----------------- Received response: {:?}", res)
-                            }
-                            Err(e) => {
-                                error!(target: "sync::data", "------------------ Received error: {:?}", e)
-                            }
-                        }
-                        // TODO: request transaction data
-                    }
+                    Call::Balances(_) => {},
                     call => debug!(target: "sync::data", "Ignoring call: {:?}", call),
                 },
                 Err(e) => {
