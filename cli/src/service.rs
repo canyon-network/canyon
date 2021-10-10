@@ -324,10 +324,21 @@ pub fn new_full_base(
             new_transaction_handle.on_new_transaction().await;
         });
 
+    let offchain_storage = backend
+        .offchain_storage()
+        .unwrap_or_else(|| panic!("offchain storage is some; qed"));
+
+    let data_request_client_clone = client.clone();
+    let offchain_storage_clone = offchain_storage.clone();
     task_manager
         .spawn_essential_handle()
         .spawn_blocking("data-request-handler", async move {
-            crate::data_request_handler::DataRequestHandler::new(chunk_fetching_req_receiver).run().await;
+            crate::data_request_handler::DataRequestHandler::new(
+                cc_datastore::PermanentStorage::new(offchain_storage_clone, data_request_client_clone),
+                chunk_fetching_req_receiver,
+            )
+            .run()
+            .await;
         });
 
     if config.offchain_worker.enabled {
@@ -346,10 +357,6 @@ pub fn new_full_base(
     let name = config.network.node_name.clone();
     let enable_grandpa = !config.disable_grandpa;
     let prometheus_registry = config.prometheus_registry().cloned();
-
-    let offchain_storage = backend
-        .offchain_storage()
-        .unwrap_or_else(|| panic!("offchain storage is some; qed"));
 
     let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
         config,

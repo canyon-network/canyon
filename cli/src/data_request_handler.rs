@@ -31,11 +31,13 @@ use std::{
     time::Duration,
 };
 
-use cc_network::protocol::{IsRequest, request_response::ChunkFetchingRequest};
 use cc_network::protocol::request_response::{
     ChunkFetchingResponse, ChunkResponse, IncomingRequest, IncomingRequestReceiver,
     OutgoingResponseSender,
 };
+use cc_network::protocol::{request_response::ChunkFetchingRequest, IsRequest};
+
+use cp_permastore::{PermaStorage, CHUNK_SIZE};
 
 const LOG_TARGET: &str = "data::sync";
 const MAX_RESPONSE_BYTES: usize = 2 * 1024 * 1024; // Actual reponse may be bigger.
@@ -74,15 +76,24 @@ enum SeenRequestsValue {
 }
 
 /// Handler for incoming data requests from a remote peer.
-pub struct DataRequestHandler {
-    // client: Arc<dyn Client<B>>,
+pub struct DataRequestHandler<S> {
+    storage: S,
     request_receiver: IncomingRequestReceiver<ChunkFetchingRequest>,
 }
 
-impl DataRequestHandler {
+impl<S> DataRequestHandler<S>
+where
+    S: PermaStorage,
+{
     /// Create a new [`DataRequestHandler`].
-    pub fn new(request_receiver: IncomingRequestReceiver<ChunkFetchingRequest>) -> Self {
-        Self { request_receiver }
+    pub fn new(
+        storage: S,
+        request_receiver: IncomingRequestReceiver<ChunkFetchingRequest>,
+    ) -> Self {
+        Self {
+            storage,
+            request_receiver,
+        }
     }
 
     /// Run [`DataRequestHandler`].
@@ -95,7 +106,10 @@ impl DataRequestHandler {
             } = request;
 
             match self.handle_request(payload, pending_response, &peer) {
-                Ok(()) => debug!(target: LOG_TARGET, "Handled data chunk request from {}.", peer),
+                Ok(()) => debug!(
+                    target: LOG_TARGET,
+                    "Handled data chunk request from {}.", peer
+                ),
                 Err(e) => debug!(
                     target: LOG_TARGET,
                     "Failed to handle data chunk request from {}: {}", peer, e,
@@ -111,29 +125,43 @@ impl DataRequestHandler {
         pending_response: OutgoingResponseSender<ChunkFetchingRequest>,
         peer: &PeerId,
     ) -> Result<(), HandleRequestError> {
-        let chunk_response = ChunkResponse {
-            chunk: b"mocked chunk".to_vec(),
-            proof: vec![b"mocked proof".to_vec()],
-        };
-        let chunk_fetching_response = ChunkFetchingResponse::Chunk(chunk_response);
-
         log::debug!(
             target: LOG_TARGET,
-            "---------- Sending back response: {:?}", chunk_fetching_response
+            "---------- Received data chunk request: {:?}",
+            request
         );
-        pending_response
-            .send_response(chunk_fetching_response)
-            .map_err(|_| HandleRequestError::SendResponse)
+
+        let ChunkFetchingRequest { chunk_root, index } = request;
+
+        let maybe_data = self.storage.retrieve(chunk_root.encode().as_slice());
+
+        match maybe_data {
+            Some(data) => {
+                let chunk_response = ChunkResponse {
+                    chunk: data,
+                    proof: vec![b"mocked proof".to_vec()], // TODO: add chunk proof
+                };
+                let chunk_fetching_response = ChunkFetchingResponse::Chunk(chunk_response);
+
+                log::debug!(
+                    target: LOG_TARGET,
+                    "---------- Sending back response: {:?}",
+                    chunk_fetching_response
+                );
+                pending_response
+                    .send_response(chunk_fetching_response)
+                    .map_err(|_| HandleRequestError::SendResponse)
+            }
+            None => pending_response
+                .send_response(ChunkFetchingResponse::NoSuchChunk)
+                .map_err(|_| HandleRequestError::SendResponse),
+        }
     }
 }
 
 #[derive(thiserror::Error, Debug)]
 enum HandleRequestError {
-    // #[error("Failed to decode request: {}.", _0)]
-    // DecodeProto(prost::DecodeError),
-    // #[error("Failed to encode response: {}.", _0)]
-    // EncodeProto(prost::EncodeError),
-    #[error("Failed to decode block hash: {}.", _0)]
+    #[error("Failed to decode block hash: {0}")]
     InvalidHash(#[from] codec::Error),
     // #[error("Client error: {:?}", _0)]
     // Client(#[from] sp_blockchain::Error),

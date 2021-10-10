@@ -729,6 +729,7 @@ dependencies = [
  "cc-consensus-poa",
  "cc-datastore",
  "cc-network",
+ "cp-permastore",
  "frame-benchmarking-cli",
  "frame-support",
  "frame-system",

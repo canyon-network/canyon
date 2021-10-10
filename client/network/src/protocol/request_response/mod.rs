@@ -37,7 +37,7 @@ pub type Proof = Vec<Vec<u8>>;
 #[derive(Debug, Copy, Clone, Encode, Decode)]
 pub struct ChunkFetchingRequest {
     /// Root hash of transation chunks we want a chunk for.
-    pub chunks_root: H256,
+    pub chunk_root: H256,
     /// The index of the chunk to fetch.
     pub index: ChunkIndex,
 }

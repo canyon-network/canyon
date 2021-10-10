@@ -1,6 +1,8 @@
 use canyon_primitives::Block;
 use canyon_runtime::{Call, PermastoreCall, UncheckedExtrinsic};
-use cc_network::protocol::request_response::{ChunkFetchingResponse, ChunkFetchingRequest};
+use cc_network::protocol::request_response::{
+    ChunkFetchingRequest, ChunkFetchingResponse, ChunkResponse,
+};
 use codec::{Codec, Decode, Encode};
 use futures::prelude::*;
 use log::{debug, error};
@@ -23,18 +25,45 @@ impl<E: Codec> NewTransactionHandle<E> {
             match maybe_uxt {
                 Ok(uxt) => match uxt.function {
                     Call::Permastore(permastore_call) => match permastore_call {
-                        PermastoreCall::store { .. } => {
+                        PermastoreCall::store {
+                            data_size,
+                            chunk_root,
+                        } => {
                             debug!(target: "sync::data", "Should checkout the local storage and send the data sync request");
                             debug!(target: "sync::data", "Sending the data chunks request");
-                            match self.send_request(who).await {
+                            match self.send_request(data_size, chunk_root, who).await {
                                 Ok(res) => {
-                                    let chunk_fetching_response = ChunkFetchingResponse::decode(&mut res.as_slice());
+                                    let chunk_fetching_response =
+                                        match ChunkFetchingResponse::decode(&mut res.as_slice()) {
+                                            Ok(res) => res,
+                                            Err(e) => {
+                                                log::error!(target: "sync::data", "Failed to decode ChunkFetchingResponse: {:?}", e);
+                                                continue;
+                                            }
+                                        };
                                     debug!(
                                         target: "sync::data",
                                         "Received raw response: {:?}, chunk_fetching_response: {:?}",
                                         res, chunk_fetching_response,
                                     );
-                                    // TODO: store the fetched data chunks
+
+                                    match chunk_fetching_response {
+                                        ChunkFetchingResponse::Chunk(chunk_response) => {
+                                            let ChunkResponse { chunk, proof } = chunk_response;
+                                            debug!(
+                                                target: "sync::data",
+                                                "===== Received data chunk: {}, proof: {}",
+                                                String::from_utf8_lossy(&chunk), String::from_utf8_lossy(&proof[0]),
+                                            );
+                                            // TODO: store the data chunk locally
+                                        }
+                                        ChunkFetchingResponse::NoSuchChunk => {
+                                            log::warn!(
+                                                target: "sync::data",
+                                                "==== No such chunk from peer: {:?}", who
+                                            );
+                                        }
+                                    }
                                 }
                                 Err(e) => {
                                     error!(target: "sync::data", "Received error: {:?}", e)
@@ -45,7 +74,7 @@ impl<E: Codec> NewTransactionHandle<E> {
                             debug!(target: "sync::data", "Ignoring permastore call: {:?}", call)
                         }
                     },
-                    Call::Balances(_) => {},
+                    Call::Balances(_) => {}
                     call => debug!(target: "sync::data", "Ignoring call: {:?}", call),
                 },
                 Err(e) => {
@@ -55,11 +84,16 @@ impl<E: Codec> NewTransactionHandle<E> {
         }
     }
 
-    async fn send_request(&self, target: PeerId) -> Result<Vec<u8>, RequestFailure> {
+    async fn send_request(
+        &self,
+        data_size: u32,
+        chunk_root: <Block as BlockT>::Hash,
+        target: PeerId,
+    ) -> Result<Vec<u8>, RequestFailure> {
         let chunk_fetching_protocol = cc_network::protocol::Protocol::ChunkFetching;
 
         let request = ChunkFetchingRequest {
-            chunks_root: sp_core::H256::default(),
+            chunk_root,
             index: 0,
         };
 
