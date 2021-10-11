@@ -14,8 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Substrate.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Helper for handling (i.e. answering) state requests from a remote peer via the
-//! [`crate::request_responses::RequestResponsesBehaviour`].
+//! Helper for handling (i.e. answering) data chunk requests from a remote peer.
+
+use std::{
+    hash::{Hash, Hasher},
+    sync::Arc,
+    time::Duration,
+};
 
 use codec::{Decode, Encode};
 use futures::{
@@ -23,23 +28,21 @@ use futures::{
     stream::StreamExt,
 };
 use log::{debug, trace};
+
 use sc_network::{config::ProtocolId, PeerId, ReputationChange};
 use sp_runtime::{generic::BlockId, traits::Block as BlockT};
-use std::{
-    hash::{Hash, Hasher},
-    sync::Arc,
-    time::Duration,
-};
-
-use cc_network::protocol::request_response::{
-    ChunkFetchingResponse, ChunkResponse, IncomingRequest, IncomingRequestReceiver,
-    OutgoingResponseSender,
-};
-use cc_network::protocol::{request_response::ChunkFetchingRequest, IsRequest};
 
 use cp_permastore::{PermaStorage, CHUNK_SIZE};
 
-const LOG_TARGET: &str = "data::sync";
+use crate::protocol::{
+    request_response::{
+        ChunkFetchingRequest, ChunkFetchingResponse, ChunkResponse, IncomingRequest,
+        IncomingRequestReceiver, OutgoingResponseSender,
+    },
+    IsRequest,
+};
+
+const LOG_TARGET: &str = "sync::data";
 const MAX_RESPONSE_BYTES: usize = 2 * 1024 * 1024; // Actual reponse may be bigger.
 const MAX_NUMBER_OF_SAME_REQUESTS_PER_PEER: usize = 2;
 
@@ -47,32 +50,7 @@ mod rep {
     use sc_network::ReputationChange as Rep;
 
     /// Reputation change when a peer sent us the same request multiple times.
-    pub const SAME_REQUEST: Rep = Rep::new(i32::MIN, "Same state request multiple times");
-}
-
-/// The key of [`BlockRequestHandler::seen_requests`].
-#[derive(Eq, PartialEq, Clone)]
-struct SeenRequestsKey<B: BlockT> {
-    peer: PeerId,
-    block: B::Hash,
-    start: Vec<u8>,
-}
-
-#[allow(clippy::derive_hash_xor_eq)]
-impl<B: BlockT> Hash for SeenRequestsKey<B> {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.peer.hash(state);
-        self.block.hash(state);
-        self.start.hash(state);
-    }
-}
-
-/// The value of [`DataRequestHandler::seen_requests`].
-enum SeenRequestsValue {
-    /// First time we have seen the request.
-    First,
-    /// We have fulfilled the request `n` times.
-    Fulfilled(usize),
+    pub const SAME_REQUEST: Rep = Rep::new(i32::MIN, "Same data request multiple times");
 }
 
 /// Handler for incoming data requests from a remote peer.
@@ -118,7 +96,6 @@ where
         }
     }
 
-    // FIXME: handle the request properly
     fn handle_request(
         &mut self,
         request: ChunkFetchingRequest,
@@ -132,6 +109,7 @@ where
 
         let ChunkFetchingRequest { chunk_root, index } = request;
 
+        // Retrieve the data locally
         let maybe_data = self.storage.retrieve(chunk_root.encode().as_slice());
 
         match maybe_data {
@@ -144,7 +122,7 @@ where
 
                 debug!(
                     target: LOG_TARGET,
-                    "Sending chunk fetching response: {:?} to peer: {}",
+                    "Sending back the chunk fetching response: {:?} to peer: {}",
                     chunk_fetching_response,
                     peer
                 );

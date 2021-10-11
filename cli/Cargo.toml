@@ -26,7 +26,6 @@ parking_lot = "0.11.1"
 rand = "0.7.2"
 serde = { version = "1.0.102", features = ["derive"] }
 structopt = { version = "0.3.8", optional = true }
-thiserror = "1.0"
 
 # primitives
 sp-authority-discovery = { git = "https://github.com/canyon-network/substrate", branch = "initial-network" }

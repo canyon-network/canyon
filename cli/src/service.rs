@@ -334,7 +334,7 @@ pub fn new_full_base(
     task_manager
         .spawn_essential_handle()
         .spawn_blocking("data-request-handler", async move {
-            crate::data_request_handler::DataRequestHandler::new(
+            cc_network::data_request_handler::DataRequestHandler::new(
                 cc_datastore::PermanentStorage::new(
                     offchain_storage_clone,
                     data_request_client_clone,

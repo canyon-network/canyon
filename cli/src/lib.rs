@@ -34,7 +34,6 @@ mod cli;
 #[cfg(feature = "cli")]
 mod command;
 mod tx_handler;
-mod data_request_handler;
 
 #[cfg(feature = "cli")]
 pub use cli::*;

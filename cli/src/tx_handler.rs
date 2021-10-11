@@ -61,8 +61,8 @@ impl<E: Codec, S: cp_permastore::PermaStorage> NewTransactionHandle<E, S> {
                                                 String::from_utf8_lossy(&chunk), String::from_utf8_lossy(&proof[0]),
                                             );
                                             // TODO: store the data chunk locally
-                                            self.storage
-                                                .submit(chunk_root.encode().as_slice(), &chunk);
+                                            // self.storage
+                                                // .submit(chunk_root.encode().as_slice(), &chunk);
                                         }
                                         ChunkFetchingResponse::NoSuchChunk => {
                                             warn!(target: "sync::data", "No such chunk from peer: {:?}", who);

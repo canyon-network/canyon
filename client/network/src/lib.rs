@@ -25,7 +25,7 @@
 //! local storage of each node.
 
 pub mod protocol;
-
+pub mod data_request_handler;
 pub mod reputation;
 
 pub use self::reputation::UnifiedReputationChange;
