@@ -49,5 +49,5 @@ pub trait PermastoreApi<Hash, BlockHash> {
 
     /// Fetch storage under given key.
     #[rpc(name = "permastore_retrieve")]
-    fn retrieve(&self, key: Bytes) -> Result<Option<Bytes>>;
+    fn retrieve(&self, chunk_root: H256) -> Result<Option<Bytes>>;
 }

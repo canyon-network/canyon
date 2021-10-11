@@ -140,8 +140,11 @@ where
         Ok(chunk_root)
     }
 
-    fn retrieve(&self, key: Bytes) -> Result<Option<Bytes>> {
+    fn retrieve(&self, chunk_root: H256) -> Result<Option<Bytes>> {
+        let key = chunk_root.encode();
+        log::debug!(target: "rpc::permastore", "Retrieving chunk_root: {:?}", chunk_root);
         if let Some(value) = self.storage.read().retrieve(&*key) {
+            log::debug!(target: "rpc::permastore", "Retrieving value: {:?}", value);
             let data_size = value.len() as u32;
             if data_size > MAX_DOWNLOAD_DATA_SIZE {
                 return Err(Error::DataTooLarge(InvalidCount::new(
@@ -151,6 +154,7 @@ where
             }
             Ok(Some(value.into()))
         } else {
+            log::debug!(target: "rpc::permastore", "Error! no value for: {:?}", chunk_root);
             Ok(None)
         }
     }
