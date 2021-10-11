@@ -125,10 +125,9 @@ where
         pending_response: OutgoingResponseSender<ChunkFetchingRequest>,
         peer: &PeerId,
     ) -> Result<(), HandleRequestError> {
-        log::debug!(
+        debug!(
             target: LOG_TARGET,
-            "---------- Received data chunk request: {:?}",
-            request
+            "Received chunk fetching request: {:?}", request
         );
 
         let ChunkFetchingRequest { chunk_root, index } = request;
@@ -143,11 +142,13 @@ where
                 };
                 let chunk_fetching_response = ChunkFetchingResponse::Chunk(chunk_response);
 
-                log::debug!(
+                debug!(
                     target: LOG_TARGET,
-                    "---------- Sending back response: {:?}",
-                    chunk_fetching_response
+                    "Sending chunk fetching response: {:?} to peer: {}",
+                    chunk_fetching_response,
+                    peer
                 );
+
                 pending_response
                     .send_response(chunk_fetching_response)
                     .map_err(|_| HandleRequestError::SendResponse)

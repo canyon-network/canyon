@@ -5,17 +5,19 @@ use cc_network::protocol::request_response::{
 };
 use codec::{Codec, Decode, Encode};
 use futures::prelude::*;
-use log::{debug, error};
+use log::{debug, error, warn};
 use sc_network::{IfDisconnected, NetworkService, PeerId, RequestFailure};
 use sp_runtime::traits::Block as BlockT;
 use std::sync::Arc;
 
-pub struct NewTransactionHandle<E> {
+pub struct NewTransactionHandle<E, S> {
     pub network: Arc<NetworkService<Block, <Block as BlockT>::Hash>>,
     pub receiver: futures::channel::mpsc::UnboundedReceiver<(PeerId, E)>,
+    /// Permanent storage instance.
+    pub storage: S,
 }
 
-impl<E: Codec> NewTransactionHandle<E> {
+impl<E: Codec, S: cp_permastore::PermaStorage> NewTransactionHandle<E, S> {
     pub async fn on_new_transaction(&mut self) {
         while let Some((who, new_transaction)) = self.receiver.next().await {
             debug!(target: "sync::data", "Received new_transaction: {:?}", new_transaction.encode());
@@ -29,18 +31,21 @@ impl<E: Codec> NewTransactionHandle<E> {
                             data_size,
                             chunk_root,
                         } => {
-                            debug!(target: "sync::data", "Should checkout the local storage and send the data sync request");
-                            debug!(target: "sync::data", "Sending the data chunks request");
-                            match self.send_request(data_size, chunk_root, who).await {
+                            debug!(target: "sync::data", "Sending the data chunk fetching request...");
+                            match self
+                                .send_chunk_fetching_request(data_size, chunk_root, who)
+                                .await
+                            {
                                 Ok(res) => {
                                     let chunk_fetching_response =
                                         match ChunkFetchingResponse::decode(&mut res.as_slice()) {
                                             Ok(res) => res,
                                             Err(e) => {
-                                                log::error!(target: "sync::data", "Failed to decode ChunkFetchingResponse: {:?}", e);
+                                                error!(target: "sync::data", "Failed to decode ChunkFetchingResponse: {:?}", e);
                                                 continue;
                                             }
                                         };
+
                                     debug!(
                                         target: "sync::data",
                                         "Received raw response: {:?}, chunk_fetching_response: {:?}",
@@ -56,12 +61,11 @@ impl<E: Codec> NewTransactionHandle<E> {
                                                 String::from_utf8_lossy(&chunk), String::from_utf8_lossy(&proof[0]),
                                             );
                                             // TODO: store the data chunk locally
+                                            self.storage
+                                                .submit(chunk_root.encode().as_slice(), &chunk);
                                         }
                                         ChunkFetchingResponse::NoSuchChunk => {
-                                            log::warn!(
-                                                target: "sync::data",
-                                                "==== No such chunk from peer: {:?}", who
-                                            );
+                                            warn!(target: "sync::data", "No such chunk from peer: {:?}", who);
                                         }
                                     }
                                 }
@@ -70,11 +74,10 @@ impl<E: Codec> NewTransactionHandle<E> {
                                 }
                             }
                         }
-                        call @ _ => {
+                        call => {
                             debug!(target: "sync::data", "Ignoring permastore call: {:?}", call)
                         }
                     },
-                    Call::Balances(_) => {}
                     call => debug!(target: "sync::data", "Ignoring call: {:?}", call),
                 },
                 Err(e) => {
@@ -84,7 +87,7 @@ impl<E: Codec> NewTransactionHandle<E> {
         }
     }
 
-    async fn send_request(
+    async fn send_chunk_fetching_request(
         &self,
         data_size: u32,
         chunk_root: <Block as BlockT>::Hash,

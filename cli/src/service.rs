@@ -310,12 +310,17 @@ pub fn new_full_base(
             on_demand: None,
             block_announce_validator_builder: None,
             warp_sync: Some(warp_sync),
-            new_transaction_sender,
+            new_transaction_sender: Some(new_transaction_sender),
         })?;
+
+    let offchain_storage = backend
+        .offchain_storage()
+        .unwrap_or_else(|| panic!("offchain storage is some; qed"));
 
     let mut new_transaction_handle = crate::tx_handler::NewTransactionHandle {
         network: network.clone(),
         receiver: new_transaction_receiver,
+        storage: cc_datastore::PermanentStorage::new(offchain_storage.clone(), client.clone()),
     };
 
     task_manager
@@ -324,17 +329,16 @@ pub fn new_full_base(
             new_transaction_handle.on_new_transaction().await;
         });
 
-    let offchain_storage = backend
-        .offchain_storage()
-        .unwrap_or_else(|| panic!("offchain storage is some; qed"));
-
     let data_request_client_clone = client.clone();
     let offchain_storage_clone = offchain_storage.clone();
     task_manager
         .spawn_essential_handle()
         .spawn_blocking("data-request-handler", async move {
             crate::data_request_handler::DataRequestHandler::new(
-                cc_datastore::PermanentStorage::new(offchain_storage_clone, data_request_client_clone),
+                cc_datastore::PermanentStorage::new(
+                    offchain_storage_clone,
+                    data_request_client_clone,
+                ),
                 chunk_fetching_req_receiver,
             )
             .run()
@@ -629,7 +633,6 @@ pub fn new_light_base(
         grandpa_link.shared_authority_set().clone(),
     ));
 
-    let (new_transaction_sender, new_transaction_receiver) = futures::channel::mpsc::unbounded();
     let (network, system_rpc_tx, network_starter) =
         sc_service::build_network(sc_service::BuildNetworkParams {
             config: &config,
@@ -640,19 +643,8 @@ pub fn new_light_base(
             on_demand: Some(on_demand.clone()),
             block_announce_validator_builder: None,
             warp_sync: Some(warp_sync),
-            new_transaction_sender,
+            new_transaction_sender: None,
         })?;
-
-    let mut new_transaction_handle = crate::tx_handler::NewTransactionHandle {
-        network: network.clone(),
-        receiver: new_transaction_receiver,
-    };
-
-    task_manager
-        .spawn_essential_handle()
-        .spawn_blocking("new-transaction-handler", async move {
-            new_transaction_handle.on_new_transaction().await;
-        });
 
     network_starter.start_network();
 
