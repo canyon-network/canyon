@@ -10,7 +10,7 @@
 
 <img align="right" width="400" src="https://raw.githubusercontent.com/w3f/General-Grants-Program/master/src/badge_black.svg">
 
-Canyon network aims to be a permanent storage layer for Web3.0 built on Substrate framework, focusing on lightweight storage consensus as well as the high usability of data retrieval. Find more in the [white paper](https://canyon-network.io/canyon-white-paper/canyon_network.pdf).
+Canyon network aims to be a permanent storage layer for Web3.0 built on Substrate framework, focusing on lightweight storage consensus as well as the high usability of data retrieval. Find more in the [white paper](https://canyon-network.github.io/canyon-white-paper/canyon_network.pdf).
 
 Please be aware of that the project is now at a fairly early stage and nothing is production ready.
 
