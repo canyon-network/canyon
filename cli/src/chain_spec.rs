@@ -27,14 +27,12 @@ use sc_sync_state_rpc::LightSyncStateExtension;
 use sc_telemetry::TelemetryEndpoints;
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_babe::AuthorityId as BabeId;
+use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_core::{crypto::UncheckedInto, sr25519, Pair, Public};
-use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::{
     traits::{IdentifyAccount, Verify},
     Perbill,
 };
-
-use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 
 use canyon_runtime::constants::currency::*;
 use canyon_runtime::Block;
@@ -73,7 +71,6 @@ pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
 fn session_keys(
     grandpa: GrandpaId,
     babe: BabeId,
-    im_online: ImOnlineId,
     authority_discovery: AuthorityDiscoveryId,
 ) -> SessionKeys {
     SessionKeys {
@@ -96,7 +93,6 @@ fn staging_testnet_config_genesis() -> GenesisConfig {
         AccountId,
         GrandpaId,
         BabeId,
-        ImOnlineId,
         AuthorityDiscoveryId,
     )> = vec![
         (
@@ -227,7 +223,6 @@ pub fn authority_keys_from_seed(
     AccountId,
     GrandpaId,
     BabeId,
-    ImOnlineId,
     AuthorityDiscoveryId,
 ) {
     (
@@ -235,7 +230,6 @@ pub fn authority_keys_from_seed(
         get_account_id_from_seed::<sr25519::Public>(seed),
         get_from_seed::<GrandpaId>(seed),
         get_from_seed::<BabeId>(seed),
-        get_from_seed::<ImOnlineId>(seed),
         get_from_seed::<AuthorityDiscoveryId>(seed),
     )
 }
@@ -247,7 +241,6 @@ pub fn testnet_genesis(
         AccountId,
         GrandpaId,
         BabeId,
-        ImOnlineId,
         AuthorityDiscoveryId,
     )>,
     root_key: AccountId,

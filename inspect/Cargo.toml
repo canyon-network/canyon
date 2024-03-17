@@ -2,22 +2,23 @@
 name = "canyon-inspect"
 version = "0.1.0"
 authors = ["Canyon Labs <https://github.com/canyon-network>"]
-edition = "2018"
+edition = "2021"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "2.3" }
+codec = { package = "parity-scale-codec", version = "3" }
 derive_more = "0.99"
 log = "0.4.8"
-structopt = "0.3.8"
+clap = { version = "4.5.1", features = ["derive"] }
 
-sc-cli = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-executor = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-service = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sc-cli = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
+sc-client-api = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
+sc-executor = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
+sc-service = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false , branch = "master" }
 
-sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-blockchain = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
+sp-core = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
+sp-io = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
+sp-runtime = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }

@@ -4,7 +4,7 @@ description = "Implementation of https://canyon-network.io node in Rust based on
 license = "GPL-3.0"
 version = "0.1.0"
 authors = ["Canyon Labs <https://github.com/canyon-network>"]
-edition = "2018"
+edition = "2021"
 readme = "README.md"
 
 [workspace]
@@ -37,7 +37,7 @@ path = "src/main.rs"
 required-features = ["canyon-cli/cli"]
 
 [dependencies]
-sc-cli = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-cli = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
 
 canyon-cli = { path = "cli" }
 

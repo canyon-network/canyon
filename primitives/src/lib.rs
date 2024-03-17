@@ -67,7 +67,7 @@ pub type Hash = sp_core::H256;
 pub type Timestamp = u64;
 
 /// Digest item type.
-pub type DigestItem = generic::DigestItem<Hash>;
+pub type DigestItem = generic::DigestItem;
 
 /// Header type.
 pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
@@ -78,6 +78,7 @@ pub type Block = generic::Block<Header, OpaqueExtrinsic>;
 /// Block ID.
 pub type BlockId = generic::BlockId<Block>;
 
+/*
 /// App-specific crypto used for reporting equivocation/misbehavior in BABE and
 /// GRANDPA. Any rewards for misbehavior reporting will be paid out to this
 /// account.
@@ -108,3 +109,4 @@ pub mod report {
         type GenericPublic = sp_core::sr25519::Public;
     }
 }
+*/

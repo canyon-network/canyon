@@ -27,7 +27,7 @@ use futures::future::FutureExt;
 use parking_lot::RwLock;
 
 use sc_rpc_api::{
-    author::{error::FutureResult, hash::ExtrinsicOrHash, AuthorApi},
+    author::{hash::ExtrinsicOrHash, AuthorApiServer},
     DenyUnsafe,
 };
 use sc_transaction_pool_api::{TransactionPool, TxHash};
@@ -37,7 +37,7 @@ use sp_runtime::traits::{BlakeTwo256, Block as BlockT, Hash};
 
 use cc_rpc_api::permastore::{
     error::{Error, InvalidCount, Result},
-    PermastoreApi,
+    PermastoreApiServer,
 };
 use cp_permastore::{PermaStorage, CHUNK_SIZE};
 
@@ -76,19 +76,19 @@ const MAX_UPLOAD_DATA_SIZE: u32 = 10 * 1024 * 1024;
 /// Maximum byte size of downloading transaction data directly. 12MiB
 const MAX_DOWNLOAD_DATA_SIZE: u32 = 12 * 1024 * 1024;
 
-impl<T, P, A, B> PermastoreApi<TxHash<P>, <B as BlockT>::Hash> for Permastore<T, P, A, B>
+#[async_trait::async_trait]
+impl<T, P, A, B> PermastoreApiServer<TxHash<P>, <B as BlockT>::Hash> for Permastore<T, P, A, B>
 where
     T: PermaStorage + 'static,
     P: TransactionPool + Send + Sync + 'static,
     B: BlockT,
-    A: AuthorApi<TxHash<P>, <B as BlockT>::Hash>,
+    A: AuthorApiServer<TxHash<P>, <B as BlockT>::Hash>,
 {
-    fn submit_extrinsic(&self, ext: Bytes, data: Bytes) -> FutureResult<TxHash<P>> {
+    async fn submit_extrinsic(&self, ext: Bytes, data: Bytes) -> Result<TxHash<P>> {
         if let Err(e) = self.submit(data) {
-            return async move { Err(sc_rpc_api::author::error::Error::Client(Box::new(e))) }
-                .boxed();
+            return Err(sc_rpc_api::author::error::Error::Client(Box::new(e)).into());
         }
-        self.author.submit_extrinsic(ext)
+        self.author.submit_extrinsic(ext).await.map_err(Into::into)
     }
 
     fn remove_extrinsic(
@@ -124,7 +124,7 @@ where
             .map(|c| BlakeTwo256::hash(c).encode())
             .collect();
 
-        let chunk_root = BlakeTwo256::ordered_trie_root(chunks);
+        let chunk_root = BlakeTwo256::ordered_trie_root(chunks, sp_runtime::StateVersion::V1);
 
         let key = chunk_root.encode();
 

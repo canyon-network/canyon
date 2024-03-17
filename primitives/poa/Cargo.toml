@@ -2,10 +2,10 @@
 name = "cp-poa"
 version = "0.1.0"
 authors = ["Canyon Labs <https://github.com/canyon-network>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-sp-api = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-api = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false , branch = "master" }
 
 cp-consensus-poa = { path = "../consensus/poa", default-features = false }
 

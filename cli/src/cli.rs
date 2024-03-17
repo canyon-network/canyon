@@ -16,42 +16,42 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
-use structopt::StructOpt;
-
 use sc_cli::{KeySubcommand, RunCmd, SignCmd, VanityCmd, VerifyCmd};
 
 /// An overarching CLI command definition.
-#[derive(Debug, StructOpt)]
+#[derive(Debug, clap::Parser)]
 pub struct Cli {
     /// Possible subcommand with parameters.
-    #[structopt(subcommand)]
+    #[command(subcommand)]
     pub subcommand: Option<Subcommand>,
+
     #[allow(missing_docs)]
-    #[structopt(flatten)]
+    #[clap(flatten)]
     pub run: RunCmd,
 }
 
 /// Possible subcommands of the main binary.
-#[derive(Debug, StructOpt)]
+#[derive(Debug, clap::Subcommand)]
 pub enum Subcommand {
-    /// Key management cli utilities
-    Key(KeySubcommand),
-
     /// The custom inspect subcommmand for decoding blocks and extrinsics.
-    #[structopt(
+    #[command(
         name = "inspect",
         about = "Decode given block or extrinsic using current native runtime."
     )]
     Inspect(canyon_inspect::cli::InspectCmd),
 
     /// The custom benchmark subcommmand benchmarking runtime pallets.
-    #[structopt(name = "benchmark", about = "Benchmark runtime pallets.")]
+    #[command(subcommand)]
     Benchmark(frame_benchmarking_cli::BenchmarkCmd),
 
     /// Try some experimental command on the runtime. This includes migration and runtime-upgrade
     /// testing.
     #[cfg(feature = "try-runtime")]
     TryRuntime(try_runtime_cli::TryRuntimeCmd),
+
+    /// Key management cli utilities
+    #[command(subcommand)]
+    Key(KeySubcommand),
 
     /// Verify a signature for a message, provided on STDIN, with a given (public or secret) key.
     Verify(VerifyCmd),

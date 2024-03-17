@@ -87,7 +87,7 @@ use sc_client_api::{backend::AuxStore, BlockBackend, BlockOf};
 use sc_consensus::{BlockCheckParams, BlockImport, BlockImportParams, ImportResult};
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder as BlockBuilderApi;
-use sp_blockchain::{well_known_cache_keys::Id as CacheKeyId, HeaderBackend, ProvideCache};
+use sp_blockchain::HeaderBackend;
 use sp_consensus::{Error as ConsensusError, SelectChain};
 use sp_runtime::{
     generic::BlockId,
@@ -252,23 +252,21 @@ fn find_recall_info<Block, Client>(
 ) -> Result<RecallInfo<Block>, Error<Block>>
 where
     Block: BlockT,
-    Client: BlockBackend<Block> + ProvideRuntimeApi<Block> + Send + Sync,
+    Client: BlockBackend<Block> + HeaderBackend<Block> + ProvideRuntimeApi<Block> + Send + Sync,
     Client::Api: PermastoreApi<Block, NumberFor<Block>, u32, Block::Hash>,
 {
-    let recall_block_id = BlockId::number(recall_block_number);
+    let recall_block_hash = client.hash(recall_block_number)?.unwrap();
 
-    let (header, extrinsics) = fetch_block(client, recall_block_id)?.deconstruct();
+    let (header, extrinsics) = fetch_block(client, recall_block_hash)?.deconstruct();
 
-    let weave_base = client
-        .runtime_api()
-        .weave_size(&BlockId::Hash(*header.parent_hash()))?;
+    let weave_base = client.runtime_api().weave_size(*header.parent_hash())?;
 
     let mut sized_extrinsics = Vec::with_capacity(extrinsics.len());
 
     let mut acc = 0u64;
     for (index, _extrinsic) in extrinsics.iter().enumerate() {
         let tx_size = client.runtime_api().data_size(
-            &recall_block_id,
+            recall_block_hash,
             recall_block_number,
             index as ExtrinsicIndex,
         )? as u64;
@@ -280,8 +278,7 @@ where
 
     log::trace!(
         target: "poa",
-        "The sized extrinsics found in recall block: {:?}",
-        sized_extrinsics,
+        "The sized extrinsics found in recall block: {sized_extrinsics:?}",
     );
 
     // No data store transactions in this block.
@@ -303,18 +300,21 @@ where
 /// Returns the header and body of block `id`.
 fn fetch_block<Block, Client>(
     client: &Arc<Client>,
-    id: BlockId<Block>,
+    block_hash: Block::Hash,
 ) -> Result<Block, Error<Block>>
 where
     Block: BlockT,
     Client: BlockBackend<Block>,
 {
-    Ok(client.block(&id)?.ok_or(Error::BlockNotFound(id))?.block)
+    Ok(client
+        .block(block_hash)?
+        .ok_or(Error::BlockNotFound(BlockId::Hash(block_hash)))?
+        .block)
 }
 
 /// Returns the block number of recall block.
 fn find_recall_block<Block: BlockT, RA>(
-    at: BlockId<Block>,
+    at: Block::Hash,
     recall_byte: DataIndex,
     runtime_api: &Arc<RA>,
 ) -> Result<NumberFor<Block>, Error<Block>>
@@ -324,7 +324,7 @@ where
 {
     runtime_api
         .runtime_api()
-        .find_recall_block(&at, recall_byte)?
+        .find_recall_block(at, recall_byte)?
         .ok_or(Error::RecallBlockNotFound(recall_byte))
 }
 
@@ -359,21 +359,21 @@ where
     /// Returns the number of recall block.
     fn find_recall_block(
         &self,
-        at: BlockId<Block>,
+        at: Block::Hash,
         recall_byte: DataIndex,
     ) -> Result<NumberFor<Block>, Error<Block>> {
         self.client
             .runtime_api()
-            .find_recall_block(&at, recall_byte)?
+            .find_recall_block(at, recall_byte)?
             .ok_or(Error::RecallBlockNotFound(recall_byte))
     }
 
     /// Creates the inherent data [`PoaOutcome`].
     pub fn build(&self, parent: Block::Hash) -> Result<PoaOutcome, Error<Block>> {
         log::debug!(target: "poa", "Start building poa on top of {:?}", parent);
-        let parent_id = BlockId::Hash(parent);
+        let parent_hash = parent;
 
-        let weave_size = self.client.runtime_api().weave_size(&parent_id)?;
+        let weave_size = self.client.runtime_api().weave_size(parent_hash)?;
 
         if weave_size == 0 {
             log::debug!(target: "poa", "Skipping the poa construction as the weave size is 0");
@@ -384,7 +384,7 @@ where
             max_depth,
             max_tx_path,
             max_chunk_path,
-        } = self.client.runtime_api().poa_config(&parent_id)?;
+        } = self.client.runtime_api().poa_config(parent_hash)?;
 
         for depth in MIN_DEPTH..=max_depth {
             let recall_byte = calculate_challenge_byte(parent.encode(), weave_size, depth);
@@ -393,7 +393,7 @@ where
                 "Attempting to generate poa at depth: {}, recall byte found: {}",
                 depth, recall_byte,
             );
-            let recall_block_number = self.find_recall_block(parent_id, recall_byte)?;
+            let recall_block_number = self.find_recall_block(parent_hash, recall_byte)?;
 
             log::debug!(
                 target: "poa", "Recall block number: {} was found given the recall byte: {}",
@@ -416,10 +416,9 @@ where
             // continue;
             // }
 
-            let recall_data = self.transaction_data_backend.transaction_data(
-                BlockId::Number(recall_block_number),
-                recall_extrinsic_index as u32,
-            );
+            let recall_data = self
+                .transaction_data_backend
+                .transaction_data(recall_block_number, recall_extrinsic_index as u32);
 
             match recall_data {
                 Ok(Some(tx_data)) => {
@@ -560,9 +559,9 @@ impl<B: Clone, I: Clone, C, S: Clone> Clone for PurePoaBlockImport<B, I, C, S> {
 impl<B, I, C, S> PurePoaBlockImport<B, I, C, S>
 where
     B: BlockT,
-    I: BlockImport<B, Transaction = sp_api::TransactionFor<C, B>> + Send + Sync,
+    I: BlockImport<B> + Send + Sync,
     I::Error: Into<ConsensusError>,
-    C: ProvideRuntimeApi<B> + Send + Sync + HeaderBackend<B> + AuxStore + ProvideCache<B> + BlockOf,
+    C: ProvideRuntimeApi<B> + Send + Sync + HeaderBackend<B> + AuxStore + BlockOf,
     C::Api: BlockBuilderApi<B>,
 {
     /// Creates a new block import suitable to be used in PoA.
@@ -580,21 +579,13 @@ where
 impl<B, I, C, S> BlockImport<B> for PurePoaBlockImport<B, I, C, S>
 where
     B: BlockT<Hash = canyon_primitives::Hash>,
-    I: BlockImport<B, Transaction = sp_api::TransactionFor<C, B>> + Send + Sync,
+    I: BlockImport<B> + Send + Sync,
     I::Error: Into<ConsensusError>,
     S: SelectChain<B>,
-    C: ProvideRuntimeApi<B>
-        + Send
-        + Sync
-        + BlockBackend<B>
-        + HeaderBackend<B>
-        + AuxStore
-        + ProvideCache<B>
-        + BlockOf,
+    C: ProvideRuntimeApi<B> + Send + Sync + BlockBackend<B> + HeaderBackend<B> + AuxStore + BlockOf,
     C::Api: BlockBuilderApi<B> + PermastoreApi<B, NumberFor<B>, u32, B::Hash> + PoaApi<B>,
 {
     type Error = ConsensusError;
-    type Transaction = sp_api::TransactionFor<C, B>;
 
     async fn check_block(
         &mut self,
@@ -605,21 +596,20 @@ where
 
     async fn import_block(
         &mut self,
-        block: BlockImportParams<B, Self::Transaction>,
-        new_cache: HashMap<CacheKeyId, Vec<u8>>,
+        block: BlockImportParams<B>,
     ) -> Result<ImportResult, Self::Error> {
-        let best_header = self
-            .select_chain
-            .best_chain()
-            .await
-            .map_err(|e| format!("Fetch best chain failed via select chain: {:?}", e))?;
+        let best_header = self.select_chain.best_chain().await.map_err(|e| {
+            ConsensusError::ClientImport(
+                format!("Fetch best chain failed via select chain: {e:?}",),
+            )
+        })?;
 
         let best_hash = best_header.hash();
 
         if self
             .client
             .runtime_api()
-            .require_proof_of_access(&BlockId::Hash(best_hash))
+            .require_proof_of_access(best_hash)
             .map_err(Error::<B>::ApiError)?
         {
             let header = block.post_header();
@@ -629,7 +619,7 @@ where
             let poa_config = self
                 .client
                 .runtime_api()
-                .poa_config(&BlockId::Hash(parent_hash))
+                .poa_config(parent_hash)
                 .map_err(Error::<B>::ApiError)?;
 
             poa.check_validity(&poa_config)
@@ -638,7 +628,7 @@ where
             let weave_size = self
                 .client
                 .runtime_api()
-                .weave_size(&BlockId::Hash(parent_hash))
+                .weave_size(parent_hash)
                 .map_err(Error::<B>::ApiError)?;
 
             let ProofOfAccess {
@@ -648,8 +638,7 @@ where
             } = poa;
 
             let recall_byte = calculate_challenge_byte(parent_hash.encode(), weave_size, depth);
-            let recall_block_number =
-                find_recall_block(BlockId::Hash(parent_hash), recall_byte, &self.client)?;
+            let recall_block_number = find_recall_block(parent_hash, recall_byte, &self.client)?;
 
             let recall_info = find_recall_info(recall_byte, recall_block_number, &self.client)?;
 
@@ -662,7 +651,7 @@ where
                 .client
                 .runtime_api()
                 .chunk_root(
-                    &BlockId::Hash(parent_hash),
+                    parent_hash,
                     recall_block_number,
                     recall_info.recall_extrinsic_index,
                 )
@@ -677,9 +666,6 @@ where
                 .map_err(Error::<B>::VerifyFailed)?;
         }
 
-        self.inner
-            .import_block(block, new_cache)
-            .await
-            .map_err(Into::into)
+        self.inner.import_block(block).await.map_err(Into::into)
     }
 }

@@ -30,10 +30,11 @@ pub type Hasher = sp_core::Blake2Hasher;
 
 /// Trie layout used for permastore.
 #[cfg(feature = "std")]
-pub type TrieLayout = sp_trie::Layout<Hasher>;
+pub type TrieLayout = sp_trie::LayoutV1<Hasher>;
 
 /// Error type of chunk proof verification.
-pub type VerifyError = sp_trie::VerifyError<sp_core::H256, sp_trie::Error>;
+#[cfg(feature = "std")]
+pub type VerifyError = sp_trie::VerifyError<sp_core::H256, sp_trie::Error<sp_core::H256>>;
 
 /// Low level APIs for manipulating the persistent transaction data storage.
 /// No data validation performed.

@@ -23,12 +23,12 @@ use sp_blockchain::HeaderBackend;
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::{
     generic::BlockId,
-    traits::{Block, Hash, HashFor, NumberFor},
+    traits::{Block, Hash, HashingFor, NumberFor},
 };
 
 /// A helper type for a generic block input.
 pub type BlockAddressFor<TBlock> =
-    BlockAddress<<HashFor<TBlock> as Hash>::Output, NumberFor<TBlock>>;
+    BlockAddress<<HashingFor<TBlock> as Hash>::Output, NumberFor<TBlock>>;
 
 /// A Pretty formatter implementation.
 pub trait PrettyPrinter<TBlock: Block> {
@@ -140,27 +140,27 @@ impl<TBlock: Block, TPrinter: PrettyPrinter<TBlock>> Inspector<TBlock, TPrinter>
             BlockAddress::Bytes(bytes) => TBlock::decode(&mut &*bytes)?,
             BlockAddress::Number(number) => {
                 let id = BlockId::number(number);
+                let hash = self.chain.expect_block_hash_from_id(&id)?;
                 let not_found = format!("Could not find block {:?}", id);
                 let body = self
                     .chain
-                    .block_body(&id)?
+                    .block_body(hash)?
                     .ok_or_else(|| Error::NotFound(not_found.clone()))?;
                 let header = self
                     .chain
-                    .header(id)?
+                    .header(hash)?
                     .ok_or_else(|| Error::NotFound(not_found.clone()))?;
                 TBlock::new(header, body)
             }
             BlockAddress::Hash(hash) => {
-                let id = BlockId::hash(hash);
-                let not_found = format!("Could not find block {:?}", id);
+                let not_found = format!("Could not find block {hash:?}");
                 let body = self
                     .chain
-                    .block_body(&id)?
+                    .block_body(hash)?
                     .ok_or_else(|| Error::NotFound(not_found.clone()))?;
                 let header = self
                     .chain
-                    .header(id)?
+                    .header(hash)?
                     .ok_or_else(|| Error::NotFound(not_found.clone()))?;
                 TBlock::new(header, body)
             }
@@ -170,7 +170,7 @@ impl<TBlock: Block, TPrinter: PrettyPrinter<TBlock>> Inspector<TBlock, TPrinter>
     /// Get a pretty-printed extrinsic.
     pub fn extrinsic(
         &self,
-        input: ExtrinsicAddress<<HashFor<TBlock> as Hash>::Output, NumberFor<TBlock>>,
+        input: ExtrinsicAddress<<HashingFor<TBlock> as Hash>::Output, NumberFor<TBlock>>,
     ) -> Result<String, Error> {
         struct ExtrinsicPrinter<'a, A: Block, B>(A::Extrinsic, &'a B);
         impl<'a, A: Block, B: PrettyPrinter<A>> fmt::Display for ExtrinsicPrinter<'a, A, B> {

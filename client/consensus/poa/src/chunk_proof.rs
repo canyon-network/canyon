@@ -97,7 +97,8 @@ impl ChunkProofBuilder {
         let mut chunk_root = sp_trie::empty_trie_root::<TrieLayout>();
 
         {
-            let mut trie = sp_trie::TrieDBMut::<TrieLayout>::new(&mut db, &mut chunk_root);
+            let mut trie =
+                sp_trie::trie_types::TrieDBMutBuilderV1::new(&mut db, &mut chunk_root).build();
 
             let chunks = self
                 .data

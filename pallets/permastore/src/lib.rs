@@ -46,12 +46,14 @@
 use codec::{Decode, Encode};
 use scale_info::TypeInfo;
 
+use frame_system::pallet_prelude::BlockNumberFor;
 use sp_runtime::{
     traits::{AccountIdConversion, DispatchInfoOf, SaturatedConversion, SignedExtension},
     transaction_validity::{InvalidTransaction, TransactionValidity, TransactionValidityError},
 };
 use sp_std::{marker::PhantomData, prelude::*};
 
+use core::convert::TryInto;
 use frame_support::{
     ensure,
     traits::{Currency, ExistenceRequirement, Get, IsSubType},
@@ -65,9 +67,9 @@ mod benchmarking;
 mod mock;
 #[cfg(all(feature = "std", test))]
 mod tests;
-pub mod weights;
+// pub mod weights;
 
-pub use self::weights::WeightInfo;
+// pub use self::weights::WeightInfo;
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
 
@@ -90,7 +92,7 @@ pub mod pallet {
     #[pallet::config]
     pub trait Config: frame_system::Config {
         /// The overarching event type.
-        type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+        type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
         /// The native currency.
         type Currency: Currency<Self::AccountId>;
@@ -101,12 +103,12 @@ pub mod pallet {
         /// Maximum of a transaction data in bytes.
         type MaxDataSize: Get<u32>;
 
-        /// Weight information for extrinsics in this pallet.
-        type WeightInfo: WeightInfo;
+        // Weight information for extrinsics in this pallet.
+        // type WeightInfo: WeightInfo;
     }
 
     #[pallet::pallet]
-    #[pallet::generate_store(pub(super) trait Store)]
+    #[pallet::without_storage_info]
     pub struct Pallet<T>(_);
 
     #[pallet::hooks]
@@ -114,7 +116,8 @@ pub mod pallet {
         fn on_initialize(_n: BlockNumberFor<T>) -> Weight {
             // Clear the block size of last block.
             <BlockDataSize<T>>::kill();
-            1
+            Weight::zero()
+            // 1u32.into()
         }
 
         fn on_finalize(n: BlockNumberFor<T>) {
@@ -133,7 +136,7 @@ pub mod pallet {
         /// The minimum data size is 1 bytes, the maximum is `MAX_DATA_SIZE`.
         /// The digest of data will be recorded on chain, the actual data has
         /// to be stored off-chain before executing this extrinsic.
-        #[pallet::weight(T::WeightInfo::store())]
+        #[pallet::weight(Weight::zero())]
         pub fn store(origin: OriginFor<T>, data_size: u32, chunk_root: T::Hash) -> DispatchResult {
             let sender = ensure_signed(origin)?;
 
@@ -170,10 +173,10 @@ pub mod pallet {
         /// By the mean of forgetting a data, this piece of data will be
         /// prevented from being selected as the random data source in the
         /// PoA consensus.
-        #[pallet::weight(T::WeightInfo::forget())]
+        #[pallet::weight(Weight::zero())]
         pub fn forget(
             origin: OriginFor<T>,
-            block_number: T::BlockNumber,
+            block_number: BlockNumberFor<T>,
             extrinsic_index: ExtrinsicIndex,
         ) -> DispatchResult {
             let sender = ensure_signed(origin)?;
@@ -185,7 +188,7 @@ pub mod pallet {
             // refund the remaining fee.
             Self::refund_storage_fee(&sender, block_number);
 
-            Self::deposit_event(Event::Forgot(block_number, extrinsic_index));
+            // Self::deposit_event(Event::Forgot(block_number, extrinsic_index));
 
             Ok(())
         }
@@ -197,8 +200,8 @@ pub mod pallet {
     pub enum Event<T: Config> {
         /// New storage order. [who, chunk_root]
         Stored(T::AccountId, T::Hash),
-        /// The data has been forgotten. [block_number, extrinsic_index]
-        Forgot(T::BlockNumber, ExtrinsicIndex),
+        // The data has been forgotten. [block_number, extrinsic_index]
+        // Forgot(BlockNumberFor<T>, ExtrinsicIndex),
     }
 
     /// Error for the Permastore pallet.
@@ -220,7 +223,7 @@ pub mod pallet {
         Blake2_128Concat,
         T::AccountId,
         Twox64Concat,
-        (T::BlockNumber, ExtrinsicIndex),
+        (BlockNumberFor<T>, ExtrinsicIndex),
         BalanceOf<T>,
     >;
 
@@ -240,13 +243,13 @@ pub mod pallet {
     #[pallet::storage]
     #[pallet::getter(fn chunk_root_index)]
     pub(super) type ChunkRootIndex<T: Config> =
-        StorageMap<_, Twox64Concat, (T::BlockNumber, ExtrinsicIndex), T::Hash>;
+        StorageMap<_, Twox64Concat, (BlockNumberFor<T>, ExtrinsicIndex), T::Hash>;
 
     /// (block_number, extrinsic_index) => transaction_data_size
     #[pallet::storage]
     #[pallet::getter(fn transaction_data_size)]
     pub(super) type TransactionDataSize<T: Config> =
-        StorageMap<_, Twox64Concat, (T::BlockNumber, ExtrinsicIndex), u32, ValueQuery>;
+        StorageMap<_, Twox64Concat, (BlockNumberFor<T>, ExtrinsicIndex), u32, ValueQuery>;
 
     /// FIXME: find a proper way to store these info.
     ///
@@ -259,18 +262,18 @@ pub mod pallet {
     #[pallet::storage]
     #[pallet::getter(fn global_block_number_index)]
     pub(super) type GlobalBlockNumberIndex<T: Config> =
-        StorageValue<_, Vec<T::BlockNumber>, ValueQuery>;
+        StorageValue<_, Vec<BlockNumberFor<T>>, ValueQuery>;
 }
 
 impl<T: Config> Pallet<T> {
     /// Returns the chunk root given `block_number` and `extrinsic_index`.
-    pub fn chunk_root(block_number: T::BlockNumber, extrinsic_index: u32) -> Option<T::Hash> {
+    pub fn chunk_root(block_number: BlockNumberFor<T>, extrinsic_index: u32) -> Option<T::Hash> {
         <ChunkRootIndex<T>>::get((block_number, extrinsic_index))
     }
 
     /// Returns the block number in which the recall byte is included.
-    pub fn find_recall_block(recall_byte: u64) -> Option<T::BlockNumber> {
-        frame_support::log::debug!(
+    pub fn find_recall_block(recall_byte: u64) -> Option<BlockNumberFor<T>> {
+        log::debug!(
             target: "runtime::permastore",
             "Global weave size list: {:?}",
             <GlobalBlockNumberIndex<T>>::get()
@@ -292,7 +295,7 @@ impl<T: Config> Pallet<T> {
     }
 
     /// Returns the data size of transaction given `block_number` and `extrinsic_index`.
-    pub fn data_size(block_number: T::BlockNumber, extrinsic_index: u32) -> u32 {
+    pub fn data_size(block_number: BlockNumberFor<T>, extrinsic_index: u32) -> u32 {
         <TransactionDataSize<T>>::get((block_number, extrinsic_index))
     }
 
@@ -330,12 +333,12 @@ impl<T: Config> Pallet<T> {
         data_size: u32,
     ) -> Result<BalanceOf<T>, sp_runtime::DispatchError> {
         let fee = Self::calculate_storage_fee(data_size);
-        let treasury_account: T::AccountId = T::TreasuryPalletId::get().into_account();
+        let treasury_account: T::AccountId = T::TreasuryPalletId::get().try_into_account().unwrap();
         T::Currency::transfer(who, &treasury_account, fee, ExistenceRequirement::KeepAlive)?;
         Ok(fee)
     }
 
-    fn refund_storage_fee(_who: &T::AccountId, _created_at: T::BlockNumber) {}
+    fn refund_storage_fee(_who: &T::AccountId, _created_at: BlockNumberFor<T>) {}
 }
 
 /// A signed extension that checks for the `store` call.
@@ -351,13 +354,14 @@ impl<T: Config + Send + Sync> sp_std::fmt::Debug for CheckStore<T> {
     }
 }
 
+/*
 impl<T: Config + Send + Sync> SignedExtension for CheckStore<T>
 where
-    <T as frame_system::Config>::Call: IsSubType<Call<T>>,
+    <T as frame_system::Config>::RuntimeCall: IsSubType<Call<T>>,
 {
     const IDENTIFIER: &'static str = "CheckStore";
     type AccountId = T::AccountId;
-    type Call = <T as frame_system::Config>::Call;
+    type Call = <T as frame_system::Config>::RuntimeCall;
     // TODO: Sign the chunk root
     type AdditionalSigned = ();
     type Pre = ();
@@ -402,3 +406,4 @@ where
         Ok(Default::default())
     }
 }
+*/

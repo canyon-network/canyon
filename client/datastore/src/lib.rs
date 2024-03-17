@@ -114,7 +114,7 @@ pub enum Error<Block: BlockT> {
     BlockNumberNotFound(BlockId<Block>),
     /// Chunk root does not exist.
     #[error("Chunk root is None at block: {0}, extrinsic index: {1}")]
-    ChunkRootIsNone(BlockId<Block>, u32),
+    ChunkRootIsNone(NumberFor<Block>, u32),
     /// Blockchain error.
     #[error(transparent)]
     Blockchain(#[from] Box<sp_blockchain::Error>),
@@ -130,7 +130,7 @@ pub trait ChunkRootBackend<Block: BlockT> {
     /// It's fetched from the runtime now.
     fn chunk_root(
         &self,
-        at: Option<BlockId<Block>>,
+        at: Option<Block::Hash>,
         block_number: NumberFor<Block>,
         extrinsic_index: u32,
     ) -> Result<Option<Block::Hash>, Error<Block>>;
@@ -143,7 +143,7 @@ pub trait TransactionDataBackend<Block: BlockT>: PermaStorage + ChunkRootBackend
     /// Get transaction data. Returns `None` if data is not found.
     fn transaction_data(
         &self,
-        id: BlockId<Block>,
+        block_number: NumberFor<Block>,
         extrinsic_index: u32,
     ) -> Result<Option<Vec<u8>>, Error<Block>>;
 }
@@ -156,30 +156,23 @@ where
 {
     fn transaction_data(
         &self,
-        block_id: BlockId<Block>,
+        block_number: NumberFor<Block>,
         extrinsic_index: u32,
     ) -> Result<Option<Vec<u8>>, Error<Block>> {
         log::debug!(
             target: "datastore",
-            "Fetching chunk root at block_id: {}, extrinsic_index: {}",
-            block_id, extrinsic_index,
+            "Fetching chunk root of block#{block_number}, extrinsic_index: {extrinsic_index}",
         );
-
-        let block_number = self
-            .client
-            .block_number_from_id(&block_id)
-            .map_err(Box::new)?
-            .ok_or(Error::BlockNumberNotFound(block_id))?;
 
         let chunk_root = self
             .chunk_root(None, block_number, extrinsic_index)?
-            .ok_or(Error::ChunkRootIsNone(block_id, extrinsic_index))?;
+            .ok_or(Error::ChunkRootIsNone(block_number, extrinsic_index))?;
 
         let key = chunk_root.encode();
+
         log::debug!(
             target: "datastore",
-            "Fetching the transaction data, chunk root: {:?}, database key: {:?}",
-            chunk_root, key,
+            "Fetching the transaction data, chunk root: {chunk_root:?}, database key: {key:?}",
         );
 
         Ok(self.retrieve(&key))
@@ -194,14 +187,14 @@ where
 {
     fn chunk_root(
         &self,
-        at: Option<BlockId<Block>>,
+        at: Option<Block::Hash>,
         block_number: NumberFor<Block>,
         extrinsic_index: u32,
     ) -> Result<Option<Block::Hash>, Error<Block>> {
-        let at = at.unwrap_or_else(|| BlockId::hash(self.client.info().best_hash));
+        let at = at.unwrap_or_else(|| self.client.info().best_hash);
         self.client
             .runtime_api()
-            .chunk_root(&at, block_number, extrinsic_index)
+            .chunk_root(at, block_number, extrinsic_index)
             .map_err(Error::ApiError)
     }
 }

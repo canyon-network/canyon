@@ -2,27 +2,27 @@
 name = "cc-datastore"
 version = "0.1.0"
 authors = ["Canyon Labs <https://github.com/canyon-network>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "2.3", features = ["derive"] }
+codec = { package = "parity-scale-codec", version = "3", features = ["derive"] }
 log = "0.4"
 thiserror = "1.0"
 
-sp-api = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-offchain = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-api = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
+sp-blockchain = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
+sp-core = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
+sp-runtime = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
+sp-offchain = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
 
-sc-client-db = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-client-db = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
 
 canyon-primitives = { path = "../../primitives" }
 cp-permastore = { path = "../../primitives/permastore" }
 
 [dev-dependencies]
-sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "master" }
-substrate-test-runtime-client = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-keystore = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
+substrate-test-runtime-client = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
 
 [features]
 test-helpers = []

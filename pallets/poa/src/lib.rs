@@ -52,11 +52,12 @@ use sp_std::prelude::*;
 
 use frame_support::{
     inherent::{InherentData, InherentIdentifier, MakeFatalError, ProvideInherent},
-    weights::DispatchClass,
-    RuntimeDebug,
+    pallet_prelude::DispatchClass,
 };
+use frame_system::pallet_prelude::BlockNumberFor;
 
 use canyon_primitives::Depth;
+use core::convert::TryInto;
 use cp_consensus_poa::{PoaConfiguration, PoaOutcome, POA_ENGINE_ID, POA_INHERENT_IDENTIFIER};
 
 #[cfg(any(feature = "runtime-benchmarks", test))]
@@ -65,9 +66,9 @@ mod benchmarking;
 mod mock;
 #[cfg(all(feature = "std", test))]
 mod tests;
-pub mod weights;
+// pub mod weights;
 
-pub use self::weights::WeightInfo;
+// pub use self::weights::WeightInfo;
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
 
@@ -75,7 +76,7 @@ pub use pallet::*;
 ///
 /// This struct is used for calculating the historical average depth
 /// of a validator, which implies the storage capacity per validator.
-#[derive(RuntimeDebug, Clone, Eq, PartialEq, Encode, Decode, MaxEncodedLen, TypeInfo)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode, MaxEncodedLen, TypeInfo)]
 pub struct DepthInfo<BlockNumber> {
     /// Number of blocks authored by a validator since the weave is non-empty.
     ///
@@ -124,7 +125,7 @@ pub trait BlockAuthor<AccountId> {
 }
 
 /// Error type for the poa inherent.
-#[derive(RuntimeDebug, Clone, Encode, Decode, TypeInfo)]
+#[derive(Debug, Clone, Encode, Decode, TypeInfo)]
 pub enum InherentError {
     /// The poa entry included is invalid.
     InvalidProofOfAccess,
@@ -146,18 +147,17 @@ pub mod pallet {
     #[pallet::config]
     pub trait Config: frame_system::Config {
         /// The overarching event type.
-        type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+        type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
         /// Find the author of current block.
         type BlockAuthor: BlockAuthor<Self::AccountId>;
 
-        /// Weight information for extrinsics in this pallet.
-        type WeightInfo: WeightInfo;
+        // Weight information for extrinsics in this pallet.
+        // type WeightInfo: WeightInfo;
     }
 
     #[pallet::pallet]
-    #[pallet::generate_store(pub(super) trait Store)]
-    #[pallet::generate_storage_info]
+    #[pallet::without_storage_info]
     pub struct Pallet<T>(_);
 
     #[pallet::hooks]
@@ -170,14 +170,15 @@ pub mod pallet {
         /// Handle the inherent data from the poa consensus.
         ///
         /// Deposit a consensus log if `poa_outcome` contains a valid `ProofOfAccess`.
-        #[pallet::weight((T::WeightInfo::deposit(), DispatchClass::Mandatory))]
+        // #[pallet::weight((T::WeightInfo::deposit(), DispatchClass::Mandatory))]
+        #[pallet::weight((Weight::zero(), DispatchClass::Mandatory))]
         pub fn deposit(origin: OriginFor<T>, poa_outcome: PoaOutcome) -> DispatchResult {
             ensure_none(origin)?;
 
             match poa_outcome {
                 PoaOutcome::Justification(poa) => {
                     poa.check_validity(&Self::poa_config()).map_err(|e| {
-                        frame_support::log::error!(
+                        log::error!(
                             target: "runtime::poa",
                             "Checking poa validity failed when creating the poa `deposit` inherent: {:?}",
                             e,
@@ -205,7 +206,8 @@ pub mod pallet {
         }
 
         /// Set new poa configuration.
-        #[pallet::weight(T::WeightInfo::set_config())]
+        // #[pallet::weight(T::WeightInfo::set_config())]
+        #[pallet::weight(Weight::zero())]
         pub fn set_config(origin: OriginFor<T>, new: PoaConfiguration) -> DispatchResult {
             ensure_root(origin)?;
 
@@ -231,7 +233,7 @@ pub mod pallet {
                 Ok(Some(outcome)) => outcome,
                 Ok(None) => return None,
                 Err(e) => {
-                    frame_support::log::error!(
+                    log::error!(
                         target: "runtime::poa",
                         "Error occurred when getting the inherent data of poa: {:?}",
                         e,
@@ -250,7 +252,7 @@ pub mod pallet {
                 Call::deposit {
                     poa_outcome: PoaOutcome::Justification(poa),
                 } => poa.check_validity(&Self::poa_config()).map_err(|e| {
-                    frame_support::log::error!(
+                    log::error!(
                         target: "runtime::poa",
                         "Check inherent failed due to poa is invalid: {:?}", e,
                     );
@@ -306,7 +308,7 @@ pub mod pallet {
     #[pallet::storage]
     #[pallet::getter(fn history_depth)]
     pub type HistoryDepth<T: Config> =
-        StorageMap<_, Blake2_128Concat, T::AccountId, DepthInfo<T::BlockNumber>>;
+        StorageMap<_, Blake2_128Concat, T::AccountId, DepthInfo<BlockNumberFor<T>>>;
 
     /// Helper storage item of current block author for easier testing.
     #[cfg(test)]

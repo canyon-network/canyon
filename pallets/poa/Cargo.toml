@@ -2,36 +2,37 @@
 name = "pallet-poa"
 version = "0.1.0"
 authors = ["Canyon Labs <https://github.com/canyon-network>"]
-edition = "2018"
+edition = "2021"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "2.3", default-features = false, features = ["derive", "max-encoded-len"] }
-scale-info = { version = "1.0", default-features = false, features = ["derive"] }
+codec = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive", "max-encoded-len"] }
+log = { version = "0.4.14", default-features = false }
+scale-info = { version = "2.0", default-features = false, features = ["derive"] }
 serde = { version = "1.0.101", optional = true }
 
-sp-io = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
-sp-std = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-io = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false , branch = "master" }
+sp-runtime = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false , branch = "master" }
+sp-std = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false , branch = "master" }
 
-frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, optional = true , branch = "master" }
-frame-support = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
-frame-system = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+frame-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false, optional = true , branch = "master" }
+frame-support = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false , branch = "master" }
+frame-system = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false , branch = "master" }
 
 canyon-primitives = { path = "../../primitives/", default-features = false }
 cp-consensus-poa = { path = "../../primitives/consensus/poa", default-features = false }
 
 [dev-dependencies]
-sc-block-builder = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-client-db = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-keyring = { git = "https://github.com/paritytech/substrate", branch = "master" }
-pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "master" }
-substrate-test-runtime = { git = "https://github.com/paritytech/substrate", branch = "master" }
-substrate-test-runtime-client = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-block-builder = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
+sc-client-db = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
+sp-blockchain = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
+sp-core = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
+sp-keyring = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
+pallet-balances = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
+substrate-test-runtime = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
+substrate-test-runtime-client = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
 
 cc-consensus-poa = { path = "../../client/consensus/poa" }
 cp-permastore = { path = "../../primitives/permastore" }
@@ -40,6 +41,7 @@ cp-permastore = { path = "../../primitives/permastore" }
 default = ["std"]
 std = [
 	"codec/std",
+	"log/std",
 	"scale-info/std",
 	"serde",
 	"sp-io/std",

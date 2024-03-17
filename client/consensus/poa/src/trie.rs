@@ -39,7 +39,7 @@ pub fn prepare_trie_proof(leaves: Vec<Vec<u8>>) -> (MemoryDB<Hasher>, sp_core::H
     let mut root = empty_trie_root::<TrieLayout>();
 
     {
-        let mut trie = TrieDBMut::<TrieLayout>::new(&mut db, &mut root);
+        let mut trie = sp_trie::trie_types::TrieDBMutBuilderV1::new(&mut db, &mut root).build();
 
         for (index, leaf) in leaves.iter().enumerate() {
             trie.insert(&encode_index(index as u32), leaf)

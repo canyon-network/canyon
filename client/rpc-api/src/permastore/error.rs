@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Canyon. If not, see <http://www.gnu.org/licenses/>.
 
-use jsonrpc_core as rpc;
+use jsonrpsee::types::error::{ErrorObject, ErrorObjectOwned};
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -64,51 +64,51 @@ pub enum Error {
     UnsafeRpcCalled(#[from] sc_rpc_api::UnsafeRpcError),
 }
 
-const BASE_ERROR: i64 = 6000;
+const BASE_ERROR: i32 = 6000;
 
-impl From<Error> for rpc::Error {
+impl From<Error> for ErrorObjectOwned {
     fn from(e: Error) -> Self {
         match e {
-            Error::DataExists => rpc::Error {
-                code: rpc::ErrorCode::ServerError(BASE_ERROR),
-                message: "transaction data already exists".into(),
-                data: None,
-            },
-            Error::ChunkExists => rpc::Error {
-                code: rpc::ErrorCode::ServerError(BASE_ERROR + 1),
-                message: "chunk data already exists".into(),
-                data: None,
-            },
-            Error::DataTooLarge( invalid_count) => rpc::Error {
-                code: rpc::ErrorCode::ServerError(BASE_ERROR + 2),
-                message: format!("transaction data is too large. {}", invalid_count),
-                data: Some("the transaction data has to be uploaded or downloaded chunk by chunk for being too large.".into()),
-            },
-            Error::ChunkTooLarge => rpc::Error {
-                code: rpc::ErrorCode::ServerError(BASE_ERROR + 3),
-                message: "chunk data is too large".into(),
-                data: None,
-            },
-            Error::DataPathTooLarge => rpc::Error {
-                code: rpc::ErrorCode::ServerError(BASE_ERROR + 4),
-                message: "data path is too large".into(),
-                data: None,
-            },
-            Error::DataSizeTooLarge => rpc::Error {
-                code: rpc::ErrorCode::ServerError(BASE_ERROR + 5),
-                message: "data size is too large".into(),
-                data: None,
-            },
-            Error::InvalidProof => rpc::Error {
-                code: rpc::ErrorCode::ServerError(BASE_ERROR + 6),
-                message: "chunk proof is invalid".into(),
-                data: None,
-            },
-            Error::AuthoringApiError(e) => rpc::Error {
-                code: rpc::ErrorCode::ServerError(BASE_ERROR + 7),
-                message: e.to_string(),
-                data: None,
-            },
+            Error::DataExists => ErrorObject::owned(
+                BASE_ERROR,
+                "transaction data already exists",
+                None::<()>,
+            ),
+            Error::ChunkExists => ErrorObject::owned(
+                BASE_ERROR + 1,
+                "chunk data already exists",
+                None::<()>,
+            ),
+            Error::DataTooLarge( invalid_count) => ErrorObject::owned(
+                BASE_ERROR + 2,
+                format!("transaction data is too large. {}", invalid_count),
+                Some("the transaction data has to be uploaded or downloaded chunk by chunk for being too large.".to_string()),
+            ),
+            Error::ChunkTooLarge => ErrorObject::owned(
+                BASE_ERROR + 3,
+                "chunk data is too large",
+                None::<()>,
+            ),
+            Error::DataPathTooLarge => ErrorObject::owned(
+                BASE_ERROR + 4,
+                "data path is too large",
+                None::<()>,
+            ),
+            Error::DataSizeTooLarge => ErrorObject::owned(
+                BASE_ERROR + 5,
+                "data size is too large",
+                None::<()>,
+            ),
+            Error::InvalidProof => ErrorObject::owned(
+                BASE_ERROR + 6,
+                "chunk proof is invalid",
+                None::<()>,
+            ),
+            Error::AuthoringApiError(e) => ErrorObject::owned(
+                BASE_ERROR + 7,
+                e.to_string(),
+                None::<()>,
+            ),
             Error::UnsafeRpcCalled(e) => e.into(),
         }
     }

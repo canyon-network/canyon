@@ -2,15 +2,15 @@
 name = "cp-permastore"
 version = "0.1.0"
 authors = ["Canyon Labs <https://github.com/canyon-network>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "2.3", default-features = false, features = ["derive"] }
+codec = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 
-sp-api = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
-sp-core = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
-sp-std = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
-sp-trie = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "master" }
+sp-api = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false , branch = "master" }
+sp-core = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false , branch = "master" }
+sp-std = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false , branch = "master" }
+sp-trie = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false , branch = "master" }
 
 [features]
 default = ["std"]

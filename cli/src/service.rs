@@ -154,10 +154,7 @@ pub fn new_partial(
                     slot_duration,
                 );
 
-            let uncles =
-                sp_authorship::InherentDataProvider::<<Block as BlockT>::Header>::check_inherents();
-
-            Ok((timestamp, slot, uncles))
+            Ok((timestamp, slot))
         },
         &task_manager.spawn_essential_handle(),
         config.prometheus_registry(),
@@ -367,11 +364,6 @@ pub fn new_full_base(
                 let client_clone3 = client_clone.clone();
                 let offchain_storage_clone = offchain_storage.clone();
                 async move {
-                    let uncles = sc_consensus_uncles::create_uncles_inherent_data_provider(
-                        &*client_clone,
-                        parent,
-                    )?;
-
                     let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
                     let slot = sp_consensus_babe::inherents::InherentDataProvider::from_timestamp_and_duration(
@@ -385,7 +377,7 @@ pub fn new_full_base(
                         cc_datastore::PermanentStorage::new(offchain_storage_clone, client_clone3),
                     )?;
 
-                    Ok((timestamp, slot, uncles, poa))
+                    Ok((timestamp, slot, poa))
                 }
             },
             force_authoring,
@@ -575,10 +567,7 @@ pub fn new_light_base(
                     slot_duration,
                 );
 
-            let uncles =
-                sp_authorship::InherentDataProvider::<<Block as BlockT>::Header>::check_inherents();
-
-            Ok((timestamp, slot, uncles))
+            Ok((timestamp, slot))
         },
         &task_manager.spawn_essential_handle(),
         config.prometheus_registry(),

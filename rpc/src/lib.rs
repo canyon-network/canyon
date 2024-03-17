@@ -33,14 +33,15 @@
 
 use std::sync::Arc;
 
+use jsonrpsee::RpcModule;
 use sc_client_api::AuxStore;
 use sc_consensus_babe::{Config, Epoch};
 use sc_consensus_babe_rpc::BabeRpcHandler;
 use sc_consensus_epochs::SharedEpochChanges;
-use sc_finality_grandpa::{
+use sc_consensus_grandpa::{
     FinalityProofProvider, GrandpaJustificationStream, SharedAuthoritySet, SharedVoterState,
 };
-use sc_finality_grandpa_rpc::GrandpaRpcHandler;
+use sc_consensus_grandpa_rpc::GrandpaRpcHandler;
 use sc_rpc::SubscriptionTaskExecutor;
 pub use sc_rpc_api::DenyUnsafe;
 use sc_transaction_pool_api::TransactionPool;
@@ -141,10 +142,11 @@ where
         Metadata = sc_rpc_api::Metadata,
     >,
 {
-    use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
-    use substrate_frame_rpc_system::{FullSystem, SystemApi};
+    use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
+    use substrate_frame_rpc_system::{System, SystemApiServer};
 
-    let mut io = jsonrpc_core::IoHandler::default();
+    let mut io = RpcModule::new(());
+
     let FullDeps {
         client,
         pool,
@@ -169,77 +171,48 @@ where
         finality_provider,
     } = grandpa;
 
-    io.extend_with(SystemApi::to_delegate(FullSystem::new(
-        client.clone(),
-        pool.clone(),
-        deny_unsafe,
-    )));
-    io.extend_with(TransactionPaymentApi::to_delegate(TransactionPayment::new(
-        client.clone(),
-    )));
-    io.extend_with(sc_consensus_babe_rpc::BabeApi::to_delegate(
-        BabeRpcHandler::new(
-            client.clone(),
-            shared_epoch_changes.clone(),
-            keystore,
-            babe_config,
-            select_chain,
-            deny_unsafe,
-        ),
-    ));
-    io.extend_with(sc_finality_grandpa_rpc::GrandpaApi::to_delegate(
-        GrandpaRpcHandler::new(
-            shared_authority_set.clone(),
-            shared_voter_state,
-            justification_stream,
-            subscription_executor,
-            finality_provider,
-        ),
-    ));
+    io.merge(System::new(client.clone(), pool.clone(), deny_unsafe).into_rpc());
+    io.merge(TransactionPayment::new(client.clone()).into_rpc());
 
-    io.extend_with(sc_sync_state_rpc::SyncStateRpcApi::to_delegate(
-        sc_sync_state_rpc::SyncStateRpcHandler::new(
-            chain_spec,
-            client,
-            shared_authority_set,
-            shared_epoch_changes,
-            deny_unsafe,
-        )?,
-    ));
+    // io.extend_with(sc_consensus_babe_rpc::BabeApi::to_delegate(
+    // BabeRpcHandler::new(
+    // client.clone(),
+    // shared_epoch_changes.clone(),
+    // keystore,
+    // babe_config,
+    // select_chain,
+    // deny_unsafe,
+    // ),
+    // ));
+    // io.extend_with(sc_finality_grandpa_rpc::GrandpaApi::to_delegate(
+    // GrandpaRpcHandler::new(
+    // shared_authority_set.clone(),
+    // shared_voter_state,
+    // justification_stream,
+    // subscription_executor,
+    // finality_provider,
+    // ),
+    // ));
 
-    io.extend_with(cc_rpc_api::permastore::PermastoreApi::to_delegate(
+    // io.extend_with(sc_sync_state_rpc::SyncStateRpcApi::to_delegate(
+    // sc_sync_state_rpc::SyncStateRpcHandler::new(
+    // chain_spec,
+    // client,
+    // shared_authority_set,
+    // shared_epoch_changes,
+    // deny_unsafe,
+    // )?,
+    // ));
+
+    io.merge(
         cc_rpc::permastore::Permastore::<_, _, _, Block>::new(
             perma_storage,
             pool,
             author,
             deny_unsafe,
-        ),
-    ));
+        )
+        .into_rpc(),
+    );
 
     Ok(io)
-}
-
-/// Instantiate all Light RPC extensions.
-pub fn create_light<C, P, M, F>(deps: LightDeps<C, F, P>) -> jsonrpc_core::IoHandler<M>
-where
-    C: sp_blockchain::HeaderBackend<Block>,
-    C: Send + Sync + 'static,
-    F: sc_client_api::light::Fetcher<Block> + 'static,
-    P: TransactionPool + 'static,
-    M: jsonrpc_core::Metadata + Default,
-{
-    use substrate_frame_rpc_system::{LightSystem, SystemApi};
-
-    let LightDeps {
-        client,
-        pool,
-        remote_blockchain,
-        fetcher,
-    } = deps;
-    let mut io = jsonrpc_core::IoHandler::default();
-    io.extend_with(SystemApi::<Hash, AccountId, Index>::to_delegate(
-        LightSystem::new(client, remote_blockchain, fetcher, pool),
-    ));
-
-    io
 }
